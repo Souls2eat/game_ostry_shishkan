@@ -1,1 +1,1 @@
-print("Пиписька рома")
+print('chipi chipi chapa chapa')
