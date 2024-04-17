@@ -1,22 +1,26 @@
-import pygame
+from pygame import *
 
-pygame.init()
-clock = pygame.time.Clock()
+clock = time.Clock()
 
-screen = pygame.display.set_mode((1600, 900))
-pygame.display.set_caption("Супер-мега игра")
+screen = display.set_mode((1600, 900))
+display.set_caption("Супер-мега игра")
 
-img = pygame.image.load("ff").convert_alpha()
+img = image.load("background_norm1.jpg").convert_alpha()
+
 
 running = True
 while running:
 
-    screen.blit()
+    screen.blit(img, (0, 0))
 
     clock.tick(75)
-    pygame.display.update()
+    display.update()
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+    for e in event.get():
+        keys = key.get_pressed()
+        if keys[K_ESCAPE]:
             running = False
-            pygame.quit()
+        if e.type == QUIT:
+            running = False
+        
+
