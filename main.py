@@ -33,14 +33,19 @@ class Tower(SpriteGame): # башня, она же "растение"
         if self.group == 'attack':  # пример из пвз: горохострел
             
             if self.name == 'strelyatel':  # циферки поменять
-                self.hp = 20
+                self.hp = 200
                 self.atk = 20
                 self.bullet_speed = 5
                 self.attack_cooldown = 75
                 self.damage_type = ''
 
         elif self.group == 'defend':  # пример из пвз: стеноорех
-            pass
+            if self.name == 'terpila':  # циферки поменять
+                self.hp = 5000
+                self.atk = 0
+                self.bullet_speed = 0
+                self.attack_cooldown = 0
+                self.damage_type = ''
 
         elif self.group == 'dengi_davatel':  # пример из пвз: подсолнух
             pass
@@ -113,7 +118,19 @@ class Enemy(SpriteGame):  # враг, он же "зомби"
             
             if self.name == 'popusk':  # циферки поменять
                 self.hp = 300
-                self.atk = 5
+                self.atk = 100
+                self.speed = 1
+                self.attack_cooldown = 75
+
+            if self.name == 'josky':  
+                self.hp = 600
+                self.atk = 100
+                self.speed = 1
+                self.attack_cooldown = 75
+
+            if self.name == 'sigma':  
+                self.hp = 1200
+                self.atk = 100
                 self.speed = 1
                 self.attack_cooldown = 75
         # СТАТЫ конец
@@ -142,16 +159,22 @@ class Enemy(SpriteGame):  # враг, он же "зомби"
 
 tower1 = Tower("images/slime_plr.png", 384, 320, 'attack', 'strelyatel')
 tower2 = Tower("images/slime_plr.png", 1152, 320, 'attack', 'strelyatel')
+tower3 = Tower("images/slime_plr.png", 384, 576, 'attack', 'strelyatel')
+tower4 = Tower("images/terpila.png", 1152, 576, 'defend', 'terpila')
+
 enemy1 = Enemy("images/goblin_en_flip.png", 1408, 320, 'penis', 'popusk')
+enemy2 = Enemy("images/blue_bullet.png", 1408, 192, 'penis', 'josky')
+enemy3 = Enemy("images/yellow_bullet.png", 1408, 576, 'penis', 'sigma')
+
 
 all_sprites_group = sprite.Group()
 bullets_group = sprite.Group()
 enemies_group = sprite.Group()
 towers_group = sprite.Group()
 
-all_sprites_group.add(tower1, tower2, enemy1)
-enemies_group.add(enemy1)
-towers_group.add(tower1, tower2)
+all_sprites_group.add(tower1, tower2, tower3, tower4, enemy1, enemy2, enemy3)
+enemies_group.add(enemy1, enemy2, enemy3)
+towers_group.add(tower1, tower2, tower3, tower4)
 running = True
 while running:
 
