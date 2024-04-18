@@ -61,7 +61,7 @@ class Tower(SpriteGame): # башня, она же "растение"
             if self.name == 'strelyatel':
                 if self.attack_cooldown <= 0:
                     self.attack_cooldown = 75
-                    self.bullet = Bullet("images/blue_bullet.png", self.rect.centerx-8, self.rect.centery-8, self.damage_type, self.atk, self.bullet_speed, 'default')
+                    self.bullet = Bullet("images/blue_bullet.png", self.rect.centerx-8, self.rect.centery-8, self.damage_type, self.atk, self.bullet_speed, 'default', self)
                     all_sprites_group.add(self.bullet)
                     bullets_group.add(self.bullet)
 
@@ -74,13 +74,14 @@ class Tower(SpriteGame): # башня, она же "растение"
 
 
 class Bullet(SpriteGame): 
-    def __init__(self, player_image, x, y, damage_type, damage, speed, name):
+    def __init__(self, player_image, x, y, damage_type, damage, speed, name, parent):
         super().__init__(player_image, x, y)
         self.is_dead = False
         self.damage_type = damage_type
         self.damage = damage
         self.speed = speed
         self.name = name
+        self.parent = parent
 
     def bullet_movement(self):
         self.rect.x += self.speed
@@ -119,8 +120,8 @@ class Enemy(SpriteGame):  # враг, он же "зомби"
         self.delat_chtoto()
 
 
-tower1 = Tower("images/slime_plr.png", 50, 300, 'attack', 'strelyatel')
-enemy1 = Enemy("images/goblin_en_flip.png", 1500, 300, 'penis', 'popusk')
+tower1 = Tower("images/slime_plr.png", 384, 256, 'attack', 'strelyatel')
+enemy1 = Enemy("images/goblin_en_flip.png", 1408, 256, 'penis', 'popusk')
 
 all_sprites_group = sprite.Group()
 bullets_group = sprite.Group()
