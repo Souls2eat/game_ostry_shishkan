@@ -50,8 +50,11 @@ class Tower(SpriteGame): # башня, она же "растение"
         # СТАТЫ конец
 
 
-    def delat_chtoto(self):# тут надо будет написать условие при котором башня стреляет
-        self.is_shooting()
+    def delat_chtoto(self): # тут надо будет написать условие при котором башня стреляет
+        if self.name == 'strelyatel':
+            for enemy in enemies_group:
+                if enemy.rect.y == self.rect.y:
+                    self.is_shooting()
 
     
     def is_shooting(self):
@@ -115,13 +118,14 @@ class Enemy(SpriteGame):  # враг, он же "зомби"
 
             if self.hp <= 0:
                 self.is_dead = True
+                self.kill()
         
     def update(self):
         self.delat_chtoto()
 
 
-tower1 = Tower("images/slime_plr.png", 384, 256, 'attack', 'strelyatel')
-enemy1 = Enemy("images/goblin_en_flip.png", 1408, 256, 'penis', 'popusk')
+tower1 = Tower("images/slime_plr.png", 384, 32, 'attack', 'strelyatel')
+enemy1 = Enemy("images/goblin_en_flip.png", 1408, 320, 'penis', 'popusk')
 
 all_sprites_group = sprite.Group()
 bullets_group = sprite.Group()
