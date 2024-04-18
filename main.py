@@ -101,10 +101,15 @@ class Enemy(SpriteGame):  # враг, он же "зомби"
             if self.name == 'popusk':  # циферки поменять
                 self.hp = 200
                 self.atk = 5
+                self.speed = 1
         # СТАТЫ конец
 
     def delat_chtoto(self):
-        pass
+        if self.is_dead != True:
+            self.rect.x -= self.speed
+
+            if self.hp <= 0:
+                self.is_dead = True
         
     def update(self):
         self.delat_chtoto()
