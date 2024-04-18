@@ -3,7 +3,7 @@ from pygame import *  # мне не прикольно каждый раз пи�
 clock = time.Clock()
 screen = display.set_mode((1600, 900))
 display.set_caption("Супер-мега игра")
-img = image.load("background_norm1.jpg").convert_alpha()
+img = image.load("images/map2.png").convert_alpha()
 
 
 class SpriteGame(sprite.Sprite):
@@ -58,8 +58,8 @@ class Enemy(SpriteGame):  # враг, он же "зомби"
                 self.atk = 5
 
 
-tower1 = Tower("slime_plr.png", 50, 300, 'attack', 'strelyatel')
-enemy1 = Enemy("goblin_en_flip.png", 1500, 300, 'penis', 'popusk')
+tower1 = Tower("images/slime_plr.png", 50, 300, 'attack', 'strelyatel')
+enemy1 = Enemy("images/goblin_en_flip.png", 1500, 300, 'penis', 'popusk')
 
 
 running = True
