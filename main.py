@@ -27,22 +27,63 @@ class Tower(SpriteGame): # башня, она же "растение"
         self.group = group
         self.name = name
 
-    def delat_chtoto(self):
+
+
+        # СТАТЫ начало
         if self.group == 'attack':  # пример из пвз: горохострел
             
             if self.name == 'strelyatel':  # циферки поменять
                 self.hp = 100
                 self.atk = 20
+                self.bullet_speed = 5
+                self.attack_cooldown = 75
+                self.damage_type = ''
 
-        if self.group == 'defend':  # пример из пвз: стеноорех
+        elif self.group == 'defend':  # пример из пвз: стеноорех
             pass
 
-        if self.group == 'dengi_davatel':  # пример из пвз: подсолнух
+        elif self.group == 'dengi_davatel':  # пример из пвз: подсолнух
             pass
 
-        if self.group == 'instant':  # пример из пвз: вишня бомба 
+        elif self.group == 'instant':  # пример из пвз: вишня бомба 
             pass
+        # СТАТЫ конец
 
+
+    def delat_chtoto(self):# тут надо будет написать условие при котором башня стреляет
+        self.is_shooting()
+
+    
+    def is_shooting(self):
+        #keys = key.get_pressed() если нужно будет затестить по нажатию
+        if self.attack_cooldown <= 0:
+            self.attack_cooldown = 75
+            self.bullet = Bullet("images/blue_bullet.png", self.rect.centerx-8, self.rect.centery-8, self.damage_type, self.bullet_speed)
+            all_sprites_group.add(self.bullet)
+
+    def update(self):
+        self.delat_chtoto()
+        
+
+        if self.attack_cooldown > 0:
+            self.attack_cooldown -= 1
+
+
+class Bullet(SpriteGame): 
+    def __init__(self, player_image, x, y, damage_type, speed):
+        super().__init__(player_image, x, y)
+        self.is_dead = False
+        self.damage_type = damage_type
+        self.speed = speed
+
+    def bullet_movement(self):
+        self.rect.x += self.speed
+
+        if self.rect.x >= 1700:
+            self.kill()
+
+    def update(self):
+        self.bullet_movement()
 
 class Enemy(SpriteGame):  # враг, он же "зомби"
     def __init__(self, player_image, x, y, group, name):
@@ -57,19 +98,25 @@ class Enemy(SpriteGame):  # враг, он же "зомби"
             if self.name == 'popusk':  # циферки поменять
                 self.hp = 200
                 self.atk = 5
+        
+    def update(self):
+        self.delat_chtoto()
 
 
 tower1 = Tower("images/slime_plr.png", 50, 300, 'attack', 'strelyatel')
 enemy1 = Enemy("images/goblin_en_flip.png", 1500, 300, 'penis', 'popusk')
 
+all_sprites_group = sprite.Group()
 
+all_sprites_group.add(tower1, enemy1)
 running = True
 while running:
 
     screen.blit(img, (0, 0))
 
-    tower1.reset()
-    enemy1.reset()
+    all_sprites_group.update()
+    all_sprites_group.draw(screen)
+    
 
     clock.tick(75)
     display.update()
