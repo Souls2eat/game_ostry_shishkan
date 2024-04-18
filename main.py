@@ -33,7 +33,7 @@ class Tower(SpriteGame): # башня, она же "растение"
         if self.group == 'attack':  # пример из пвз: горохострел
             
             if self.name == 'strelyatel':  # циферки поменять
-                self.hp = 100
+                self.hp = 20
                 self.atk = 20
                 self.bullet_speed = 5
                 self.attack_cooldown = 75
@@ -51,10 +51,15 @@ class Tower(SpriteGame): # башня, она же "растение"
 
 
     def delat_chtoto(self): # тут надо будет написать условие при котором башня стреляет
-        if self.name == 'strelyatel':
-            for enemy in enemies_group:
-                if enemy.rect.y == self.rect.y:
-                    self.is_shooting()
+        if self.is_dead != True:
+            if self.name == 'strelyatel':
+                for enemy in enemies_group:
+                    if enemy.rect.y == self.rect.y:
+                        self.is_shooting()
+
+            if self.hp <= 0:
+                self.is_dead = True
+                self.kill()
 
     
     def is_shooting(self):
@@ -101,20 +106,31 @@ class Enemy(SpriteGame):  # враг, он же "зомби"
         self.is_dead = False
         self.group = group
         self.name = name
-
+        self.stop = False
 
         # СТАТЫ начало
         if self.group == 'penis':  # тайное послание ---> зутшы
             
             if self.name == 'popusk':  # циферки поменять
-                self.hp = 200
+                self.hp = 300
                 self.atk = 5
                 self.speed = 1
+                self.attack_cooldown = 75
         # СТАТЫ конец
 
     def delat_chtoto(self):
         if self.is_dead != True:
-            self.rect.x -= self.speed
+            if self.stop != True:
+                self.rect.x -= self.speed
+
+            self.stop = False # нужно чтобы в случае колизии останавливался, а если колизии не будет то шёл дальше. ОБЯЗАТЕЛЬНО ПОСЛЕ ПРОВЕРКИ СТОПА НО ПЕРЕД ПРОВЕРКОЙ КОЛИЗИИ
+            for tower in towers_group:
+                if sprite.collide_rect(self, tower):
+                    self.attack_cooldown -= 1
+                    self.stop = True
+                    if self.attack_cooldown <= 0:
+                        self.attack_cooldown = 75
+                        tower.hp -= self.atk
 
             if self.hp <= 0:
                 self.is_dead = True
@@ -124,15 +140,18 @@ class Enemy(SpriteGame):  # враг, он же "зомби"
         self.delat_chtoto()
 
 
-tower1 = Tower("images/slime_plr.png", 384, 32, 'attack', 'strelyatel')
+tower1 = Tower("images/slime_plr.png", 384, 320, 'attack', 'strelyatel')
+tower2 = Tower("images/slime_plr.png", 1152, 320, 'attack', 'strelyatel')
 enemy1 = Enemy("images/goblin_en_flip.png", 1408, 320, 'penis', 'popusk')
 
 all_sprites_group = sprite.Group()
 bullets_group = sprite.Group()
 enemies_group = sprite.Group()
+towers_group = sprite.Group()
 
-all_sprites_group.add(tower1, enemy1)
+all_sprites_group.add(tower1, tower2, enemy1)
 enemies_group.add(enemy1)
+towers_group.add(tower1, tower2)
 running = True
 while running:
 
