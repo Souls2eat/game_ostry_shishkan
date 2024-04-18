@@ -3,6 +3,7 @@ from pygame import *  # мне не прикольно каждый раз пи�
 clock = time.Clock()
 screen = display.set_mode((1600, 900))
 display.set_caption("Супер-мега игра")
+screen.fill((255, 255, 255))
 img = image.load("images/map2.png").convert_alpha()
 
 
@@ -19,7 +20,7 @@ class SpriteGame(sprite.Sprite):
         screen.blit(self.image, (self.rect.x, self.rect.y))
 
 
-class Tower(SpriteGame):  # башня, она же "растение"
+class Tower(SpriteGame): # башня, она же "растение"
     def __init__(self, player_image, x, y, group, name):
         super().__init__(player_image, x, y)
         self.is_dead = False
@@ -39,7 +40,7 @@ class Tower(SpriteGame):  # башня, она же "растение"
         if self.group == 'dengi_davatel':  # пример из пвз: подсолнух
             pass
 
-        if self.group == 'instant':  # пример из пвз: вишня бомба
+        if self.group == 'instant':  # пример из пвз: вишня бомба 
             pass
 
 
@@ -80,3 +81,4 @@ while running:
         if e.type == QUIT:
             running = False
         
+
