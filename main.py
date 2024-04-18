@@ -56,11 +56,14 @@ class Tower(SpriteGame): # башня, она же "растение"
     
     def is_shooting(self):
         #keys = key.get_pressed() если нужно будет затестить по нажатию
-        if self.attack_cooldown <= 0:
-            self.attack_cooldown = 75
-            self.bullet = Bullet("images/blue_bullet.png", self.rect.centerx-8, self.rect.centery-8, self.damage_type, self.atk, self.bullet_speed)
-            all_sprites_group.add(self.bullet)
-            bullets_group.add(self.bullet)
+        if self.group == 'attack':  
+            
+            if self.name == 'strelyatel':  
+                if self.attack_cooldown <= 0:
+                    self.attack_cooldown = 75
+                    self.bullet = Bullet("images/blue_bullet.png", self.rect.centerx-8, self.rect.centery-8, self.damage_type, self.atk, self.bullet_speed)
+                    all_sprites_group.add(self.bullet)
+                    bullets_group.add(self.bullet)
 
     def update(self):
         self.delat_chtoto()
