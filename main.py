@@ -40,6 +40,16 @@ class Tower(SpriteGame): # башня, она же "растение"
                 self.attack_cooldown = 75
                 self.damage_type = ''
 
+            if self.name == 'kopitel': 
+                self.hp = 200
+                self.atk = 25
+                self.bullet_speed_x = 0
+                self.bullet_speed_y = 0
+                self.attack_cooldown = 100
+                self.damage_type = ''
+                self.nakopleno = 0
+                self.max_nakopit = 9
+
             if self.name == 'thunder':
                 self.hp = 100
                 self.atk = 30
@@ -80,6 +90,9 @@ class Tower(SpriteGame): # башня, она же "растение"
                     if enemy.rect.y == self.rect.y:
                         self.is_shooting()
 
+            if self.name == 'kopitel':
+                    self.is_shooting()
+
             if self.name == 'thunder':
                 for enemy in enemies_group:
                     if enemy.rect.y == self.rect.y or enemy.rect.y == self.rect.y + 128 or enemy.rect.y == self.rect.y - 128:
@@ -89,7 +102,7 @@ class Tower(SpriteGame): # башня, она же "растение"
                 self.is_dead = True
                 self.kill()
 
-    
+
     def is_shooting(self):
         #keys = key.get_pressed() если нужно будет затестить по нажатию
         if self.group == 'attack':  
@@ -100,6 +113,17 @@ class Tower(SpriteGame): # башня, она же "растение"
                     self.bullet = Bullet("images/blue_bullet.png", self.rect.centerx-8, self.rect.centery-8, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
                     all_sprites_group.add(self.bullet)
                     bullets_group.add(self.bullet)
+
+            if self.name == 'kopitel':
+                if self.attack_cooldown <= 0:
+                    self.attack_cooldown = 100
+                    if self.nakopleno < self.max_nakopit:
+                        self.joska_schitayu_x = 32*(1 + (self.nakopleno//3))
+                        self.joska_schitayu_y = 32*(self.nakopleno%3)+20
+                        self.bullet = Bullet("images/blue_bullet.png", self.rect.centerx-self.joska_schitayu_x, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                        all_sprites_group.add(self.bullet)
+                        bullets_group.add(self.bullet)
+                        self.nakopleno += 1
 
             if self.name == 'thunder':
                 if self.attack_cooldown <= 0:
@@ -166,6 +190,13 @@ class Bullet(SpriteGame):
             if self.off <= 0:
                 self.off = 75
                 self.kill()
+
+        if self.name == 'kopilka':
+            for enemy in enemies_group:
+                if enemy.rect.y == self.parent.rect.y:
+                    self.speed_x = 7
+                    self.parent.nakopleno = 0
+                    self.parent.attack_cooldown = 100
         
         if self.rect.x >= 1700:
             self.kill()
@@ -234,6 +265,7 @@ tower2 = Tower("images/slime_plr.png", 1152, 320, 'attack', 'strelyatel')
 tower3 = Tower("images/terpila.png", 1152, 576, 'defend', 'terpila')
 fury = Tower('images/Thunder(fury).png', 384, 192, 'attack', 'thunder')
 cock = Tower('images/zeus.png', 384, 576, 'attack', 'zeus',)
+kopcheniy = Tower('images/terpila.png', 384, 704, 'attack', 'kopitel',)
 
 
 enemy1 = Enemy("images/popusk.png", 1408, 320, 'penis', 'popusk')
@@ -248,9 +280,9 @@ bullets_group = sprite.Group()
 enemies_group = sprite.Group()
 towers_group = sprite.Group()
 
-all_sprites_group.add(tower1, tower2, tower3, fury, cock, enemy1, enemy2, enemy3, enemy4, enemy5)
+all_sprites_group.add(tower1, tower2, tower3, fury, cock, kopcheniy, enemy1, enemy2, enemy3, enemy4, enemy5)
 enemies_group.add(enemy1, enemy2, enemy3, enemy4, enemy5)
-towers_group.add(tower1, tower2, tower3, fury, cock)
+towers_group.add(tower1, tower2, tower3, fury, cock, kopcheniy)
 
 running = True
 
@@ -272,10 +304,7 @@ while running:
 
         for enemy in enemies_group:
             if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
-                if bullet.name == 'default':
-                    enemy.hp -= bullet.damage
-                    bullet.kill()
-                if bullet.name == 'hrom':
+                if bullet.name == 'default' or bullet.name == 'hrom' or bullet.name == 'kopilka':
                     enemy.hp -= bullet.damage
                     bullet.kill()
 
@@ -287,5 +316,11 @@ while running:
         keys = key.get_pressed()
         if keys[K_ESCAPE]:
             running = False
+        if keys[K_SPACE]:
+            enemy6 = Enemy("images/popusk.png", 1508, 704, 'penis', 'popusk')
+            all_sprites_group.add(enemy6)
+            enemies_group.add(enemy6)
         if e.type == QUIT:
             running = False
+
+
