@@ -50,7 +50,7 @@ class Tower(SpriteGame): # башня, она же "растение"
 
             if self.name == 'zeus':
                 self.hp = 100
-                self.atk = 10
+                self.atk = 40
                 self.bullet_speed_x = 0
                 self.bullet_speed_y = 0
                 self.attack_cooldown = 150
@@ -237,8 +237,10 @@ cock = Tower('images/zeus.png', 384, 576, 'attack', 'zeus',)
 
 
 enemy1 = Enemy("images/popusk.png", 1408, 320, 'penis', 'popusk')
-enemy2 = Enemy("images/josky.png", 1408, 192, 'penis', 'josky')
-enemy3 = Enemy("images/sigma.png", 1408, 576, 'penis', 'sigma')
+enemy2 = Enemy("images/sigma.png", 1408, 192, 'penis', 'sigma')
+enemy3 = Enemy("images/josky.png", 1408, 576, 'penis', 'josky')
+enemy4 = Enemy("images/popusk.png", 1208, 576, 'penis', 'popusk')
+enemy5 = Enemy("images/popusk.png", 1508, 576, 'penis', 'popusk')
 
 
 all_sprites_group = sprite.Group()
@@ -246,8 +248,8 @@ bullets_group = sprite.Group()
 enemies_group = sprite.Group()
 towers_group = sprite.Group()
 
-all_sprites_group.add(tower1, tower2, tower3, fury, cock, enemy1, enemy2, enemy3)
-enemies_group.add(enemy1, enemy2, enemy3)
+all_sprites_group.add(tower1, tower2, tower3, fury, cock, enemy1, enemy2, enemy3, enemy4, enemy5)
+enemies_group.add(enemy1, enemy2, enemy3, enemy4, enemy5)
 towers_group.add(tower1, tower2, tower3, fury, cock)
 
 running = True
@@ -264,7 +266,8 @@ while running:
 
         if bullet.name == 'ls':
             for enemy in enemies_group:
-                enemy.hp -= bullet.damage
+                if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
+                    enemy.hp -= bullet.damage
             bullet.remove(bullets_group)
 
         for enemy in enemies_group:
