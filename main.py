@@ -48,6 +48,14 @@ class Tower(SpriteGame): # башня, она же "растение"
                 self.attack_cooldown = 200
                 self.damage_type = ''
 
+            if self.name == 'zeus':
+                self.hp = 100
+                self.atk = 10
+                self.bullet_speed_x = 0
+                self.bullet_speed_y = 0
+                self.attack_cooldown = 150
+                self.damage_type = ''
+
         elif self.group == 'defend':  # пример из пвз: стеноорех
             if self.name == 'terpila':  # циферки поменять
                 self.hp = 5000
@@ -74,6 +82,10 @@ class Tower(SpriteGame): # башня, она же "растение"
                 for enemy in enemies_group:
                     if enemy.rect.y == self.rect.y or enemy.rect.y == self.rect.y + 128 or enemy.rect.y == self.rect.y - 128:
                         self.is_shooting()
+            if self.name == 'zeus':
+                for enemy in enemies_group:
+                    if enemy.rect.y == self.rect.y:
+                        self.is_shooting()
 
             if self.hp <= 0:
                 self.is_dead = True
@@ -87,12 +99,11 @@ class Tower(SpriteGame): # башня, она же "растение"
             if self.name == 'strelyatel':
                 if self.attack_cooldown <= 0:
                     self.attack_cooldown = 75
-                    self.bullet = Bullet("images/blue_bullet.png", self.rect.centerx-8, self.rect.centery-8, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
+                    self.bullet = Bullet("images/blue_bullet.png", self.rect.centerx-8, self.rect.centery-8, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default',  self)
                     all_sprites_group.add(self.bullet)
                     bullets_group.add(self.bullet)
 
             if self.name == 'thunder':
-
                 if self.attack_cooldown <= 0:
                     self.attack_cooldown = 200
                     self.bullet = Bullet("images/Frigl_bul.png", self.rect.centerx - 8, self.rect.centery - 8,
@@ -113,6 +124,16 @@ class Tower(SpriteGame): # башня, она же "растение"
                     all_sprites_group.add(self.bullet)
                     bullets_group.add(self.bullet)
 
+            if self.name == 'zeus':
+                if self.attack_cooldown <= 0:
+                    self.attack_cooldown = 225
+                    self.bullet = Bullet("images/Laser.png", self.rect.centerx - 8, self.rect.centery - 8,
+                                        self.damage_type, self.atk, self.bullet_speed_x, 0,
+                                        'ls', self)
+                    all_sprites_group.add(self.bullet)
+                    bullets_group.add(self.bullet)
+
+
     def update(self):
         self.delat_chtoto()
         
@@ -132,6 +153,9 @@ class Bullet(SpriteGame):
         self.name = name
         self.parent = parent
 
+        if self.name == 'ls':
+            self.off = 75
+
     def bullet_movement(self):
         self.rect.x += self.speed_x
         self.rect.y += self.speed_y
@@ -139,6 +163,12 @@ class Bullet(SpriteGame):
         if self.name == 'hrom':
             if (self.parent.rect.centery - self.rect.centery) >= 128 or (self.rect.centery - self.parent.rect.centery) >= 128:
                 self.speed_y = 0
+
+        if self.name == 'ls':
+            if self.off <= 0:
+                self.off = 75
+                self.kill()
+
         
         
         if self.rect.x >= 1700:
@@ -146,6 +176,10 @@ class Bullet(SpriteGame):
 
     def update(self):
         self.bullet_movement()
+
+        if self.name == 'ls':
+            if self.off > 0:
+                self.off -= 1
 
 class Enemy(SpriteGame):  # враг, он же "зомби"
     def __init__(self, player_image, x, y, group, name):
@@ -177,6 +211,7 @@ class Enemy(SpriteGame):  # враг, он же "зомби"
                 self.attack_cooldown = 75
         # СТАТЫ конец
 
+
     def delat_chtoto(self):
         if self.is_dead != True:
             if self.stop != True:
@@ -194,20 +229,21 @@ class Enemy(SpriteGame):  # враг, он же "зомби"
             if self.hp <= 0:
                 self.is_dead = True
                 self.kill()
-        
+
     def update(self):
         self.delat_chtoto()
-
 
 tower1 = Tower("images/slime_plr.png", 384, 320, 'attack', 'strelyatel')
 tower2 = Tower("images/slime_plr.png", 1152, 320, 'attack', 'strelyatel')
 tower3 = Tower("images/slime_plr.png", 384, 576, 'attack', 'strelyatel')
 tower4 = Tower("images/terpila.png", 1152, 576, 'defend', 'terpila')
 fury = Tower('images/Thunder(fury).png', 384, 192, 'attack', 'thunder')
+orochi = Tower('images/zeus.png', 384, 320, 'attack', 'zeus',)
 
-enemy1 = Enemy("images/popusk.png", 1408, 320, 'penis', 'popusk')
-enemy2 = Enemy("images/josky.png", 1408, 192, 'penis', 'josky')
-enemy3 = Enemy("images/sigma.png", 1408, 576, 'penis', 'sigma')
+enemy1 = Enemy("images/goblin_en_flip.png", 1408, 320, 'penis', 'popusk')
+enemy4 = Enemy("images/goblin_en_flip.png", 1608, 320, 'penis', 'popusk')
+enemy2 = Enemy("images/blue_bullet.png", 1408, 192, 'penis', 'josky')
+enemy3 = Enemy("images/yellow_bullet.png", 1408, 576, 'penis', 'sigma')
 
 
 all_sprites_group = sprite.Group()
@@ -215,9 +251,9 @@ bullets_group = sprite.Group()
 enemies_group = sprite.Group()
 towers_group = sprite.Group()
 
-all_sprites_group.add(tower1, tower2, tower3, tower4, fury, enemy1, enemy2, enemy3)
-enemies_group.add(enemy1, enemy2, enemy3)
-towers_group.add(tower1, tower2, tower3, tower4, fury)
+all_sprites_group.add( tower4, tower1, tower2, tower3, fury, orochi, enemy1, enemy2, enemy3, enemy4)#tower1, tower2, tower3, fury,
+enemies_group.add(enemy1, enemy2, enemy3, enemy4)
+towers_group.add( tower4, tower1, tower2, tower3, fury, orochi)
 
 running = True
 
@@ -227,10 +263,13 @@ while running:
 
     all_sprites_group.update()
     all_sprites_group.draw(screen)
-    
 
-    for enemy in enemies_group:
-        for bullet in bullets_group:
+    for bullet in bullets_group:
+        if bullet.name == 'ls':
+            for enemy in enemies_group:
+                enemy.hp -= bullet.damage
+            bullet.remove(bullets_group)
+        for enemy in enemies_group:
             if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
                 if bullet.name == 'default':
                     enemy.hp -= bullet.damage
@@ -238,6 +277,11 @@ while running:
                 if bullet.name == 'hrom':
                     enemy.hp -= bullet.damage
                     bullet.kill()
+
+
+
+
+
 
 
     clock.tick(75)
