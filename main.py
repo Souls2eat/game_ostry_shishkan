@@ -45,7 +45,7 @@ class Tower(SpriteGame): # башня, она же "растение"
                 self.atk = 30
                 self.bullet_speed_x = 7
                 self.bullet_speed_y = 3
-                self.attack_cooldown = 125
+                self.attack_cooldown = 200
                 self.damage_type = ''
 
         elif self.group == 'defend':  # пример из пвз: стеноорех
@@ -94,21 +94,21 @@ class Tower(SpriteGame): # башня, она же "растение"
             if self.name == 'thunder':
 
                 if self.attack_cooldown <= 0:
-                    self.attack_cooldown = 125
-                    self.bullet = Bullet("images/blue_bullet.png", self.rect.centerx - 8, self.rect.centery - 8,
-                                         self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'fr',
+                    self.attack_cooldown = 200
+                    self.bullet = Bullet("images/Frigl_bul.png", self.rect.centerx - 8, self.rect.centery - 8,
+                                         self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'hrom',
                                          self)
                     all_sprites_group.add(self.bullet)
                     bullets_group.add(self.bullet)
 
-                    self.bullet = Bullet("images/blue_bullet.png", self.rect.centerx - 8, self.rect.centery - 8,
-                                         self.damage_type, self.atk, self.bullet_speed_x, 0, 'fr',
+                    self.bullet = Bullet("images/Frigl_bul.png", self.rect.centerx - 8, self.rect.centery - 8,
+                                         self.damage_type, self.atk, self.bullet_speed_x, 0, 'hrom',
                                          self)
                     all_sprites_group.add(self.bullet)
                     bullets_group.add(self.bullet)
 
-                    self.bullet = Bullet("images/blue_bullet.png", self.rect.centerx - 8, self.rect.centery - 8,
-                                         self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y * -1, 'fr',
+                    self.bullet = Bullet("images/Frigl_bul.png", self.rect.centerx - 8, self.rect.centery - 8,
+                                         self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y * -1, 'hrom',
                                          self)
                     all_sprites_group.add(self.bullet)
                     bullets_group.add(self.bullet)
@@ -136,7 +136,7 @@ class Bullet(SpriteGame):
         self.rect.x += self.speed_x
         self.rect.y += self.speed_y
 
-        if self.name == 'fr':
+        if self.name == 'hrom':
             if (self.parent.rect.centery - self.rect.centery) >= 128 or (self.rect.centery - self.parent.rect.centery) >= 128:
                 self.speed_y = 0
         
@@ -203,7 +203,7 @@ tower1 = Tower("images/slime_plr.png", 384, 320, 'attack', 'strelyatel')
 tower2 = Tower("images/slime_plr.png", 1152, 320, 'attack', 'strelyatel')
 tower3 = Tower("images/slime_plr.png", 384, 576, 'attack', 'strelyatel')
 tower4 = Tower("images/terpila.png", 1152, 576, 'defend', 'terpila')
-fury = Tower('images/terpila.png', 384, 192, 'attack', 'thunder')
+fury = Tower('images/Thunder(fury).png', 384, 192, 'attack', 'thunder')
 
 enemy1 = Enemy("images/goblin_en_flip.png", 1408, 320, 'penis', 'popusk')
 enemy2 = Enemy("images/blue_bullet.png", 1408, 192, 'penis', 'josky')
@@ -235,7 +235,7 @@ while running:
                 if bullet.name == 'default':
                     enemy.hp -= bullet.damage
                     bullet.kill()
-                if bullet.name == 'fr':
+                if bullet.name == 'hrom':
                     enemy.hp -= bullet.damage
                     bullet.kill()
 
