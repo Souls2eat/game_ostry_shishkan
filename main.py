@@ -205,9 +205,9 @@ tower3 = Tower("images/slime_plr.png", 384, 576, 'attack', 'strelyatel')
 tower4 = Tower("images/terpila.png", 1152, 576, 'defend', 'terpila')
 fury = Tower('images/Thunder(fury).png', 384, 192, 'attack', 'thunder')
 
-enemy1 = Enemy("images/goblin_en_flip.png", 1408, 320, 'penis', 'popusk')
-enemy2 = Enemy("images/blue_bullet.png", 1408, 192, 'penis', 'josky')
-enemy3 = Enemy("images/yellow_bullet.png", 1408, 576, 'penis', 'sigma')
+enemy1 = Enemy("images/popusk.png", 1408, 320, 'penis', 'popusk')
+enemy2 = Enemy("images/josky.png", 1408, 192, 'penis', 'josky')
+enemy3 = Enemy("images/sigma.png", 1408, 576, 'penis', 'sigma')
 
 
 all_sprites_group = sprite.Group()
