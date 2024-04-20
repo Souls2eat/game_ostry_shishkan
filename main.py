@@ -1,4 +1,5 @@
 from pygame import * 
+from random import randint
 
 clock = time.Clock()
 screen = display.set_mode((1600, 900))
@@ -96,10 +97,14 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
             if self.attack_cooldown <= 0:
                 self.attack_cooldown = 100
                 if self.nakopleno < self.max_nakopit:
-                    self.joska_schitayu_x = 32*(1 + (self.nakopleno//3))
+                    self.joska_schitayu_x = 64*(1 + (self.nakopleno//3))
                     self.joska_schitayu_y = 32*(self.nakopleno%3)+20
-                    self.bullet = Bullet("blue_bullet", self.rect.centerx-self.joska_schitayu_x, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
-
+                    self.spear_or_sword = randint(0, 1)
+                    if self.spear_or_sword == 0:
+                        self.bullet = Bullet("light_spear", self.rect.centerx-self.joska_schitayu_x, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                    if self.spear_or_sword == 1:
+                        self.bullet = Bullet("light_sword", self.rect.centerx-self.joska_schitayu_x, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                    
                     self.nakopleno += 1
 
         if self.name == 'thunder':
@@ -240,7 +245,7 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
 class Slot(sprite.Sprite):
     def __init__(self, pos, unit_inside):
         super().__init__(slots_group)
-        self.image = image.load(f"images_inside/{unit_inside[0]}_inside.png").convert_alpha()
+        self.image = image.load(f"images_inside/{unit_inside}_inside.png").convert_alpha()
         self.pos = pos
         self.default_pos = pos
         self.rect = self.image.get_rect(topleft=(self.pos))
@@ -294,7 +299,7 @@ slots_group = sprite.Group()
 slot = Slot((94, 160), "t"),\
        Slot((94, 256), "thunder"),\
        Slot((94, 352), "terpila"),\
-       Slot((94, 448), "terpila")
+       Slot((94, 448), "kopitel")
        # Slot((34, 640)),\
        # Slot((34, 736))
 
