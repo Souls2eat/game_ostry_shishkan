@@ -1,4 +1,4 @@
-from pygame import *  # мне не прикольно каждый раз писать pygame. и не говорите мне что так легче, это полный кал
+from pygame import * 
 
 clock = time.Clock()
 screen = display.set_mode((1600, 900))
@@ -7,79 +7,59 @@ screen.fill((255, 255, 255))
 img = image.load("images/map2.png").convert_alpha()
 
 
-class SpriteGame(sprite.Sprite):
-    def __init__(self, player_image, x, y):
-        super().__init__()
-        self.image = image.load(player_image)
-        self.player_image = player_image
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-        
-    def reset(self):
-        screen.blit(self.image, (self.rect.x, self.rect.y))
-
-
-class Tower(SpriteGame): # башня, она же "растение"
-    def __init__(self, player_image, x, y, group, name):
-        super().__init__(player_image, x, y)
+class Tower(sprite.Sprite):  # башня, она же "растение"
+    def __init__(self, unit, pos):
+        super().__init__(towers_group, all_sprites_group)
+        self.image = image.load(f"images/{unit}.png").convert_alpha()
         self.is_dead = False
-        self.group = group
-        self.name = name
 
-
+        self.name = unit
+        self.rect = self.image.get_rect(topleft=(pos))
 
         # СТАТЫ начало
-        if self.group == 'attack':  # пример из пвз: горохострел
             
-            if self.name == 'strelyatel':  # циферки поменять
-                self.hp = 200
-                self.atk = 20
-                self.bullet_speed_x = 5
-                self.bullet_speed_y = 0
-                self.attack_cooldown = 75
-                self.damage_type = ''
+        if self.name == 'strelyatel':  # циферки поменять
+            self.hp = 200
+            self.atk = 20
+            self.bullet_speed_x = 5
+            self.bullet_speed_y = 0
+            self.attack_cooldown = 75
+            self.damage_type = ''
 
-            if self.name == 'kopitel': 
-                self.hp = 200
-                self.atk = 25
-                self.bullet_speed_x = 0
-                self.bullet_speed_y = 0
-                self.attack_cooldown = 100
-                self.damage_type = ''
-                self.nakopleno = 0
-                self.max_nakopit = 9
+        if self.name == 'kopitel':
+            self.hp = 200
+            self.atk = 25
+            self.bullet_speed_x = 0
+            self.bullet_speed_y = 0
+            self.attack_cooldown = 100
+            self.damage_type = ''
+            self.nakopleno = 0
+            self.max_nakopit = 9
 
-            if self.name == 'thunder':
-                self.hp = 100
-                self.atk = 30
-                self.bullet_speed_x = 7
-                self.bullet_speed_y = 3
-                self.attack_cooldown = 200
-                self.damage_type = ''
+        if self.name == 'thunder':
+            self.hp = 100
+            self.atk = 30
+            self.bullet_speed_x = 7
+            self.bullet_speed_y = 3
+            self.attack_cooldown = 200
+            self.damage_type = ''
 
-            if self.name == 'zeus':
-                self.hp = 100
-                self.atk = 40
-                self.bullet_speed_x = 0
-                self.bullet_speed_y = 0
-                self.attack_cooldown = 150
-                self.damage_type = ''
+        if self.name == 'zeus':
+            self.hp = 100
+            self.atk = 40
+            self.bullet_speed_x = 0
+            self.bullet_speed_y = 0
+            self.attack_cooldown = 150
+            self.damage_type = ''
 
-        elif self.group == 'defend':  # пример из пвз: стеноорех
 
-            if self.name == 'terpila':  # циферки поменять
-                self.hp = 5000
-                self.atk = 0
-                self.bullet_speed = 0
-                self.attack_cooldown = 0
-                self.damage_type = ''
+        if self.name == 'terpila':  # циферки поменять
+            self.hp = 5000
+            self.atk = 0
+            self.bullet_speed = 0
+            self.attack_cooldown = 0
+            self.damage_type = ''
 
-        elif self.group == 'dengi_davatel':  # пример из пвз: подсолнух
-            pass
-
-        elif self.group == 'instant':  # пример из пвз: вишня бомба 
-            pass
         # СТАТЫ конец
 
 
@@ -105,55 +85,48 @@ class Tower(SpriteGame): # башня, она же "растение"
 
     def is_shooting(self):
         #keys = key.get_pressed() если нужно будет затестить по нажатию
-        if self.group == 'attack':  
             
-            if self.name == 'strelyatel':
-                if self.attack_cooldown <= 0:
-                    self.attack_cooldown = 75
-                    self.bullet = Bullet("images/blue_bullet.png", self.rect.centerx-8, self.rect.centery-8, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
-                    all_sprites_group.add(self.bullet)
-                    bullets_group.add(self.bullet)
+        if self.name == 'strelyatel':
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = 75
+                self.bullet = Bullet("blue_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
 
-            if self.name == 'kopitel':
-                if self.attack_cooldown <= 0:
-                    self.attack_cooldown = 100
-                    if self.nakopleno < self.max_nakopit:
-                        self.joska_schitayu_x = 32*(1 + (self.nakopleno//3))
-                        self.joska_schitayu_y = 32*(self.nakopleno%3)+20
-                        self.bullet = Bullet("images/blue_bullet.png", self.rect.centerx-self.joska_schitayu_x, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
-                        all_sprites_group.add(self.bullet)
-                        bullets_group.add(self.bullet)
-                        self.nakopleno += 1
 
-            if self.name == 'thunder':
-                if self.attack_cooldown <= 0:
-                    self.attack_cooldown = 200
-                    self.bullet = Bullet("images/Frigl_bul.png", self.rect.centerx - 8, self.rect.centery - 8,
-                                         self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'hrom',
-                                         self)
-                    all_sprites_group.add(self.bullet)
-                    bullets_group.add(self.bullet)
+        if self.name == 'kopitel':
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = 100
+                if self.nakopleno < self.max_nakopit:
+                    self.joska_schitayu_x = 32*(1 + (self.nakopleno//3))
+                    self.joska_schitayu_y = 32*(self.nakopleno%3)+20
+                    self.bullet = Bullet("blue_bullet", self.rect.centerx-self.joska_schitayu_x, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
 
-                    self.bullet = Bullet("images/Frigl_bul.png", self.rect.centerx - 8, self.rect.centery - 8,
-                                         self.damage_type, self.atk, self.bullet_speed_x, 0, 'hrom',
-                                         self)
-                    all_sprites_group.add(self.bullet)
-                    bullets_group.add(self.bullet)
+                    self.nakopleno += 1
 
-                    self.bullet = Bullet("images/Frigl_bul.png", self.rect.centerx - 8, self.rect.centery - 8,
-                                         self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y * -1, 'hrom',
-                                         self)
-                    all_sprites_group.add(self.bullet)
-                    bullets_group.add(self.bullet)
+        if self.name == 'thunder':
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = 200
+                self.bullet = Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
+                                     self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'hrom',
+                                     self)
 
-            if self.name == 'zeus':
-                if self.attack_cooldown <= 0:
-                    self.attack_cooldown = 225
-                    self.bullet = Bullet("images/Laser.png", self.rect.centerx - 8, self.rect.centery - 8,
-                                        self.damage_type, self.atk, self.bullet_speed_x, 0,
-                                        'ls', self)
-                    all_sprites_group.add(self.bullet)
-                    bullets_group.add(self.bullet)
+
+                self.bullet = Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
+                                     self.damage_type, self.atk, self.bullet_speed_x, 0, 'hrom',
+                                     self)
+
+
+                self.bullet = Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
+                                     self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y * -1, 'hrom',
+                                     self)
+
+
+        if self.name == 'zeus':
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = 225
+                self.bullet = Bullet("Laser", self.rect.centerx + 640, self.rect.centery,
+                                    self.damage_type, self.atk * 10, self.bullet_speed_x, 0,
+                                    'ls', self)
+
 
             
     def update(self):
@@ -164,9 +137,11 @@ class Tower(SpriteGame): # башня, она же "растение"
             self.attack_cooldown -= 1
 
 
-class Bullet(SpriteGame): 
-    def __init__(self, player_image, x, y, damage_type, damage, speed_x, speed_y, name, parent):
-        super().__init__(player_image, x, y)
+class Bullet(sprite.Sprite):
+    def __init__(self, bullet_sprite, x, y, damage_type, damage, speed_x, speed_y, name, parent):
+        super().__init__(all_sprites_group, bullets_group)
+        self.image = image.load(f"images/{bullet_sprite}.png").convert_alpha()
+        self.rect = self.rect = self.image.get_rect(center=(x, y))
         self.is_dead = False
         self.damage_type = damage_type
         self.damage = damage
@@ -208,34 +183,35 @@ class Bullet(SpriteGame):
             if self.off > 0:
                 self.off -= 1
 
-class Enemy(SpriteGame):  # враг, он же "зомби"
-    def __init__(self, player_image, x, y, group, name):
-        super().__init__(player_image, x, y)
+class Enemy(sprite.Sprite):  # враг, он же "зомби"
+    def __init__(self, name, x, y):
+        super().__init__(all_sprites_group, enemies_group)
+        self.image = image.load(f"images/{name}.png").convert_alpha()
+        self.rect = self.image.get_rect(topleft=(x, y))
         self.is_dead = False
-        self.group = group
         self.name = name
         self.stop = False
 
         # СТАТЫ начало
-        if self.group == 'penis':  # тайное послание ---> зутшы
-            
-            if self.name == 'popusk':  # циферки поменять
-                self.hp = 300
-                self.atk = 100
-                self.speed = 1
-                self.attack_cooldown = 75
 
-            if self.name == 'josky':  
-                self.hp = 600
-                self.atk = 100
-                self.speed = 1
-                self.attack_cooldown = 75
+        if self.name == 'popusk':  # циферки поменять
+            self.hp = 300
+            self.atk = 100
+            self.speed = 1
+            self.attack_cooldown = 75
 
-            if self.name == 'sigma':  
-                self.hp = 1200
-                self.atk = 100
-                self.speed = 1
-                self.attack_cooldown = 75
+        if self.name == 'josky':
+            self.hp = 600
+            self.atk = 100
+            self.speed = 1
+            self.attack_cooldown = 75
+
+        if self.name == 'sigma':
+           self.hp = 1200
+           self.atk = 100
+           self.speed = 1
+           self.attack_cooldown = 75
+
         # СТАТЫ конец
 
     def delat_chtoto(self):
@@ -243,7 +219,7 @@ class Enemy(SpriteGame):  # враг, он же "зомби"
             if self.stop != True:
                 self.rect.x -= self.speed
 
-            self.stop = False # нужно чтобы в случае колизии останавливался, а если колизии не будет то шёл дальше. ОБЯЗАТЕЛЬНО ПОСЛЕ ПРОВЕРКИ СТОПА НО ПЕРЕД ПРОВЕРКОЙ КОЛИЗИИ
+            self.stop = False  # нужно чтобы в случае колизии останавливался, а если колизии не будет то шёл дальше. ОБЯЗАТЕЛЬНО ПОСЛЕ ПРОВЕРКИ СТОПА НО ПЕРЕД ПРОВЕРКОЙ КОЛИЗИИ
             for tower in towers_group:
                 if sprite.collide_rect(self, tower):
                     self.attack_cooldown -= 1
@@ -260,19 +236,39 @@ class Enemy(SpriteGame):  # враг, он же "зомби"
         self.delat_chtoto()
 
 
-tower1 = Tower("images/slime_plr.png", 384, 320, 'attack', 'strelyatel')
-tower2 = Tower("images/slime_plr.png", 1152, 320, 'attack', 'strelyatel')
-tower3 = Tower("images/terpila.png", 1152, 576, 'defend', 'terpila')
-fury = Tower('images/Thunder(fury).png', 384, 192, 'attack', 'thunder')
-cock = Tower('images/zeus.png', 384, 576, 'attack', 'zeus',)
-kopcheniy = Tower('images/terpila.png', 384, 704, 'attack', 'kopitel',)
+
+class Slot(sprite.Sprite):
+    def __init__(self, pos, unit_inside):
+        super().__init__(slots_group)
+        self.image = image.load(f"images_inside/{unit_inside[0]}_inside.png").convert_alpha()
+        self.pos = pos
+        self.default_pos = pos
+        self.rect = self.image.get_rect(topleft=(self.pos))
+        self.is_move = False
+        self.unit_inside = unit_inside
+
+    def move(self):
+        self.image = image.load(f"images/{self.unit_inside}.png").convert_alpha()
+        self.pos = mouse.get_pos()
+        self.rect = self.image.get_rect(center=(self.pos))
+
+    def back_to_default(self):
+        self.image = image.load(f"images_inside/{self.unit_inside}_inside.png").convert_alpha()
+        self.rect = self.image.get_rect(topleft=(self.default_pos))
+
+    def update(self):
+        if self.is_move == True:
+            self.move()
+        if self.is_move == False:
+            self.back_to_default()
 
 
-enemy1 = Enemy("images/popusk.png", 1408, 320, 'penis', 'popusk')
-enemy2 = Enemy("images/sigma.png", 1408, 192, 'penis', 'sigma')
-enemy3 = Enemy("images/josky.png", 1408, 576, 'penis', 'josky')
-enemy4 = Enemy("images/popusk.png", 1208, 576, 'penis', 'popusk')
-enemy5 = Enemy("images/popusk.png", 1508, 576, 'penis', 'popusk')
+class GameMapUnits(sprite.Sprite):
+    def __init__(self, pos, unit_inside):
+        super().__init__(game_map_group)
+        self.image = image.load(f"images_inside/{unit_inside}_inside.png").convert_alpha()
+        self.pos = pos
+        self.rect = self.image.get_rect()
 
 
 all_sprites_group = sprite.Group()
@@ -280,9 +276,31 @@ bullets_group = sprite.Group()
 enemies_group = sprite.Group()
 towers_group = sprite.Group()
 
-all_sprites_group.add(tower1, tower2, tower3, fury, cock, kopcheniy, enemy1, enemy2, enemy3, enemy4, enemy5)
-enemies_group.add(enemy1, enemy2, enemy3, enemy4, enemy5)
-towers_group.add(tower1, tower2, tower3, fury, cock, kopcheniy)
+
+unit = Tower("zeus", (384, 704))
+unit = Tower("kopitel", (384, 192))
+
+enemy = Enemy("popusk", 1408, 320),\
+        Enemy("sigma", 1408, 192),\
+        Enemy("josky", 1408, 576),\
+        Enemy("popusk", 1208, 576),\
+        Enemy("popusk", 1508, 576)
+
+
+
+
+game_map_group = sprite.Group()
+slots_group = sprite.Group()
+slot = Slot((94, 160), "t"),\
+       Slot((94, 256), "thunder"),\
+       Slot((94, 352), "terpila"),\
+       Slot((94, 448), "terpila")
+       # Slot((34, 640)),\
+       # Slot((34, 736))
+
+
+all_sprites_group.add(enemies_group, slots_group, game_map_group, towers_group)
+
 
 running = True
 
@@ -309,6 +327,7 @@ while running:
                     bullet.kill()
 
 
+
     clock.tick(75)
     display.update()
 
@@ -317,10 +336,25 @@ while running:
         if keys[K_ESCAPE]:
             running = False
         if keys[K_SPACE]:
-            enemy6 = Enemy("images/popusk.png", 1508, 704, 'penis', 'popusk')
+            enemy6 = Enemy("popusk", 1508, 704)
             all_sprites_group.add(enemy6)
             enemies_group.add(enemy6)
         if e.type == QUIT:
             running = False
+        # misha
+        if e.type == MOUSEBUTTONDOWN:
+            mouse_pos = mouse.get_pos()
+            for slot in slots_group:
+                if slot.rect.collidepoint(mouse_pos):
+                    slot.is_move = True
+        if e.type == MOUSEBUTTONUP:
+            mouse_pos = mouse.get_pos()
+            for slot in slots_group:
+                if slot.rect.collidepoint(mouse_pos):
+                    slot.is_move = False
 
+                    unit_pos = (384 + ((mouse_pos[0] - 384) // 128) * 128), (192 + ((mouse_pos[1] - 192) // 128) * 128)
+                    if 1536 >= unit_pos[0] >= 384 and 832 >= unit_pos[1] >= 192:
 
+                        print(slot.unit_inside, unit_pos)
+                        unit = Tower(slot.unit_inside, unit_pos)
