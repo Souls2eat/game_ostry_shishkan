@@ -68,7 +68,7 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
         if self.is_dead != True:
             if self.name == 'strelyatel' or self.name == 'zeus':
                 for enemy in enemies_group:
-                    if enemy.rect.y == self.rect.y:
+                    if enemy.rect.y == self.rect.y and enemy.rect.x >= self.rect.x:
                         self.is_shooting()
 
             if self.name == 'kopitel':
@@ -76,7 +76,7 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
 
             if self.name == 'thunder':
                 for enemy in enemies_group:
-                    if enemy.rect.y == self.rect.y or enemy.rect.y == self.rect.y + 128 or enemy.rect.y == self.rect.y - 128:
+                    if (enemy.rect.y == self.rect.y or enemy.rect.y == self.rect.y + 128 or enemy.rect.y == self.rect.y - 128) and enemy.rect.x >= self.rect.x:
                         self.is_shooting()
 
             if self.hp <= 0:
@@ -173,7 +173,7 @@ class Bullet(sprite.Sprite):
 
         if self.name == 'kopilka':
             for enemy in enemies_group:
-                if enemy.rect.y == self.parent.rect.y:
+                if enemy.rect.y == self.parent.rect.y and enemy.rect.x >= self.parent.rect.x:
                     self.speed_x = 7
                     self.parent.nakopleno = 0
                     self.parent.attack_cooldown = 100
