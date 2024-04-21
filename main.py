@@ -299,8 +299,8 @@ slots_group = sprite.Group()
 slot = Slot((94, 160), "t"),\
        Slot((94, 256), "thunder"),\
        Slot((94, 352), "terpila"),\
-       Slot((94, 448), "kopitel")
-       # Slot((34, 640)),\
+       Slot((94, 448), "kopitel"),\
+       Slot((94, 544), "zeus"),\
        # Slot((34, 736))
 
 
