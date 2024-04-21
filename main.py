@@ -282,8 +282,8 @@ enemies_group = sprite.Group()
 towers_group = sprite.Group()
 
 
-unit = Tower("zeus", (384, 704))
-unit = Tower("kopitel", (384, 192))
+unit = Tower("zeus", (384, 704)),\
+       Tower("kopitel", (384, 192))
 
 enemy = Enemy("popusk", 1408, 320),\
         Enemy("sigma", 1408, 192),\
@@ -315,7 +315,7 @@ while running:
 
     all_sprites_group.update()
     all_sprites_group.draw(screen)
-    
+
 
     for bullet in bullets_group:
 
@@ -331,8 +331,6 @@ while running:
                     enemy.hp -= bullet.damage
                     bullet.kill()
 
-
-
     clock.tick(75)
     display.update()
 
@@ -340,13 +338,12 @@ while running:
         keys = key.get_pressed()
         if keys[K_ESCAPE]:
             running = False
-        if keys[K_SPACE]:
+        if keys[K_SPACE]:  # fix
             enemy6 = Enemy("popusk", 1508, 704)
             all_sprites_group.add(enemy6)
             enemies_group.add(enemy6)
         if e.type == QUIT:
             running = False
-        # misha
         if e.type == MOUSEBUTTONDOWN:
             mouse_pos = mouse.get_pos()
             for slot in slots_group:
@@ -360,6 +357,9 @@ while running:
 
                     unit_pos = (384 + ((mouse_pos[0] - 384) // 128) * 128), (192 + ((mouse_pos[1] - 192) // 128) * 128)
                     if 1536 >= unit_pos[0] >= 384 and 832 >= unit_pos[1] >= 192:
-
-                        print(slot.unit_inside, unit_pos)
-                        unit = Tower(slot.unit_inside, unit_pos)
+                        t = []  # Проверка есть ли на клетке другая башенка
+                        for tower in towers_group:
+                            t.append(tower.rect.collidepoint(slot.rect.centerx, slot.rect.centery) is False)
+                        if all(t):
+                            unit = Tower(slot.unit_inside, unit_pos)
+                            t.clear()
