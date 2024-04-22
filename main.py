@@ -60,13 +60,25 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
 
         if self.name == 'zeus':
             self.hp = 100
-            self.atk = 1
+            self.atk = 100
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
             self.attack_cooldown = 150
             self.damage_type = ''
             # ---
             self.cost = 20
+
+        if self.name == 'yascerica':
+            self.hp = 250
+            self.bullet_speed_x = 0
+            self.bullet_speed_y = 0
+            self.attack_cooldown = 0
+            self.damage_type = ''
+            self.bullet = Bullet("yellow_bullet", self.rect.centerx, self.rect.centery,
+                                 self.damage_type, 0, self.bullet_speed_x, self.bullet_speed_y, 'yas',
+                                 self)
+            #---
+            self.cost = 0
 
         if self.name == 'terpila':  # циферки поменять
             self.hp = 5000
@@ -171,6 +183,10 @@ class Bullet(sprite.Sprite):
         if self.name == 'ls':
             self.off = 75
 
+        if self.name == 'yas':
+            self.sumon = 'ready'
+            self.cooldawn = 375
+
     def bullet_movement(self):
         self.rect.x += self.speed_x
         self.rect.y += self.speed_y
@@ -193,11 +209,37 @@ class Bullet(sprite.Sprite):
                     self.parent.nakopleno = 0
                     self.parent.attack_cooldown = 100
 
+        if self.name == 'yas':
+            for enemy in enemies_group:
+
+                if enemy.rect.y == self.parent.rect.y and enemy.rect.x >= self.parent.rect.x and self.sumon == 'ready':
+                    self.speed_x = 2
+                    self.sumon = 'go'
+
+                if enemy.rect.colliderect(self.rect) and self.sumon == 'go':
+                    self.speed_x *= -1
+                    self.sumon = 'back'
+
+            if self.rect.centerx == self.parent.rect.centerx and self.sumon == 'back':
+                self.speed_x = 0
+                self.sumon = 'wait'
+
+            if self.cooldawn <= 0 and self.sumon == 'wait':
+                self.cooldawn = 375
+                self.sumon = 'ready'
+
+            if self.parent.is_dead == True:
+                self.kill()
+
         if self.rect.x >= 1700:
             self.kill()
 
     def update(self):
         self.bullet_movement()
+
+        if self.name == 'yas' and self.sumon == 'wait':
+            if self.cooldawn > 0:
+                self.cooldawn -= 1
 
 
 class Enemy(sprite.Sprite):  # враг, он же "зомби"
@@ -287,8 +329,9 @@ towers_group = sprite.Group()
 slots_group = sprite.Group()
 
 
-Tower("zeus", (384, 704))
+#Tower("zeus", (384, 704))
 Tower("kopitel", (384, 192))
+Tower("yascerica", (512, 704))
 
 
 Enemy("popusk", 1408, 320)
@@ -320,28 +363,33 @@ while running:
 
     screen.blit(font.render(str(money), True, (0, 0, 0)), (104, 70))
 
-    # for bullet in bullets_group:
-    #
-    #     if bullet.name == 'ls':
-    #         for enemy in enemies_group:
-    #             if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
-    #                 enemy.hp -= bullet.damage
-    #         bullet.remove(bullets_group)
-    #
-    #     for enemy in enemies_group:
-    #         if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
-    #             if bullet.name == 'default' or bullet.name == 'hrom' or bullet.name == 'kopilka':
-    #                 enemy.hp -= bullet.damage
-    #                 bullet.kill()
+    for bullet in bullets_group:
 
-    for enemy in enemies_group:
-        for bullet in bullets_group:
-            if bullet.rect.colliderect(enemy.rect):
+        if bullet.name == 'ls':
+            for enemy in enemies_group:
+                if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
+                    enemy.hp -= bullet.damage
+            bullet.remove(bullets_group)
+
+        if bullet.name == 'yas':
+            for enemy in enemies_group:
+                if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
+                    enemy.hp -= enemy.hp
+
+        for enemy in enemies_group:
+            if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
                 if bullet.name == 'default' or bullet.name == 'hrom' or bullet.name == 'kopilka':
                     enemy.hp -= bullet.damage
                     bullet.kill()
-                if bullet.name == 'ls':
-                    enemy.hp -= bullet.damage
+
+    #for enemy in enemies_group:
+     #   for bullet in bullets_group:
+      #      if bullet.rect.colliderect(enemy.rect):
+       #         if bullet.name == 'default' or bullet.name == 'hrom' or bullet.name == 'kopilka':
+        #            enemy.hp -= bullet.damage
+         #           bullet.kill()
+          #      if bullet.name == 'ls':
+           #         enemy.hp -= bullet.damage
 
 
 
