@@ -8,7 +8,7 @@ screen = display.set_mode((1600, 900))
 display.set_caption("Супер-мега игра")
 screen.fill((255, 255, 255))
 img = image.load("images/maps/map2.png").convert_alpha()
-font = font.Font("fonts/VividSans-Regular.ttf", 40)
+font = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
 
 # ---
 money = 1200
@@ -38,10 +38,10 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
 
         if self.name == 'kopitel':
             self.hp = 200
-            self.atk = 25 * 10
+            self.atk = 30
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.attack_cooldown = 100
+            self.attack_cooldown = 90
             self.damage_type = ''
             self.nakopleno = 0
             self.max_nakopit = 9
@@ -365,7 +365,7 @@ while running:
     all_sprites_group.update()
     all_sprites_group.draw(screen)
 
-    screen.blit(font.render(str(money), True, (0, 0, 0)), (104, 70))
+    screen.blit(font.render(str(money), True, (0, 0, 0)), (88, 53))
 
     for bullet in bullets_group:
 
