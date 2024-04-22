@@ -8,10 +8,13 @@ screen = display.set_mode((1600, 900))
 display.set_caption("Супер-мега игра")
 screen.fill((255, 255, 255))
 img = image.load("images/maps/map2.png").convert_alpha()
+font10 = font.Font("fonts/ofont.ru_Nunito.ttf", 20)
 font = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
+
 
 money = 120
 time_to_spawn = 0
+
 
 
 class Tower(sprite.Sprite):
@@ -77,11 +80,14 @@ class Tower(sprite.Sprite):
 
         if self.name == 'terpila':  # циферки поменять
             self.hp = 5000
-            self.atk = 0
-            self.bullet_speed = 0
-            self.attack_cooldown = 0
-            self.damage_type = ''
             self.cost = 30
+
+        if self.name == 'davalka':
+            self.hp = 200
+            self.skolko_deneg_dast = 30
+            self.davanie_cooldown = 900
+            self.cost = 20
+            self.time_on_screen = 0 #это для плюс денег
 
         # СТАТЫ конец
 
@@ -100,6 +106,9 @@ class Tower(sprite.Sprite):
                 for enemy in enemies_group:
                     if (enemy.rect.y == self.rect.y or enemy.rect.y == self.rect.y + 128 or enemy.rect.y == self.rect.y - 128) and enemy.rect.x >= self.rect.x:
                         self.is_shooting()
+
+            if self.name == 'davalka':
+                self.dayot()
 
             if self.hp <= 0:
                 self.is_dead = True
@@ -151,11 +160,31 @@ class Tower(sprite.Sprite):
                                     self.damage_type, self.atk, self.bullet_speed_x, 0,
                                     'ls', self)
 
+
+    def dayot(self):
+        if self.name == 'davalka':
+            if self.davanie_cooldown <= 0:
+                self.davanie_cooldown = 900
+                global money
+                money += self.skolko_deneg_dast
+                self.plus_dengi = font10.render('+30', True, (0, 70, 200))
+                self.time_on_screen = 50
+
+        
+
     def update(self):
         self.delat_chtoto()
 
-        if self.attack_cooldown > 0:
-            self.attack_cooldown -= 1
+        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'yascerica' or self.name == 'zeus':
+            if self.attack_cooldown > 0:
+                self.attack_cooldown -= 1
+
+        if self.name == 'davalka':
+            if self.davanie_cooldown > 0:
+                self.davanie_cooldown -= 1
+            if self.time_on_screen > 0:
+                screen.blit(self.plus_dengi, (self.rect.centerx-15, self.rect.centery-55))
+                self.time_on_screen -= 1
 
 
 class Bullet(sprite.Sprite):
@@ -357,7 +386,7 @@ Enemy("popusk", (1508, 576))
 
 UI((1500, 800), "shovel", "lopata")
 
-UI((94, 160), "towers", "t", )
+UI((94, 160), "towers", "davalka", )
 UI((94, 256), "towers", "thunder")
 UI((94, 352), "towers", "terpila")
 UI((94, 448), "towers", "kopitel")
