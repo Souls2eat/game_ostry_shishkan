@@ -1,5 +1,5 @@
 from pygame import * 
-from random import randint
+from random import randint, choice
 
 init()
 
@@ -10,12 +10,10 @@ screen.fill((255, 255, 255))
 img = image.load("images/maps/map2.png").convert_alpha()
 font = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
 
-# ---
 money = 1200
-# ---
+time_to_spawn = 0
 
-
-class Tower(sprite.Sprite):  # башня, она же "растение"
+class Tower(sprite.Sprite):
     def __init__(self, unit, pos):
         super().__init__(towers_group, all_sprites_group)
         self.image = image.load(f"images/towers/{unit}.png").convert_alpha()
@@ -33,7 +31,6 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
             self.bullet_speed_y = 0
             self.attack_cooldown = 75
             self.damage_type = ''
-            # ----
             self.cost = 10
 
         if self.name == 'kopitel':
@@ -45,7 +42,6 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
             self.damage_type = ''
             self.nakopleno = 0
             self.max_nakopit = 9
-            # ---
             self.cost = 20
 
         if self.name == 'thunder':
@@ -55,7 +51,6 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
             self.bullet_speed_y = 3
             self.attack_cooldown = 200
             self.damage_type = ''
-            # ---
             self.cost = 15
 
         if self.name == 'zeus':
@@ -65,7 +60,6 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
             self.bullet_speed_y = 0
             self.attack_cooldown = 150
             self.damage_type = ''
-            # ---
             self.cost = 20
 
         if self.name == 'yascerica':
@@ -78,7 +72,6 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
                                  self.damage_type, 0, self.bullet_speed_x, self.bullet_speed_y, 'yas',
                                  self)
             self.bullet.remove(bullets_group)
-            #---
             self.cost = 0
 
         if self.name == 'terpila':  # циферки поменять
@@ -87,7 +80,6 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
             self.bullet_speed = 0
             self.attack_cooldown = 0
             self.damage_type = ''
-            # ---
             self.cost = 30
 
         # СТАТЫ конец
@@ -95,7 +87,7 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
 
     def delat_chtoto(self):  # тут надо будет написать условие при котором башня стреляет
         if self.is_dead != True:
-            if  self.name == 'zeus' or self.name == "fire_mag":
+            if self.name == 'zeus' or self.name == "fire_mag":
                 for enemy in enemies_group:
                     if enemy.rect.y == self.rect.y and enemy.rect.x >= self.rect.x:
                         self.is_shooting()
@@ -151,7 +143,6 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
                                      self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y * -1, 'hrom',
                                      self)
 
-
         if self.name == 'zeus':
             if self.attack_cooldown <= 0:
                 self.attack_cooldown = 225
@@ -159,8 +150,6 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
                                     self.damage_type, self.atk, self.bullet_speed_x, 0,
                                     'ls', self)
 
-
-            
     def update(self):
         self.delat_chtoto()
 
@@ -297,24 +286,24 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
         self.delat_chtoto()
 
 
-class Slot(sprite.Sprite):
-    def __init__(self, pos, unit_inside):
-        super().__init__(slots_group)
-        self.image = image.load(f"images_inside/{unit_inside}_inside.png").convert_alpha()
+class UI(sprite.Sprite):
+    def __init__(self, pos, path, unit_inside):
+        super().__init__(ui_group, all_sprites_group)
+        self.image = image.load(f"images/{path}/images_inside/{unit_inside}_inside.png").convert_alpha()
         self.pos = pos
         self.default_pos = pos
         self.rect = self.image.get_rect(topleft=(self.pos))
         self.is_move = False
         self.unit_inside = unit_inside
-
+        self.path = path
 
     def move(self):
-        self.image = image.load(f"images/towers/{self.unit_inside}.png").convert_alpha()
+        self.image = image.load(f"images/{self.path}/{self.unit_inside}.png").convert_alpha()
         self.pos = mouse.get_pos()
         self.rect = self.image.get_rect(center=(self.pos))
 
     def back_to_default(self):
-        self.image = image.load(f"images_inside/{self.unit_inside}_inside.png").convert_alpha()
+        self.image = image.load(f"images/{self.path}/images_inside/{self.unit_inside}_inside.png").convert_alpha()
         self.rect = self.image.get_rect(topleft=(self.default_pos))
 
     def update(self):
@@ -324,14 +313,48 @@ class Slot(sprite.Sprite):
             self.back_to_default()
 
 
+# class Shovel(sprite.Sprite):
+#     def __init__(self, pos, path, sprite):
+#         super().__init__(ui_group, all_sprites_group)
+#         self.image = image.load(f"images/{path}/{sprite}.png").convert_alpha()
+#         self.rect = self.image.get_rect(topleft=(pos))
+#         self.path = path
+#         self.sprite = sprite
+#         self.default_pos = pos
+#
+#         self.is_move = False
+#
+#     def back_to_default(self):
+#         self.image = image.load(f"images/{self.path}/{self.sprite}.png").convert_alpha()
+#         self.rect = self.image.get_rect(topleft=(self.default_pos))
+#
+#     def move(self):
+#         self.image = image.load(f"images/{self.path}/{self.sprite}.png").convert_alpha()
+#         self.pos = mouse.get_pos()
+#         self.rect = self.image.get_rect(center=(self.pos))
+#
+#     def update(self):
+#         if self.is_move == True:
+#             self.move()
+#         if self.is_move == False:
+#             self.back_to_default()
+
+def random_spawn_enemies():
+    line_cords = [192, 320, 448, 576, 704]
+    enemy_sprites = ["josky", "popusk", "sigma"]
+    y_cord = choice(line_cords)
+    name = choice(enemy_sprites)
+    Enemy(name, 1600, y_cord)
+
+
 all_sprites_group = sprite.Group()
 bullets_group = sprite.Group()
 enemies_group = sprite.Group()
 towers_group = sprite.Group()
 slots_group = sprite.Group()
+ui_group = sprite.Group()
 
-
-#Tower("zeus", (384, 704))
+# Tower("zeus", (384, 704))
 Tower("kopitel", (384, 192))
 Tower("yascerica", (512, 704))
 
@@ -343,17 +366,15 @@ Enemy("popusk", 1208, 576)
 Enemy("popusk", 1508, 576)
 
 
-Slot((94, 160), "t", )
-Slot((94, 256), "thunder")
-Slot((94, 352), "terpila")
-Slot((94, 448), "kopitel")
-Slot((94, 544), "zeus")
-Slot((94, 640), "yascerica")
-Slot((94, 736), "fire_mag")
-           #+0, +96)
-
-
-all_sprites_group.add(enemies_group, slots_group, towers_group)
+# Shovel((100, 100), "shovel", "lopata")
+UI((1500, 800), "shovel", "lopata")
+UI((94, 160), "towers", "t", )
+UI((94, 256), "towers", "thunder")
+UI((94, 352), "towers", "terpila")
+UI((94, 448), "towers", "kopitel")
+UI((94, 544), "towers", "zeus")
+UI((94, 640), "towers", "yascerica")
+UI((94, 736), "towers", "fire_mag")  # +0, +96
 
 
 running = True
@@ -367,13 +388,19 @@ while running:
 
     screen.blit(font.render(str(money), True, (0, 0, 0)), (88, 53))
 
+    time_to_spawn += 1
+    if time_to_spawn == 375:
+        random_spawn_enemies()
+        time_to_spawn = 0
+
+
     for bullet in bullets_group:
 
-         if bullet.name == 'ls':
-             for enemy in enemies_group:
-                 if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
-                     enemy.hp -= bullet.damage
-             bullet.remove(bullets_group)
+        if bullet.name == 'ls':
+            for enemy in enemies_group:
+                if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
+                    enemy.hp -= bullet.damage
+            bullet.remove(bullets_group)
 
         #if bullet.name == 'yas':
          #   for enemy in enemies_group:
@@ -417,22 +444,35 @@ while running:
             for slot in slots_group:
                 if slot.rect.collidepoint(mouse_pos):
                     slot.is_move = True
+            for el in ui_group:
+                if el.rect.collidepoint(mouse_pos):
+                    el.is_move = True
+
         if e.type == MOUSEBUTTONUP:
             mouse_pos = mouse.get_pos()
-            for slot in slots_group:
-                if slot.rect.collidepoint(mouse_pos):
-                    slot.is_move = False
-
+            for el in ui_group:  # слоты
+                if el.rect.collidepoint(mouse_pos):
+                    el.is_move = False
                     unit_pos = (384 + ((mouse_pos[0] - 384) // 128) * 128), (192 + ((mouse_pos[1] - 192) // 128) * 128)
                     if 1536 > unit_pos[0] >= 384 and 832 > unit_pos[1] >= 192:
-                        is_free = []  # Проверка есть ли на клетке другая башенка
-                        for tower in towers_group:
-                            is_free.append(tower.rect.collidepoint(slot.rect.centerx, slot.rect.centery) is False)
-                        if all(is_free):
-                            unit = Tower(slot.unit_inside, unit_pos)
 
-                            if money - unit.cost < 0:  # Это пиздец, но оно работает. Придумаете лучше -- переделаете
-                                unit.kill()
-                            else:
-                                money -= unit.cost
-                            is_free.clear()
+                        if el.path == "towers":
+                            is_free = []  # Проверка есть ли на клетке другая башенка
+                            for tower in towers_group:
+                                is_free.append(tower.rect.collidepoint(el.rect.centerx, el.rect.centery) is False)
+                            if all(is_free):
+                                unit = Tower(el.unit_inside, unit_pos)
+
+                                if money - unit.cost < 0:  # Это пиздец, но оно работает. Придумаете лучше -- переделаете
+                                    unit.kill()
+                                else:
+                                    money -= unit.cost
+                                is_free.clear()
+
+                        if el.path == "shovel":
+                            for tower in towers_group:
+                                if tower.rect.collidepoint(el.rect.centerx, el.rect.centery):
+                                    money += tower.cost // 2
+                                    if hasattr(tower, "bullet"):
+                                        tower.bullet.kill()
+                                    tower.kill()
