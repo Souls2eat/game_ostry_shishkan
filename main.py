@@ -313,32 +313,6 @@ class UI(sprite.Sprite):
             self.back_to_default()
 
 
-# class Shovel(sprite.Sprite):
-#     def __init__(self, pos, path, sprite):
-#         super().__init__(ui_group, all_sprites_group)
-#         self.image = image.load(f"images/{path}/{sprite}.png").convert_alpha()
-#         self.rect = self.image.get_rect(topleft=(pos))
-#         self.path = path
-#         self.sprite = sprite
-#         self.default_pos = pos
-#
-#         self.is_move = False
-#
-#     def back_to_default(self):
-#         self.image = image.load(f"images/{self.path}/{self.sprite}.png").convert_alpha()
-#         self.rect = self.image.get_rect(topleft=(self.default_pos))
-#
-#     def move(self):
-#         self.image = image.load(f"images/{self.path}/{self.sprite}.png").convert_alpha()
-#         self.pos = mouse.get_pos()
-#         self.rect = self.image.get_rect(center=(self.pos))
-#
-#     def update(self):
-#         if self.is_move == True:
-#             self.move()
-#         if self.is_move == False:
-#             self.back_to_default()
-
 def random_spawn_enemies():
     line_cords = [192, 320, 448, 576, 704]
     enemy_sprites = ["josky", "popusk", "sigma"]
@@ -351,8 +325,8 @@ all_sprites_group = sprite.Group()
 bullets_group = sprite.Group()
 enemies_group = sprite.Group()
 towers_group = sprite.Group()
-slots_group = sprite.Group()
 ui_group = sprite.Group()
+
 
 # Tower("zeus", (384, 704))
 Tower("kopitel", (384, 192))
@@ -366,8 +340,8 @@ Enemy("popusk", 1208, 576)
 Enemy("popusk", 1508, 576)
 
 
-# Shovel((100, 100), "shovel", "lopata")
 UI((1500, 800), "shovel", "lopata")
+
 UI((94, 160), "towers", "t", )
 UI((94, 256), "towers", "thunder")
 UI((94, 352), "towers", "terpila")
@@ -393,7 +367,6 @@ while running:
         random_spawn_enemies()
         time_to_spawn = 0
 
-
     for bullet in bullets_group:
 
         if bullet.name == 'ls':
@@ -401,11 +374,6 @@ while running:
                 if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
                     enemy.hp -= bullet.damage
             bullet.remove(bullets_group)
-
-        #if bullet.name == 'yas':
-         #   for enemy in enemies_group:
-          #      if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
-           #         enemy.hp -= enemy.hp
 
     for enemy in enemies_group:
         for bullet in bullets_group:
@@ -417,17 +385,6 @@ while running:
                     enemy.hp -= enemy.hp
                     bullet.parent.bullet.remove(bullets_group)
 
-    #for enemy in enemies_group:
-     #   for bullet in bullets_group:
-      #      if bullet.rect.colliderect(enemy.rect):
-       #         if bullet.name == 'default' or bullet.name == 'hrom' or bullet.name == 'kopilka':
-        #            enemy.hp -= bullet.damage
-         #           bullet.kill()
-          #      if bullet.name == 'ls':
-           #         enemy.hp -= bullet.damage
-
-
-
     clock.tick(75)
     display.update()
 
@@ -436,14 +393,14 @@ while running:
         if keys[K_ESCAPE]:
             running = False
         if keys[K_SPACE]:
-            Enemy("popusk", 1508, 704)
+            Enemy("sigma", 1508, 704)
         if e.type == QUIT:
             running = False
         if e.type == MOUSEBUTTONDOWN:
             mouse_pos = mouse.get_pos()
-            for slot in slots_group:
-                if slot.rect.collidepoint(mouse_pos):
-                    slot.is_move = True
+            for el in ui_group:
+                if el.rect.collidepoint(mouse_pos):
+                    el.is_move = True
             for el in ui_group:
                 if el.rect.collidepoint(mouse_pos):
                     el.is_move = True
