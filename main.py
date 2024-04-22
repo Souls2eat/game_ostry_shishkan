@@ -11,7 +11,7 @@ img = image.load("images/maps/map2.png").convert_alpha()
 font = font.Font("fonts/VividSans-Regular.ttf", 40)
 
 # ---
-money = 200
+money = 1200
 # ---
 
 
@@ -38,7 +38,7 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
 
         if self.name == 'kopitel':
             self.hp = 200
-            self.atk = 25
+            self.atk = 25 * 10
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
             self.attack_cooldown = 100
@@ -77,6 +77,7 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
             self.bullet = Bullet("yellow_bullet", self.rect.centerx, self.rect.centery,
                                  self.damage_type, 0, self.bullet_speed_x, self.bullet_speed_y, 'yas',
                                  self)
+            self.bullet.remove(bullets_group)
             #---
             self.cost = 0
 
@@ -215,6 +216,7 @@ class Bullet(sprite.Sprite):
                 if enemy.rect.y == self.parent.rect.y and enemy.rect.x >= self.parent.rect.x and self.sumon == 'ready':
                     self.speed_x = 2
                     self.sumon = 'go'
+                    self.parent.bullet.add(bullets_group)
 
                 if (enemy.rect.colliderect(self.rect) or self.rect.centerx >= 1500) and self.sumon == 'go':
                     self.speed_x *= -1
@@ -367,24 +369,26 @@ while running:
 
     for bullet in bullets_group:
 
-        if bullet.name == 'ls':
-            for enemy in enemies_group:
-                if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
-                    enemy.hp -= bullet.damage
-            bullet.remove(bullets_group)
+         if bullet.name == 'ls':
+             for enemy in enemies_group:
+                 if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
+                     enemy.hp -= bullet.damage
+             bullet.remove(bullets_group)
 
         #if bullet.name == 'yas':
          #   for enemy in enemies_group:
           #      if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
            #         enemy.hp -= enemy.hp
 
-        for enemy in enemies_group:
+    for enemy in enemies_group:
+        for bullet in bullets_group:
             if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
                 if bullet.name == 'default' or bullet.name == 'hrom' or bullet.name == 'kopilka':
                     enemy.hp -= bullet.damage
                     bullet.kill()
                 if bullet.name == 'yas':
                     enemy.hp -= enemy.hp
+                    bullet.parent.bullet.remove(bullets_group)
 
     #for enemy in enemies_group:
      #   for bullet in bullets_group:
