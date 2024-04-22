@@ -11,7 +11,7 @@ img = image.load("images/maps/map2.png").convert_alpha()
 font = font.Font("fonts/VividSans-Regular.ttf", 40)
 
 # ---
-money = 150
+money = 200
 # ---
 
 
@@ -25,8 +25,8 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
         self.rect = self.image.get_rect(topleft=(pos))
 
         # СТАТЫ начало
-            
-        if self.name == 'strelyatel':  # циферки поменять
+
+        if self.name == 'fire_mag':  # циферки поменять
             self.hp = 200
             self.atk = 20
             self.bullet_speed_x = 5
@@ -94,7 +94,7 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
 
     def delat_chtoto(self):  # тут надо будет написать условие при котором башня стреляет
         if self.is_dead != True:
-            if self.name == 'strelyatel' or self.name == 'zeus':
+            if  self.name == 'zeus' or self.name == "fire_mag":
                 for enemy in enemies_group:
                     if enemy.rect.y == self.rect.y and enemy.rect.x >= self.rect.x:
                         self.is_shooting()
@@ -115,7 +115,7 @@ class Tower(sprite.Sprite):  # башня, она же "растение"
     def is_shooting(self):
         #keys = key.get_pressed() если нужно будет затестить по нажатию
             
-        if self.name == 'strelyatel':
+        if self.name == "fire_mag":  # пока
             if self.attack_cooldown <= 0:
                 self.attack_cooldown = 75
                 Bullet("blue_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
@@ -346,7 +346,8 @@ Slot((94, 256), "thunder")
 Slot((94, 352), "terpila")
 Slot((94, 448), "kopitel")
 Slot((94, 544), "zeus")
-Slot((94, 640),"yascerica")
+Slot((94, 640), "yascerica")
+Slot((94, 736), "fire_mag")
            #+0, +96)
 
 
