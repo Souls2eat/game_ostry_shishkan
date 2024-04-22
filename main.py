@@ -216,7 +216,7 @@ class Bullet(sprite.Sprite):
                     self.speed_x = 2
                     self.sumon = 'go'
 
-                if enemy.rect.colliderect(self.rect) and self.sumon == 'go':
+                if (enemy.rect.colliderect(self.rect) or self.rect.centerx >= 1500) and self.sumon == 'go':
                     self.speed_x *= -1
                     self.sumon = 'back'
 
@@ -346,7 +346,8 @@ Slot((94, 256), "thunder")
 Slot((94, 352), "terpila")
 Slot((94, 448), "kopitel")
 Slot((94, 544), "zeus")
-       # Slot((34, 736)) +0, +96
+Slot((94, 640),"yascerica")
+           #+0, +96)
 
 
 all_sprites_group.add(enemies_group, slots_group, towers_group)
@@ -371,16 +372,18 @@ while running:
                     enemy.hp -= bullet.damage
             bullet.remove(bullets_group)
 
-        if bullet.name == 'yas':
-            for enemy in enemies_group:
-                if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
-                    enemy.hp -= enemy.hp
+        #if bullet.name == 'yas':
+         #   for enemy in enemies_group:
+          #      if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
+           #         enemy.hp -= enemy.hp
 
         for enemy in enemies_group:
             if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
                 if bullet.name == 'default' or bullet.name == 'hrom' or bullet.name == 'kopilka':
                     enemy.hp -= bullet.damage
                     bullet.kill()
+                if bullet.name == 'yas':
+                    enemy.hp -= enemy.hp
 
     #for enemy in enemies_group:
      #   for bullet in bullets_group:
