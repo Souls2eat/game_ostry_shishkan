@@ -476,13 +476,15 @@ while running:
     for e in event.get():
         # keys = key.get_pressed()
         if e.type == KEYDOWN:
-            if e.key == K_ESCAPE:
+            if e.key == K_ESCAPE and game_state != "death":
                 if game_state == "run":
                     game_state = "paused"
                 else:
                     game_state = "run"
             if e.key == K_SPACE:
                 Enemy("sigma", (1508, 704))
+            if e.key == K_q:
+                running = False
         if e.type == QUIT:
             running = False
         if e.type == MOUSEBUTTONDOWN:  # При нажатии кнопки мыши
