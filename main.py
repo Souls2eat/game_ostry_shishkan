@@ -75,10 +75,10 @@ class Tower(sprite.Sprite):
 
         if self.name == 'zeus':
             self.hp = 100
-            self.atk = 100 * 1000
+            self.atk = 100
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.attack_cooldown = 0
+            self.attack_cooldown = 150
             self.damage_type = ''
             self.cost = 20
 
@@ -337,7 +337,7 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
 
             self.stop = False  # нужно чтобы в случае колизии останавливался, а если колизии не будет то шёл дальше. ОБЯЗАТЕЛЬНО ПОСЛЕ ПРОВЕРКИ СТОПА НО ПЕРЕД ПРОВЕРКОЙ КОЛИЗИИ
             for tower in towers_group:
-                if sprite.collide_rect(self, tower):
+                if tower.rect.collidepoint(self.rect.centerx, self.rect.centery):
                     self.attack_cooldown -= 1
                     self.stop = True
                     if self.attack_cooldown <= 0:
@@ -404,11 +404,11 @@ class Button:
 
 def random_spawn_enemies():
     pass
-    # line_cords = [192, 320, 448, 576, 704]
-    # enemy_sprites = ["josky", "popusk", "sigma"]
-    # y_cord = choice(line_cords)
-    # name = choice(enemy_sprites)
-    # Enemy(name, (1600, y_cord))
+    line_cords = [192, 320, 448, 576, 704]
+    enemy_sprites = ["josky", "popusk", "sigma"]
+    y_cord = choice(line_cords)
+    name = choice(enemy_sprites)
+    Enemy(name, (1600, y_cord))
 
 
 def is_free(object):
@@ -423,7 +423,6 @@ def is_free(object):
 
 
 def spawn_level(current_level):
-    print(current_level)
     if current_level == 1:
         pass
         Enemy("popusk", (1408, 320))
@@ -456,10 +455,6 @@ towers_group = sprite.Group()
 ui_group = sprite.Group()
 all_sprites_group = sprite.Group()
 buttons_group = sprite.Group()
-
-# Tower("zeus", (384, 704))
-Tower("kopitel", (384, 192))
-Tower("yascerica", (512, 704))
 
 
 UI((1500, 800), "shovel", "lopata")
@@ -569,8 +564,18 @@ while running:
                     game_state = "paused"
                 else:
                     game_state = "run"
-            if e.key == K_SPACE:
+
+            if e.key == K_z:
+                Enemy("popusk", (1508, 192))
+            if e.key == K_x:
+                Enemy("josky", (1508, 320))
+            if e.key == K_c:
+                Enemy("sigma", (1508, 448))
+            if e.key == K_v:
+                Enemy("josky", (1508, 576))
+            if e.key == K_b:
                 Enemy("sigma", (1508, 704))
+
             if e.key == K_q:
                 running = False
         if e.type == QUIT:
@@ -611,6 +616,3 @@ while running:
                                     if hasattr(tower, "bullet"):
                                         tower.bullet.kill()
                                     tower.kill()
-            # for button in buttons_group:
-            #     if button.rect.collidepoint(mouse_pos):
-            #         button.clicked = True
