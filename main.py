@@ -1,4 +1,4 @@
-from pygame import * 
+from pygame import *
 from random import randint, choice
 
 init()
@@ -9,7 +9,9 @@ display.set_caption("Супер-мега игра")
 screen.fill((255, 255, 255))
 
 bg = image.load("images/maps/map2.png").convert_alpha()
-menu = image.load("images/menu/pause_menu.png").convert_alpha()
+pause_menu = image.load("images/menu/pause_menu.png").convert_alpha()
+settings_menu = image.load("images/menu/settings_menu.png").convert_alpha()
+main_menu = image.load("images/menu/main_menu.png").convert_alpha()
 
 font20 = font.Font("fonts/ofont.ru_Nunito.ttf", 20)
 font40 = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
@@ -17,7 +19,7 @@ font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
 
 current_level = 1
 level_state = "not_run"
-money = 120
+money = 1200
 time_to_spawn = 0
 game_state = "run"
 
@@ -374,26 +376,26 @@ class UI(sprite.Sprite):
 
 
 class Button:
-    def __init__(self, text, font, col, pos):  # Можно добавить scale
-        self.image = font.render(text, font, col)
+    def __init__(self, text, font, pos, col=(255, 255, 255)):  # Можно добавить scale
+        self.image = font.render(text, font, col)   # По дефолту цвет текста белый. Я ебал по 50 раз писать одно и тоже
         self.w = self.image.get_width()
         self.h = self.image.get_height()
         # self.image = transform.scale(self.image, (int(self.w * scale), int(self.h * scale))) # для скейла
         self.rect = self.image.get_rect(topleft=(pos))
         self.clicked = False
+        self.pushed = False
 
     def click(self, surf, mouse_pos):
-        action = False
+        if not self.rect.collidepoint(mouse_pos):
+            self.pushed = False
         if self.rect.collidepoint(mouse_pos):
-            if mouse.get_pressed()[0] == 1 and not self.clicked:
-                self.clicked = True
-                action = True
-        if mouse.get_pressed()[0] == 0:
-            self.clicked = False
+            if mouse.get_pressed()[0] == 1 and not self.pushed:
+                self.pushed = True
+        if mouse.get_pressed()[0] == 0 and self.pushed:
+            self.pushed = False
+            return True
 
         surf.blit(self.image, self.rect)
-
-        return action
 
 
 def random_spawn_enemies():
@@ -418,16 +420,17 @@ def is_free(object):
 def spawn_level(current_level):
     print(current_level)
     if current_level == 1:
-        Enemy("popusk", (1408, 320))
-        Enemy("sigma", (1408, 192))
-        Enemy("josky", (1408, 576))
-        Enemy("popusk", (1208, 576))
-        Enemy("popusk", (1508, 576))
+        pass
+        # Enemy("popusk", (1408, 320))
+        # Enemy("sigma", (1408, 192))
+        # Enemy("josky", (1408, 576))
+        # Enemy("popusk", (1208, 576))
+        # Enemy("popusk", (1508, 576))
 
-        print("ff")
     elif current_level == 2:
         Enemy("josky", (1408, 320))
-        print("gg")
+        Enemy("popusk", (1208, 576))
+
     return "run", current_level + 1
 
 
@@ -447,18 +450,14 @@ enemies_group = sprite.Group()
 towers_group = sprite.Group()
 ui_group = sprite.Group()
 all_sprites_group = sprite.Group()
-
+buttons_group = sprite.Group()
 
 # Tower("zeus", (384, 704))
 Tower("kopitel", (384, 192))
 Tower("yascerica", (512, 704))
 
 
-Enemy("popusk", (1408, 320))
-Enemy("sigma", (1408, 192))
-Enemy("josky", (1408, 576))
-Enemy("popusk", (1208, 576))
-Enemy("popusk", (1508, 576))
+
 
 
 UI((1500, 800), "shovel", "lopata")
@@ -472,8 +471,13 @@ UI((94, 640), "towers", "yascerica")
 UI((94, 736), "towers", "fire_mag")  # +0, +96
 
 
-pause_button = Button("||", font40, (255, 255, 255), (1550, 30))
-death_button = Button("Вы проиграли", font60, (255, 255, 255), (591, 350))
+pause_button = Button("||", font40, (1550, 30))
+death_button = Button("Вы проиграли", font60, (591, 280))
+resume_button = Button("Продолжить", font60, (614, 360))
+settings_button = Button("Настройки", font60, (642, 440))
+maim_menu_button = Button("В главное меню", font60, (567, 520))
+back_button = Button("Назад", font60, (709, 520))
+
 
 running = True
 
@@ -486,8 +490,8 @@ while running:
 
     if level_state == "not_run":
         level_state, current_level = spawn_level(current_level)
-        print(level_state, current_level)
 
+    # -------
     if game_state == "run":
         all_sprites_group.update()
         time_to_spawn += 1
@@ -496,16 +500,31 @@ while running:
             time_to_spawn = 0
 
     if game_state == "paused":
-        screen.blit(menu, (480, 250))
-        screen.blit(font60.render("Пауза", True, (255, 255, 255)), (700, 250))
+        screen.blit(pause_menu, (480, 250))
+        screen.blit(font60.render("Пауза", True, (193, 8, 42)), (700, 280))
+        if resume_button.click(screen, mouse_pos):
+            game_state = "run"
+        if settings_button.click(screen, mouse_pos):
+            game_state = "settings_menu"
+        if maim_menu_button.click(screen, mouse_pos):
+            game_state = "main_menu"
+
+    if game_state == "settings_menu":
+        screen.blit(settings_menu, (480, 250))
+        if back_button.click(screen, mouse_pos):
+            time.wait(100)
+            game_state = "paused"
+
+    if game_state == "main_menu":
+        screen.blit(main_menu, (0, 0))
 
     if game_state == "death":
-        screen.blit(menu, (480, 250))
+        screen.blit(pause_menu, (480, 250))
         if death_button.click(screen, mouse_pos):
             game_state = "run"
-            current_level += 1
             level_state = "not_run"
             clear_level()
+    # -------
 
     if pause_button.click(screen, mouse_pos):
         if game_state == "paused":
@@ -565,6 +584,7 @@ while running:
             mouse_pos = mouse.get_pos()
             unit_pos = (384 + ((mouse_pos[0] - 384) // 128) * 128), (192 + ((mouse_pos[1] - 192) // 128) * 128)
 
+
             for el in ui_group:
 
                 if el.rect.collidepoint(mouse_pos):  # если элемент отпущен
@@ -589,3 +609,6 @@ while running:
                                     if hasattr(tower, "bullet"):
                                         tower.bullet.kill()
                                     tower.kill()
+            # for button in buttons_group:
+            #     if button.rect.collidepoint(mouse_pos):
+            #         button.clicked = True
