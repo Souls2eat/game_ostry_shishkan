@@ -271,7 +271,7 @@ class Bullet(sprite.Sprite):
                     self.speed_x *= -1
                     self.sumon = 'back'
 
-            if self.rect.centerx == self.parent.rect.centerx and self.sumon == 'back':
+            if self.rect.centerx == self.parent.rect.centerx - 26 and self.sumon == 'back':
                 self.speed_x = 0
                 self.sumon = 'wait'
 
