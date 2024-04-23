@@ -38,16 +38,25 @@ class Tower(sprite.Sprite):
             self.atk = 20
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
-            self.attack_cooldown = 75
+            self.attack_cooldown = 55
             self.damage_type = ''
             self.cost = 10
+
+        if self.name == 'boomchick':  
+            self.hp = 200
+            self.atk = 20 #типа по кому попадёт получит 40 а остальные по 20
+            self.bullet_speed_x = 4
+            self.bullet_speed_y = 0
+            self.attack_cooldown = 85
+            self.damage_type = ''
+            self.cost = 20
 
         if self.name == 'kopitel':
             self.hp = 200
             self.atk = 30
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.attack_cooldown = 90
+            self.attack_cooldown = 80
             self.damage_type = ''
             self.nakopleno = 0
             self.max_nakopit = 9
@@ -99,7 +108,7 @@ class Tower(sprite.Sprite):
 
     def delat_chtoto(self):  # тут надо будет написать условие при котором башня стреляет
         if self.is_dead != True:
-            if self.name == 'zeus' or self.name == "fire_mag":
+            if self.name == 'zeus' or self.name == "fire_mag" or self.name == 'boomchick':
                 for enemy in enemies_group:
                     if enemy.rect.y == self.rect.y and enemy.rect.x >= self.rect.x:
                         self.is_shooting()
@@ -123,11 +132,15 @@ class Tower(sprite.Sprite):
     def is_shooting(self):
         #keys = key.get_pressed() если нужно будет затестить по нажатию
             
-        if self.name == "fire_mag":  # пока
+        if self.name == "fire_mag":  # пока привет
             if self.attack_cooldown <= 0:
-                self.attack_cooldown = 75
+                self.attack_cooldown = 55
                 Bullet("blue_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
 
+        if self.name == 'boomchick':  
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = 85
+                Bullet("yellow_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'boom', self)
 
         if self.name == 'kopitel':
             if self.attack_cooldown <= 0:
@@ -180,7 +193,7 @@ class Tower(sprite.Sprite):
     def update(self):
         self.delat_chtoto()
 
-        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'yascerica' or self.name == 'zeus':
+        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'yascerica' or self.name == 'zeus' or self.name == 'boomchick':
             if self.attack_cooldown > 0:
                 self.attack_cooldown -= 1
 
@@ -207,10 +220,12 @@ class Bullet(sprite.Sprite):
 
         if self.name == 'ls':
             self.off = 75
+        if self.name == 'explosion':
+            self.off = 20
 
         if self.name == 'yas':
             self.sumon = 'ready'
-            self.cooldawn = 375
+            self.cooldown = 375
 
     def bullet_movement(self):
         self.rect.x += self.speed_x
@@ -223,6 +238,13 @@ class Bullet(sprite.Sprite):
         if self.name == 'ls':
             if self.off <= 0:
                 self.off = 75  # так потом же kill(), зачем возврашать 75? хпхпхппхпххп
+                self.kill()
+            else:
+                self.off -= 1
+
+        if self.name == 'explosion':
+            if self.off <= 0:
+                self.off = 20  # так потом же kill(), зачем возврашать 20? хпхпхппхпххп
                 self.kill()
             else:
                 self.off -= 1
@@ -253,8 +275,8 @@ class Bullet(sprite.Sprite):
                 self.speed_x = 0
                 self.sumon = 'wait'
 
-            if self.cooldawn <= 0 and self.sumon == 'wait':
-                self.cooldawn = 375
+            if self.cooldown <= 0 and self.sumon == 'wait':
+                self.cooldown = 375
                 self.sumon = 'ready'
 
             if self.parent.is_dead == True:
@@ -267,8 +289,8 @@ class Bullet(sprite.Sprite):
         self.bullet_movement()
 
         if self.name == 'yas' and self.sumon == 'wait':
-            if self.cooldawn > 0:
-                self.cooldawn -= 1
+            if self.cooldown > 0:
+                self.cooldown -= 1
 
 
 class Enemy(sprite.Sprite):  # враг, он же "зомби"
@@ -409,11 +431,13 @@ def spawn_level(current_level):
     return "run", current_level + 1
 
 
-def clear_lewel():
+def clear_level():
     for enemy in enemies_group:
         enemy.kill()
     for tower in towers_group:
         tower.kill()
+        if hasattr(tower, "bullet"):
+            tower.bullet.kill()
     for bullet in bullets_group:
         bullet.kill()
 
@@ -430,14 +454,17 @@ Tower("kopitel", (384, 192))
 Tower("yascerica", (512, 704))
 
 
-
-# Enemy("popusk", (300, 576))
+Enemy("popusk", (1408, 320))
+Enemy("sigma", (1408, 192))
+Enemy("josky", (1408, 576))
+Enemy("popusk", (1208, 576))
+Enemy("popusk", (1508, 576))
 
 
 UI((1500, 800), "shovel", "lopata")
 
 UI((94, 160), "towers", "davalka", )
-UI((94, 256), "towers", "thunder")
+UI((94, 256), "towers", "boomchick")
 UI((94, 352), "towers", "terpila")
 UI((94, 448), "towers", "kopitel")
 UI((94, 544), "towers", "zeus")
@@ -478,9 +505,7 @@ while running:
             game_state = "run"
             current_level += 1
             level_state = "not_run"
-            clear_lewel()
-
-        # screen.blit(font60.render("Вы проиграли", True, (255, 255, 255)), (600, 350))
+            clear_level()
 
     if pause_button.click(screen, mouse_pos):
         if game_state == "paused":
@@ -489,7 +514,7 @@ while running:
             game_state = "paused"
 
     for bullet in bullets_group:
-        if bullet.name == 'ls':
+        if bullet.name == 'ls' or bullet.name == 'explosion':
             for enemy in enemies_group:
                 if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
                     enemy.hp -= bullet.damage
@@ -507,6 +532,10 @@ while running:
                 if bullet.name == 'yas':
                     enemy.hp -= enemy.hp
                     bullet.parent.bullet.remove(bullets_group)
+                if bullet.name == 'boom':
+                    enemy.hp -= bullet.damage
+                    bullet.explosion = Bullet("explosion", bullet.rect.centerx, bullet.rect.centery, bullet.damage_type, bullet.damage, 0, 0, 'explosion', bullet.parent)
+                    bullet.kill()
 
     clock.tick(75)
     display.update()
