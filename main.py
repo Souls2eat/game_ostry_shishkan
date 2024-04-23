@@ -75,10 +75,10 @@ class Tower(sprite.Sprite):
 
         if self.name == 'zeus':
             self.hp = 100
-            self.atk = 100
+            self.atk = 100 * 1000
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.attack_cooldown = 150
+            self.attack_cooldown = 0
             self.damage_type = ''
             self.cost = 20
 
@@ -269,16 +269,20 @@ class Bullet(sprite.Sprite):
                     self.sumon = 'go'
                     self.parent.bullet.add(bullets_group)
 
-                if (enemy.rect.colliderect(self.rect) or self.rect.centerx >= 1500) and self.sumon == 'go':
+                if enemy.rect.colliderect(self.rect) and self.sumon == 'go':
                     self.speed_x *= -1
                     self.sumon = 'back'
+
+            if self.rect.centerx >= 1500 and self.sumon == 'go':
+                self.speed_x *= -1
+                self.sumon = 'back'
 
             if self.rect.centerx == self.parent.rect.centerx - 26 and self.sumon == 'back':
                 self.speed_x = 0
                 self.sumon = 'wait'
 
             if self.cooldown <= 0 and self.sumon == 'wait':
-                self.cooldown = 375
+                self.cooldown = 0
                 self.sumon = 'ready'
 
             if self.parent.is_dead == True:
@@ -399,11 +403,12 @@ class Button:
 
 
 def random_spawn_enemies():
-    line_cords = [192, 320, 448, 576, 704]
-    enemy_sprites = ["josky", "popusk", "sigma"]
-    y_cord = choice(line_cords)
-    name = choice(enemy_sprites)
-    Enemy(name, (1600, y_cord))
+    pass
+    # line_cords = [192, 320, 448, 576, 704]
+    # enemy_sprites = ["josky", "popusk", "sigma"]
+    # y_cord = choice(line_cords)
+    # name = choice(enemy_sprites)
+    # Enemy(name, (1600, y_cord))
 
 
 def is_free(object):
@@ -421,7 +426,7 @@ def spawn_level(current_level):
     print(current_level)
     if current_level == 1:
         pass
-        # Enemy("popusk", (1408, 320))
+        Enemy("popusk", (1408, 320))
         # Enemy("sigma", (1408, 192))
         # Enemy("josky", (1408, 576))
         # Enemy("popusk", (1208, 576))
@@ -457,9 +462,6 @@ Tower("kopitel", (384, 192))
 Tower("yascerica", (512, 704))
 
 
-
-
-
 UI((1500, 800), "shovel", "lopata")
 
 UI((94, 160), "towers", "davalka", )
@@ -472,12 +474,11 @@ UI((94, 736), "towers", "fire_mag")  # +0, +96
 
 
 pause_button = Button("||", font40, (1550, 30))
-death_button = Button("Вы проиграли", font60, (591, 280))
+restart_button = Button("Перезапустить", font60, (582, 360))
 resume_button = Button("Продолжить", font60, (614, 360))
 settings_button = Button("Настройки", font60, (642, 440))
 maim_menu_button = Button("В главное меню", font60, (567, 520))
 back_button = Button("Назад", font60, (709, 520))
-
 
 running = True
 
@@ -520,7 +521,8 @@ while running:
 
     if game_state == "death":
         screen.blit(pause_menu, (480, 250))
-        if death_button.click(screen, mouse_pos):
+        screen.blit(font60.render("Вы проиграли", True, (193, 8, 42)), (590, 280))
+        if restart_button.click(screen, mouse_pos):
             game_state = "run"
             level_state = "not_run"
             clear_level()
