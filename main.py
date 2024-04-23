@@ -14,7 +14,7 @@ font = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
 
 money = 120
 time_to_spawn = 0
-
+game_state = "run"
 
 
 class Tower(sprite.Sprite):
@@ -346,6 +346,29 @@ class UI(sprite.Sprite):
             self.back_to_default()
 
 
+class Button:
+    def __init__(self, text, font, col, pos):  # Можно добавить scale
+        self.image = font.render(text, font, col)
+        self.w = self.image.get_width()
+        self.h = self.image.get_height()
+        # self.image = transform.scale(self.image, (int(self.w * scale), int(self.h * scale))) # для скейла
+        self.rect = self.image.get_rect(center=(pos))
+        self.clicked = False
+
+    def click(self, surf, mouse_pos):
+        action = False
+        if self.rect.collidepoint(mouse_pos):
+            if mouse.get_pressed()[0] == 1 and not self.clicked:
+                self.clicked = True
+                action = True
+        if mouse.get_pressed()[0] == 0:
+            self.clicked = False
+
+        surf.blit(self.image, self.rect)
+
+        return action
+
+
 def random_spawn_enemies():
     line_cords = [192, 320, 448, 576, 704]
     enemy_sprites = ["josky", "popusk", "sigma"]
@@ -395,24 +418,38 @@ UI((94, 640), "towers", "yascerica")
 UI((94, 736), "towers", "fire_mag")  # +0, +96
 
 
+pause_button = Button("Пауза", font, (255, 255, 255), (960, 100))
+
+
 running = True
 
 while running:
 
     screen.blit(img, (0, 0))
-
-    all_sprites_group.update()
-    all_sprites_group.draw(screen)
-
     screen.blit(font.render(str(money), True, (0, 0, 0)), (88, 53))
+    all_sprites_group.draw(screen)
+    mouse_pos = mouse.get_pos()
 
-    time_to_spawn += 1
-    if time_to_spawn == 375:
-        random_spawn_enemies()
-        time_to_spawn = 0
+    if game_state == "run":
+        all_sprites_group.update()
+        time_to_spawn += 1
+        if time_to_spawn == 375:
+            random_spawn_enemies()
+            time_to_spawn = 0
+
+    if game_state == "paused":
+        pass
+
+    if game_state == "death":
+        screen.blit(font.render("Вы проиграли", True, (255, 255, 255)), (800, 450))
+
+    if pause_button.click(screen, mouse_pos):
+        if game_state == "paused":
+            game_state = "run"
+        elif game_state == "run":
+            game_state = "paused"
 
     for bullet in bullets_group:
-
         if bullet.name == 'ls':
             for enemy in enemies_group:
                 if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
@@ -420,6 +457,8 @@ while running:
             bullet.remove(bullets_group)
 
     for enemy in enemies_group:
+        if enemy.rect.x <= 100:
+            game_state = "death"
         for bullet in bullets_group:
             if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
                 if bullet.name == 'default' or bullet.name == 'hrom' or bullet.name == 'kopilka':
