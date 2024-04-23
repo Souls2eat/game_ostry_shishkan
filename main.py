@@ -7,13 +7,16 @@ clock = time.Clock()
 screen = display.set_mode((1600, 900))
 display.set_caption("Супер-мега игра")
 screen.fill((255, 255, 255))
-img = image.load("images/maps/map2.png").convert_alpha()
+
+bg = image.load("images/maps/map2.png").convert_alpha()
+menu = image.load("images/menu/pause_menu.png").convert_alpha()
 
 font20 = font.Font("fonts/ofont.ru_Nunito.ttf", 20)
 font40 = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
 font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
 
-
+current_level = 1
+level_state = "not_run"
 money = 120
 time_to_spawn = 0
 game_state = "run"
@@ -354,7 +357,7 @@ class Button:
         self.w = self.image.get_width()
         self.h = self.image.get_height()
         # self.image = transform.scale(self.image, (int(self.w * scale), int(self.h * scale))) # для скейла
-        self.rect = self.image.get_rect(center=(pos))
+        self.rect = self.image.get_rect(topleft=(pos))
         self.clicked = False
 
     def click(self, surf, mouse_pos):
@@ -390,6 +393,31 @@ def is_free(object):
     is_free_list.clear()
 
 
+def spawn_level(current_level):
+    print(current_level)
+    if current_level == 1:
+        Enemy("popusk", (1408, 320))
+        Enemy("sigma", (1408, 192))
+        Enemy("josky", (1408, 576))
+        Enemy("popusk", (1208, 576))
+        Enemy("popusk", (1508, 576))
+
+        print("ff")
+    elif current_level == 2:
+        Enemy("josky", (1408, 320))
+        print("gg")
+    return "run", current_level + 1
+
+
+def clear_lewel():
+    for enemy in enemies_group:
+        enemy.kill()
+    for tower in towers_group:
+        tower.kill()
+    for bullet in bullets_group:
+        bullet.kill()
+
+
 bullets_group = sprite.Group()
 enemies_group = sprite.Group()
 towers_group = sprite.Group()
@@ -402,11 +430,8 @@ Tower("kopitel", (384, 192))
 Tower("yascerica", (512, 704))
 
 
-Enemy("popusk", (1408, 320))
-Enemy("sigma", (1408, 192))
-Enemy("josky", (1408, 576))
-Enemy("popusk", (1208, 576))
-Enemy("popusk", (1508, 576))
+
+# Enemy("popusk", (300, 576))
 
 
 UI((1500, 800), "shovel", "lopata")
@@ -421,16 +446,20 @@ UI((94, 736), "towers", "fire_mag")  # +0, +96
 
 
 pause_button = Button("||", font40, (255, 255, 255), (1550, 30))
-
+death_button = Button("Вы проиграли", font60, (255, 255, 255), (591, 350))
 
 running = True
 
 while running:
 
-    screen.blit(img, (0, 0))
+    screen.blit(bg, (0, 0))
     screen.blit(font40.render(str(money), True, (0, 0, 0)), (88, 53))
     all_sprites_group.draw(screen)
     mouse_pos = mouse.get_pos()
+
+    if level_state == "not_run":
+        level_state, current_level = spawn_level(current_level)
+        print(level_state, current_level)
 
     if game_state == "run":
         all_sprites_group.update()
@@ -440,10 +469,18 @@ while running:
             time_to_spawn = 0
 
     if game_state == "paused":
-        screen.blit(font60.render("Пауза", True, (255, 255, 255)), (800, 200))
+        screen.blit(menu, (480, 250))
+        screen.blit(font60.render("Пауза", True, (255, 255, 255)), (700, 250))
 
     if game_state == "death":
-        screen.blit(font40.render("Вы проиграли", True, (255, 255, 255)), (800, 450))
+        screen.blit(menu, (480, 250))
+        if death_button.click(screen, mouse_pos):
+            game_state = "run"
+            current_level += 1
+            level_state = "not_run"
+            clear_lewel()
+
+        # screen.blit(font60.render("Вы проиграли", True, (255, 255, 255)), (600, 350))
 
     if pause_button.click(screen, mouse_pos):
         if game_state == "paused":
@@ -461,6 +498,7 @@ while running:
     for enemy in enemies_group:
         if enemy.rect.x <= 100:
             game_state = "death"
+            enemy.kill()
         for bullet in bullets_group:
             if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
                 if bullet.name == 'default' or bullet.name == 'hrom' or bullet.name == 'kopilka':
