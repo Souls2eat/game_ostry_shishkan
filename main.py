@@ -86,7 +86,7 @@ class Tower(sprite.Sprite):
             self.bullet_speed_y = 0
             self.attack_cooldown = 0
             self.damage_type = ''
-            self.bullet = Bullet("yellow_bullet", self.rect.centerx, self.rect.centery,
+            self.bullet = Bullet("blackik", self.rect.centerx - 26, self.rect.centery,
                                  self.damage_type, 0, self.bullet_speed_x, self.bullet_speed_y, 'yas',
                                  self)
             self.bullet.remove(bullets_group)
