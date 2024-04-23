@@ -457,8 +457,8 @@ while running:
             bullet.remove(bullets_group)
 
     for enemy in enemies_group:
-        # if enemy.rect.x <= 100:
-        #     game_state = "death"
+        if enemy.rect.x <= 100:
+            game_state = "death"
         for bullet in bullets_group:
             if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
                 if bullet.name == 'default' or bullet.name == 'hrom' or bullet.name == 'kopilka':
