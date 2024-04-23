@@ -8,8 +8,10 @@ screen = display.set_mode((1600, 900))
 display.set_caption("Супер-мега игра")
 screen.fill((255, 255, 255))
 img = image.load("images/maps/map2.png").convert_alpha()
-font10 = font.Font("fonts/ofont.ru_Nunito.ttf", 20)
-font = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
+
+font20 = font.Font("fonts/ofont.ru_Nunito.ttf", 20)
+font40 = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
+font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
 
 
 money = 120
@@ -167,7 +169,7 @@ class Tower(sprite.Sprite):
                 self.davanie_cooldown = 900
                 global money
                 money += self.skolko_deneg_dast
-                self.plus_dengi = font10.render('+30', True, (0, 70, 200))
+                self.plus_dengi = font20.render('+30', True, (0, 70, 200))
                 self.time_on_screen = 50
 
         
@@ -418,7 +420,7 @@ UI((94, 640), "towers", "yascerica")
 UI((94, 736), "towers", "fire_mag")  # +0, +96
 
 
-pause_button = Button("Пауза", font, (255, 255, 255), (960, 100))
+pause_button = Button("||", font40, (255, 255, 255), (1550, 30))
 
 
 running = True
@@ -426,7 +428,7 @@ running = True
 while running:
 
     screen.blit(img, (0, 0))
-    screen.blit(font.render(str(money), True, (0, 0, 0)), (88, 53))
+    screen.blit(font40.render(str(money), True, (0, 0, 0)), (88, 53))
     all_sprites_group.draw(screen)
     mouse_pos = mouse.get_pos()
 
@@ -438,10 +440,10 @@ while running:
             time_to_spawn = 0
 
     if game_state == "paused":
-        pass
+        screen.blit(font60.render("Пауза", True, (255, 255, 255)), (800, 200))
 
     if game_state == "death":
-        screen.blit(font.render("Вы проиграли", True, (255, 255, 255)), (800, 450))
+        screen.blit(font40.render("Вы проиграли", True, (255, 255, 255)), (800, 450))
 
     if pause_button.click(screen, mouse_pos):
         if game_state == "paused":
@@ -472,11 +474,15 @@ while running:
     display.update()
 
     for e in event.get():
-        keys = key.get_pressed()
-        if keys[K_ESCAPE]:
-            running = False
-        if keys[K_SPACE]:
-            Enemy("sigma", (1508, 704))
+        # keys = key.get_pressed()
+        if e.type == KEYDOWN:
+            if e.key == K_ESCAPE:
+                if game_state == "run":
+                    game_state = "paused"
+                else:
+                    game_state = "run"
+            if e.key == K_SPACE:
+                Enemy("sigma", (1508, 704))
         if e.type == QUIT:
             running = False
         if e.type == MOUSEBUTTONDOWN:  # При нажатии кнопки мыши
