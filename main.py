@@ -19,7 +19,8 @@ font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
 
 current_level = 1
 level_state = "not_run"
-money = 1200
+money = 300
+start_money = money
 time_to_spawn = 0
 game_state = "run"
 
@@ -520,6 +521,7 @@ while running:
         if restart_button.click(screen, mouse_pos):
             game_state = "run"
             level_state = "not_run"
+            money = start_money
             clear_level()
     # -------
 
