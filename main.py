@@ -391,10 +391,8 @@ class UI(sprite.Sprite):
         if self.is_move is not True:
             self.back_to_default()
 
-        if self.pos == self. default_pos:
-            if hasattr(self, "text"):
-                screen.blit(self.text, (self.pos[0] - 49, self.pos[1] + 4))
-
+        if hasattr(self, "text"):
+            screen.blit(self.text, (self.default_pos[0] - 49, self.default_pos[1] + 4))
 
 
 class Button:
