@@ -370,6 +370,8 @@ class UI(sprite.Sprite):
             if hasattr(unit, "cost"):
                 self.cost = unit.cost
                 self.text = font30.render(str(self.cost), True, (255, 255, 255))
+            if hasattr(unit, "bullet"):
+                unit.bullet.kill()
             unit.kill()
 
     def show_cost(self):
