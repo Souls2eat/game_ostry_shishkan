@@ -14,6 +14,7 @@ settings_menu = image.load("images/menu/settings_menu.png").convert_alpha()
 main_menu = image.load("images/menu/main_menu.png").convert_alpha()
 
 font20 = font.Font("fonts/ofont.ru_Nunito.ttf", 20)
+font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
 font40 = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
 font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
 
@@ -359,25 +360,41 @@ class UI(sprite.Sprite):
         self.image = image.load(f"images/{path}/images_inside/{unit_inside}_inside.png").convert_alpha()
         self.pos = pos
         self.default_pos = pos
-        self.rect = self.image.get_rect(topleft=(self.pos))
-        self.is_move = False
-        self.unit_inside = unit_inside
+        self.rect = self.image.get_rect(topleft=self.pos)
         self.path = path
+        self.unit_inside = unit_inside
+        self.is_move = False
+
+        if self.path == "towers":
+            unit = Tower(self.unit_inside, (0, 0))
+            if hasattr(unit, "cost"):
+                self.cost = unit.cost
+                self.text = font30.render(str(self.cost), True, (255, 255, 255))
+            unit.kill()
+
+    def show_cost(self):
+        pass
 
     def move(self):
         self.image = image.load(f"images/{self.path}/{self.unit_inside}.png").convert_alpha()
         self.pos = mouse.get_pos()
-        self.rect = self.image.get_rect(center=(self.pos))
+        self.rect = self.image.get_rect(center=self.pos)
 
     def back_to_default(self):
         self.image = image.load(f"images/{self.path}/images_inside/{self.unit_inside}_inside.png").convert_alpha()
-        self.rect = self.image.get_rect(topleft=(self.default_pos))
+        self.rect = self.image.get_rect(topleft=self.default_pos)
+        self.pos = self.default_pos
 
     def update(self):
-        if self.is_move == True:
+        if self.is_move:
             self.move()
-        if self.is_move == False:
+        if self.is_move is not True:
             self.back_to_default()
+
+        if self.pos == self. default_pos:
+            if hasattr(self, "text"):
+                screen.blit(self.text, (self.pos[0] - 49, self.pos[1] + 4))
+
 
 
 class Button:
