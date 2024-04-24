@@ -63,7 +63,7 @@ class Tower(sprite.Sprite):
             self.attack_cooldown = 80
             self.damage_type = ''
             self.nakopleno = 0
-            self.max_nakopit = 9
+            self.max_nakopit = 7
             self.cost = 20
 
         if self.name == 'thunder':
@@ -88,7 +88,7 @@ class Tower(sprite.Sprite):
             self.hp = 250
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.attack_cooldown = 0
+            self.attack_cooldown = 150
             self.damage_type = ''
             self.bullet = Bullet("blackik", self.rect.centerx - 26, self.rect.centery,
                                  self.damage_type, 0, self.bullet_speed_x, self.bullet_speed_y, 'yas',
@@ -164,13 +164,12 @@ class Tower(sprite.Sprite):
             if self.attack_cooldown <= 0:
                 self.attack_cooldown = 100
                 if self.nakopleno < self.max_nakopit:
-                    self.joska_schitayu_x = 64 * (1 + (self.nakopleno // 3))
-                    self.joska_schitayu_y = 32 * (self.nakopleno % 3) + 20
+                    self.joska_schitayu_y = 16 * (self.nakopleno) + 16
                     self.spear_or_sword = randint(0, 1)
                     if self.spear_or_sword == 0:
-                        Bullet("light_spear", self.rect.centerx-self.joska_schitayu_x, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                        Bullet("light_spear", self.rect.centerx-28, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
                     if self.spear_or_sword == 1:
-                        Bullet("light_sword", self.rect.centerx-self.joska_schitayu_x, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                        Bullet("light_sword", self.rect.centerx-28, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
 
                     self.nakopleno += 1
 
@@ -308,7 +307,7 @@ class Bullet(sprite.Sprite):
                 self.sumon = 'wait'
 
             if self.cooldown <= 0 and self.sumon == 'wait':
-                self.cooldown = 0
+                self.cooldown = 150
                 self.sumon = 'ready'
 
             if self.parent.is_dead == True:
@@ -434,6 +433,8 @@ class UI(sprite.Sprite):
             if hasattr(unit, "cost"):
                 self.cost = unit.cost
                 self.text = font30.render(str(self.cost), True, (255, 255, 255))
+            if hasattr(unit, "bullet"):
+                unit.bullet.kill()
             unit.kill()
 
     def show_cost(self):
