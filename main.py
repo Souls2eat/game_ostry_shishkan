@@ -96,6 +96,15 @@ class Tower(sprite.Sprite):
             self.bullet.remove(bullets_group)
             self.cost = 10
 
+        if self.name == 'parasitelniy':
+            self.hp = 2200
+            self.max_hp = 2200
+            self.atk = 10
+            self.attack_cooldown = 150
+            self.damage_type = ''
+            self.have_parasite = sprite.Group()
+            self.cost = 20
+
         if self.name == 'terpila':  # циферки поменять
             self.hp = 5000
             self.cost = 30
@@ -123,6 +132,11 @@ class Tower(sprite.Sprite):
             if self.name == 'thunder':
                 for enemy in enemies_group:
                     if (enemy.rect.y == self.rect.y or enemy.rect.y == self.rect.y + 128 or enemy.rect.y == self.rect.y - 128) and enemy.rect.x >= self.rect.x:
+                        self.is_shooting()
+
+            if self.name == 'parasitelniy':
+                for enemy in enemies_group:
+                    if enemy not in self.have_parasite:
                         self.is_shooting()
 
             if self.name == 'davalka':
@@ -182,6 +196,16 @@ class Tower(sprite.Sprite):
                                     self.damage_type, self.atk, self.bullet_speed_x, 0,
                                     'ls', self)
 
+        if self.name == 'parasitelniy':
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = 90
+                for enemy in enemies_group:
+                    if enemy not in self.have_parasite:
+                        self.parasix = randint(0, 32)
+                        self.parasiy = randint(-32, 32)
+                        self.parasite = Parasite('sosun', enemy.rect.centerx+self.parasix, enemy.rect.centery+self.parasiy, '', self.atk, enemy, self)
+                        enemy.add(self.have_parasite)
+                        break
 
     def dayot(self):
         if self.name == 'davalka':
@@ -197,7 +221,7 @@ class Tower(sprite.Sprite):
     def update(self):
         self.delat_chtoto()
 
-        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'yascerica' or self.name == 'zeus' or self.name == 'boomchick':
+        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'yascerica' or self.name == 'zeus' or self.name == 'boomchick' or self.name == 'parasitelniy':
             if self.attack_cooldown > 0:
                 self.attack_cooldown -= 1
 
@@ -301,6 +325,46 @@ class Bullet(sprite.Sprite):
                 self.cooldown -= 1
 
 
+class Parasite(sprite.Sprite):
+    def __init__(self, name, x, y, damage_type, damage, owner, parent):
+        super().__init__(all_sprites_group, parasites_group)
+        self.image = image.load(f"images/bullets/{name}.png").convert_alpha() # не думаю что их будет много так что пусть в папке пуль будут(если хотите можете поменять)
+        self.rect = self.image.get_rect(center=(x, y))
+        self.is_dead = False
+        self.damage_type = damage_type
+        self.damage = damage
+        self.name = name
+        self.owner = owner # это враг к которому привязан паразит
+        self.parent = parent
+        self.parasix = self.parent.parasix
+        self.parasiy = self.parent.parasiy
+
+        if self.name == 'sosun':
+            self.attack_cooldown = 75
+
+    def prisasivanie(self):
+        if self.parent not in all_sprites_group:
+            self.kill()
+        if self.owner not in all_sprites_group:
+            self.kill()
+            self.parent.have_parasite.remove(self.owner)
+        self.rect.centerx = self.owner.rect.centerx+self.parasix
+        self.rect.centery = self.owner.rect.centery+self.parasiy
+
+        if self.attack_cooldown <= 0:
+            self.attack_cooldown = 75
+            self.owner.hp -= self.damage
+            if self.parent.hp < self.parent.max_hp - (self.damage//2):
+                self.parent.hp += self.damage//2
+            
+    def update(self):
+        self.prisasivanie()
+
+        if self.name == 'sosun':
+            if self.attack_cooldown > 0:
+                self.attack_cooldown -= 1
+
+
 class Enemy(sprite.Sprite):  # враг, он же "зомби"
     def __init__(self, name, pos):
         super().__init__(all_sprites_group, enemies_group)
@@ -370,8 +434,6 @@ class UI(sprite.Sprite):
             if hasattr(unit, "cost"):
                 self.cost = unit.cost
                 self.text = font30.render(str(self.cost), True, (255, 255, 255))
-            if hasattr(unit, "bullet"):
-                unit.bullet.kill()
             unit.kill()
 
     def show_cost(self):
@@ -468,6 +530,7 @@ def clear_level():
 
 
 bullets_group = sprite.Group()
+parasites_group = sprite.Group()
 enemies_group = sprite.Group()
 towers_group = sprite.Group()
 ui_group = sprite.Group()
@@ -478,7 +541,7 @@ buttons_group = sprite.Group()
 UI((1500, 800), "shovel", "lopata")
 
 UI((94, 160), "towers", "davalka", )
-UI((94, 256), "towers", "boomchick")
+UI((94, 256), "towers", "parasitelniy")
 UI((94, 352), "towers", "terpila")
 UI((94, 448), "towers", "kopitel")
 UI((94, 544), "towers", "zeus")
