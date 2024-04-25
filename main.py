@@ -1,11 +1,12 @@
 from pygame import *
 from random import randint, choice
 
+
 init()
 
 clock = time.Clock()
 screen = display.set_mode((1600, 900))
-display.set_caption("Супер-мега игра")
+display.set_caption("game_ostry_shishkan")
 screen.fill((255, 255, 255))
 
 bg = image.load("images/maps/map2.png").convert_alpha()
@@ -18,12 +19,22 @@ font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
 font40 = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
 font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
 
+
+game_name = font60.render("game_ostry_shishkan", True, (255, 255, 255))
 current_level = 1
 level_state = "not_run"
 money = 300
 start_money = money
 time_to_spawn = 0
-game_state = "run"
+game_state = "main_menu"
+
+with open("save.txt", "r", encoding="utf-8") as file:
+    just_text = file.readline().strip()
+    new_game = file.readline().strip()
+    if new_game.lower() == "true":
+        new_game = True
+    else:
+        new_game = False
 
 
 class GroupModified(sprite.Group):
@@ -488,17 +499,19 @@ class UI(sprite.Sprite):
             screen.blit(self.text, (self.default_pos[0] - 49, self.default_pos[1] + 4))
 
 
-class Button:
-    def __init__(self, text, font, pos, col=(255, 255, 255)):  # Можно добавить scale
-        self.image = font.render(text, font, col)   # По дефолту цвет текста белый. Я ебал по 50 раз писать одно и тоже
-        self.w = self.image.get_width()
-        self.h = self.image.get_height()
-        # self.image = transform.scale(self.image, (int(self.w * scale), int(self.h * scale))) # для скейла
-        self.rect = self.image.get_rect(topleft=(pos))
+class Button:  # Переделать на спрайты кнопок
+    def __init__(self, text, font):
+        self.text = text
+        self.font = font
         self.clicked = False
         self.pushed = False
 
-    def click(self, surf, mouse_pos):
+    def click(self, surf, mouse_pos, pos, col=(255, 255, 255)):
+        self.image = self.font.render(self.text, font, col)   # По дефолту цвет текста белый. Я ебал по 50 раз писать одно и тоже
+        self.pos = pos
+        self.rect = self.image.get_rect(topleft=self.pos)
+        self.rect = self.image.get_rect(topleft=pos)
+
         if not self.rect.collidepoint(mouse_pos):
             self.pushed = False
         if self.rect.collidepoint(mouse_pos):
@@ -535,12 +548,11 @@ def is_free(object):
 
 def spawn_level(current_level):
     if current_level == 1:
-        pass
         Enemy("popusk", (1408, 320))
-        # Enemy("sigma", (1408, 192))
-        # Enemy("josky", (1408, 576))
-        # Enemy("popusk", (1208, 576))
-        # Enemy("popusk", (1508, 576))
+        Enemy("sigma", (1408, 192))
+        Enemy("josky", (1408, 576))
+        Enemy("popusk", (1208, 576))
+        Enemy("popusk", (1508, 576))
 
     elif current_level == 2:
         Enemy("josky", (1408, 320))
@@ -560,6 +572,91 @@ def clear_level():
         nekusaemiy.kill()
     for bullet in bullets_group:
         bullet.kill()
+
+
+def menu_positioning():
+    global game_state, money, level_state, current_level, time_to_spawn, new_game, running
+
+    if game_state != "main_menu" and game_state != "main_settings_menu":
+        screen.blit(bg, (0, 0))
+        screen.blit(font40.render(str(money), True, (0, 0, 0)), (88, 53))
+        all_sprites_group.draw(screen)
+        all_sprites_group.draw2(screen)
+
+    mouse_pos = mouse.get_pos()
+
+    if level_state == "not_run":
+        level_state, current_level = spawn_level(current_level)
+
+    # -------
+    if game_state == "run":
+        all_sprites_group.update()
+        time_to_spawn += 1
+        if time_to_spawn == 375:
+            random_spawn_enemies()
+            time_to_spawn = 0
+        if pause_button.click(screen, mouse_pos, (1550, 30)):
+            if game_state == "paused":
+                game_state = "run"
+            elif game_state == "run":
+                game_state = "paused"
+
+    if game_state == "paused":
+        screen.blit(pause_menu, (480, 250))
+        screen.blit(font60.render("Пауза", True, (193, 8, 42)), (700, 280))
+        if resume_button.click(screen, mouse_pos, (614, 360)):
+            game_state = "run"
+        if settings_button.click(screen, mouse_pos, (642, 440)):
+            game_state = "settings_menu"
+        if maim_menu_button.click(screen, mouse_pos, (567, 520)):
+            game_state = "main_menu"
+        if pause_button.click(screen, mouse_pos, (1550, 30)):
+            if game_state == "paused":
+                game_state = "run"
+            elif game_state == "run":
+                game_state = "paused"
+
+    if game_state == "settings_menu":
+        screen.blit(settings_menu, (480, 250))
+        if back_button.click(screen, mouse_pos, (709, 520)):
+            game_state = "paused"
+
+    if game_state == "main_menu":
+        screen.blit(main_menu, (0, 0))
+
+        screen.blit(game_name, (501, 10))
+        if new_game_button.click(screen, mouse_pos, (30, 540)):
+            game_state = "run"  # новая игра
+            new_game = False
+            clear_level()
+            current_level = 1
+            level_state = "not_run"
+        if new_game:
+            if resume_button.click(screen, mouse_pos, (30, 620), col=(130, 130, 130)):
+                print("ДЭБИЛ?")
+        else:
+            if resume_button.click(screen, mouse_pos, (30, 620)):
+                game_state = "run"
+        if settings_button.click(screen, mouse_pos, (30, 700)):  # Экран под землю
+            game_state = "main_settings_menu"
+        if quit_button.click(screen, mouse_pos, (30, 780)):
+            running = False
+
+    if game_state == "main_settings_menu":
+        # screen.blit(main_menu, (0, 0))
+        screen.blit(settings_menu, (480, 250))
+        if back_button.click(screen, mouse_pos, (709, 520)):
+            game_state = "main_menu"
+
+    if game_state == "death":
+        screen.blit(pause_menu, (480, 250))
+        screen.blit(font60.render("Вы проиграли", True, (193, 8, 42)), (590, 280))
+        if restart_button.click(screen, mouse_pos, (582, 360)):
+            game_state = "run"
+            level_state = "not_run"
+            money = start_money
+            clear_level()
+    # -------
 
 
 bullets_group = sprite.Group()
@@ -583,68 +680,20 @@ UI((94, 640), "towers", "yascerica")
 UI((94, 736), "towers", "fire_mag")  # +0, +96
 
 
-pause_button = Button("||", font40, (1550, 30))
-restart_button = Button("Перезапустить", font60, (582, 360))
-resume_button = Button("Продолжить", font60, (614, 360))
-settings_button = Button("Настройки", font60, (642, 440))
-maim_menu_button = Button("В главное меню", font60, (567, 520))
-back_button = Button("Назад", font60, (709, 520))
+pause_button = Button("||", font40)
+restart_button = Button("Перезапустить", font60)
+resume_button = Button("Продолжить", font60)
+settings_button = Button("Настройки", font60)
+maim_menu_button = Button("В главное меню", font60)
+back_button = Button("Назад", font60)
+quit_button = Button("Выход", font60)
+new_game_button = Button("Новая игра", font60)
+
 
 running = True
-
 while running:
 
-    screen.blit(bg, (0, 0))
-    screen.blit(font40.render(str(money), True, (0, 0, 0)), (88, 53))
-    all_sprites_group.draw(screen)
-    all_sprites_group.draw2(screen)
-    mouse_pos = mouse.get_pos()
-
-    if level_state == "not_run":
-        level_state, current_level = spawn_level(current_level)
-
-    # -------
-    if game_state == "run":
-        all_sprites_group.update()
-        time_to_spawn += 1
-        if time_to_spawn == 375:
-            random_spawn_enemies()
-            time_to_spawn = 0
-
-    if game_state == "paused":
-        screen.blit(pause_menu, (480, 250))
-        screen.blit(font60.render("Пауза", True, (193, 8, 42)), (700, 280))
-        if resume_button.click(screen, mouse_pos):
-            game_state = "run"
-        if settings_button.click(screen, mouse_pos):
-            game_state = "settings_menu"
-        if maim_menu_button.click(screen, mouse_pos):
-            game_state = "main_menu"
-
-    if game_state == "settings_menu":
-        screen.blit(settings_menu, (480, 250))
-        if back_button.click(screen, mouse_pos):
-            time.wait(100)
-            game_state = "paused"
-
-    if game_state == "main_menu":
-        screen.blit(main_menu, (0, 0))
-
-    if game_state == "death":
-        screen.blit(pause_menu, (480, 250))
-        screen.blit(font60.render("Вы проиграли", True, (193, 8, 42)), (590, 280))
-        if restart_button.click(screen, mouse_pos):
-            game_state = "run"
-            level_state = "not_run"
-            money = start_money
-            clear_level()
-    # -------
-
-    if pause_button.click(screen, mouse_pos):
-        if game_state == "paused":
-            game_state = "run"
-        elif game_state == "run":
-            game_state = "paused"
+    menu_positioning()
 
     for bullet in bullets_group:
         if bullet.name == 'ls' or bullet.name == 'explosion':
@@ -680,7 +729,7 @@ while running:
     for e in event.get():
         # keys = key.get_pressed()
         if e.type == KEYDOWN:
-            if e.key == K_ESCAPE and game_state != "death":
+            if e.key == K_ESCAPE and game_state == "run" or game_state == "paused" or game_state == "settings_menu":
                 if game_state == "run":
                     game_state = "paused"
                 else:
@@ -697,10 +746,10 @@ while running:
             if e.key == K_b:
                 Enemy("sigma", (1508, 704))
 
-            if e.key == K_q:
-                running = False
-        if e.type == QUIT:
-            running = False
+            # if e.key == K_q:          тоже низя!!!
+            #     running = False
+        # if e.type == QUIT:           # низя!!!
+        #      running = False
         if e.type == MOUSEBUTTONDOWN:  # При нажатии кнопки мыши
             mouse_pos = mouse.get_pos()
             for el in ui_group:
@@ -714,7 +763,6 @@ while running:
 
 
             for el in ui_group:
-
                 if el.rect.collidepoint(mouse_pos):  # если элемент отпущен
                     el.is_move = False
 
@@ -741,3 +789,9 @@ while running:
                                 if nekusaemiy.rect.collidepoint(el.rect.centerx, el.rect.centery):
                                     money += nekusaemiy.cost // 2
                                     nekusaemiy.kill()
+
+
+with open("save.txt", "w", encoding="utf-8") as file:
+    new_game = True
+    file.write(just_text + "\n")
+    file.write(str(new_game))
