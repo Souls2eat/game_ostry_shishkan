@@ -1,150 +1,277 @@
-from pygame import *  # мне не прикольно каждый раз писать pygame. и не говорите мне что так легче, это полный кал
+from pygame import *
+from random import randint, choice
+
+init()
 
 clock = time.Clock()
 screen = display.set_mode((1600, 900))
 display.set_caption("Супер-мега игра")
 screen.fill((255, 255, 255))
-img = image.load("images/map2.png").convert_alpha()
+
+bg = image.load("images/maps/map2.png").convert_alpha()
+pause_menu = image.load("images/menu/pause_menu.png").convert_alpha()
+settings_menu = image.load("images/menu/settings_menu.png").convert_alpha()
+main_menu = image.load("images/menu/main_menu.png").convert_alpha()
+
+font20 = font.Font("fonts/ofont.ru_Nunito.ttf", 20)
+font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
+font40 = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
+font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
+
+current_level = 1
+level_state = "not_run"
+money = 300
+start_money = money
+time_to_spawn = 0
+game_state = "run"
 
 
-class SpriteGame(sprite.Sprite):
-    def __init__(self, player_image, x, y):
-        super().__init__()
-        self.image = image.load(player_image)
-        self.player_image = player_image
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-        
-    def reset(self):
-        screen.blit(self.image, (self.rect.x, self.rect.y))
-
-
-class Tower(SpriteGame): # башня, она же "растение"
-    def __init__(self, player_image, x, y, group, name):
-        super().__init__(player_image, x, y)
+class Tower(sprite.Sprite):
+    def __init__(self, unit, pos):
+        super().__init__(towers_group, all_sprites_group)
+        self.image = image.load(f"images/towers/{unit}.png").convert_alpha()
         self.is_dead = False
-        self.group = group
-        self.name = name
 
-
+        self.name = unit
+        self.rect = self.image.get_rect(topleft=(pos))
 
         # СТАТЫ начало
-        if self.group == 'attack':  # пример из пвз: горохострел
-            
-            if self.name == 'strelyatel':  # циферки поменять
-                self.hp = 200
-                self.atk = 20
-                self.bullet_speed_x = 5
-                self.bullet_speed_y = 0
-                self.attack_cooldown = 75
-                self.damage_type = ''
 
-            if self.name == 'thunder':
-                self.hp = 100
-                self.atk = 30
-                self.bullet_speed_x = 7
-                self.bullet_speed_y = 3
-                self.attack_cooldown = 200
-                self.damage_type = ''
+        if self.name == 'fire_mag':  # циферки поменять
+            self.hp = 200
+            self.atk = 20
+            self.bullet_speed_x = 5
+            self.bullet_speed_y = 0
+            self.basic_attack_cooldown = 55
+            self.attack_cooldown = self.basic_attack_cooldown
+            self.damage_type = ''
+            self.cost = 10
 
-            if self.name == 'zeus':
-                self.hp = 100
-                self.atk = 10
-                self.bullet_speed_x = 0
-                self.bullet_speed_y = 0
-                self.attack_cooldown = 150
-                self.damage_type = ''
+        if self.name == 'boomchick':  
+            self.hp = 200
+            self.atk = 20 #типа по кому попадёт получит 40 а остальные по 20
+            self.bullet_speed_x = 4
+            self.bullet_speed_y = 0
+            self.basic_attack_cooldown = 85
+            self.attack_cooldown = self.basic_attack_cooldown
+            self.damage_type = ''
+            self.cost = 20
 
-        elif self.group == 'defend':  # пример из пвз: стеноорех
-            if self.name == 'terpila':  # циферки поменять
-                self.hp = 5000
-                self.atk = 0
-                self.bullet_speed = 0
-                self.attack_cooldown = 0
-                self.damage_type = ''
+        if self.name == 'kopitel':
+            self.hp = 200
+            self.atk = 30
+            self.bullet_speed_x = 0
+            self.bullet_speed_y = 0
+            self.basic_attack_cooldown = 80
+            self.attack_cooldown = self.basic_attack_cooldown
+            self.damage_type = ''
+            self.nakopleno = 0
+            self.max_nakopit = 7
+            self.cost = 20
 
-        elif self.group == 'dengi_davatel':  # пример из пвз: подсолнух
-            pass
+        if self.name == 'thunder':
+            self.hp = 100
+            self.atk = 30
+            self.bullet_speed_x = 7
+            self.bullet_speed_y = 3
+            self.basic_attack_cooldown = 200
+            self.attack_cooldown = self.basic_attack_cooldown
+            self.damage_type = ''
+            self.cost = 15
 
-        elif self.group == 'instant':  # пример из пвз: вишня бомба 
-            pass
+        if self.name == 'zeus':
+            self.hp = 100
+            self.atk = 100
+            self.bullet_speed_x = 0
+            self.bullet_speed_y = 0
+            self.basic_attack_cooldown = 225
+            self.attack_cooldown = self.basic_attack_cooldown
+            self.damage_type = ''
+            self.cost = 20
+
+        if self.name == 'yascerica':
+            self.hp = 250
+            self.bullet_speed_x = 0
+            self.bullet_speed_y = 0
+            self.basic_attack_cooldown = 150
+            self.attack_cooldown = self.basic_attack_cooldown
+            self.damage_type = ''
+            self.bullet = Bullet("blackik", self.rect.centerx - 26, self.rect.centery,
+                                 self.damage_type, 0, self.bullet_speed_x, self.bullet_speed_y, 'yas',
+                                 self)
+            self.bullet.remove(bullets_group)
+            self.cost = 10
+
+        if self.name == 'parasitelniy':
+            self.hp = 2200
+            self.max_hp = 2200
+            self.atk = 10
+            self.basic_attack_cooldown = 150
+            self.attack_cooldown = self.basic_attack_cooldown
+            self.damage_type = ''
+            self.have_parasite = sprite.Group()
+            self.cost = 20
+
+        if self.name == 'spike':  
+            self.hp = 1
+            self.atk = 20
+            self.basic_attack_cooldown = 75
+            self.attack_cooldown = self.basic_attack_cooldown
+            self.damage_type = ''
+            self.remove(towers_group)
+            self.add(nekusaemie_group)
+            self.cost = 10
+
+        if self.name == 'terpila':  # циферки поменять
+            self.hp = 5000
+            self.cost = 30
+
+        if self.name == 'davalka':
+            self.hp = 200
+            self.skolko_deneg_dast = 30
+            self.davanie_cooldown = 900
+            self.cost = 20
+            self.time_on_screen = 0 #это для плюс денег
+
+        if self.name == 'matricayshon':
+            self.hp = 1500
+            self.buff_cooldown = 75
+            self.buff_group = sprite.Group()
+            for i in range(9):
+                if i != 4:
+                    self.buff_x = 1+(i%3)*128-128
+                    self.buff_y = 1+(i//3)*128-128
+                    self.buff = Parasite('mat', self.rect.centerx + self.buff_x, self.rect.centery + self.buff_y, None, None, None, self)
+            self.cost = 30
+
         # СТАТЫ конец
 
 
-    def delat_chtoto(self): # тут надо будет написать условие при котором башня стреляет
+    def delat_chtoto(self):  # тут надо будет написать условие при котором башня стреляет
         if self.is_dead != True:
-            if self.name == 'strelyatel':
+            if self.name == 'zeus' or self.name == "fire_mag" or self.name == 'boomchick':
                 for enemy in enemies_group:
-                    if enemy.rect.y == self.rect.y:
+                    if enemy.rect.y == self.rect.y and enemy.rect.x >= self.rect.x:
                         self.is_shooting()
+
+            if self.name == 'kopitel':
+                    self.is_shooting()
+
             if self.name == 'thunder':
                 for enemy in enemies_group:
-                    if enemy.rect.y == self.rect.y or enemy.rect.y == self.rect.y + 128 or enemy.rect.y == self.rect.y - 128:
+                    if (enemy.rect.y == self.rect.y or enemy.rect.y == self.rect.y + 128 or enemy.rect.y == self.rect.y - 128) and enemy.rect.x >= self.rect.x:
                         self.is_shooting()
-            if self.name == 'zeus':
+
+            if self.name == 'parasitelniy':
                 for enemy in enemies_group:
-                    if enemy.rect.y == self.rect.y:
+                    if enemy not in self.have_parasite:
                         self.is_shooting()
+
+            if self.name == 'spike':
+                if self.attack_cooldown <= 0:
+                    for enemy in enemies_group:
+                        if sprite.collide_rect(self, enemy) and enemy.hp > 0:
+                            enemy.hp -= self.atk
+                    self.attack_cooldown = self.basic_attack_cooldown
+
+            if self.name == 'davalka':
+                self.dayot()
 
             if self.hp <= 0:
                 self.is_dead = True
                 self.kill()
 
-    
+
     def is_shooting(self):
         #keys = key.get_pressed() если нужно будет затестить по нажатию
-        if self.group == 'attack':  
             
-            if self.name == 'strelyatel':
-                if self.attack_cooldown <= 0:
-                    self.attack_cooldown = 75
-                    self.bullet = Bullet("images/blue_bullet.png", self.rect.centerx-8, self.rect.centery-8, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default',  self)
-                    all_sprites_group.add(self.bullet)
-                    bullets_group.add(self.bullet)
+        if self.name == "fire_mag":  # пока привет
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = self.basic_attack_cooldown
+                Bullet("blue_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
 
-            if self.name == 'thunder':
-                if self.attack_cooldown <= 0:
-                    self.attack_cooldown = 200
-                    self.bullet = Bullet("images/Frigl_bul.png", self.rect.centerx - 8, self.rect.centery - 8,
-                                         self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'hrom',
-                                         self)
-                    all_sprites_group.add(self.bullet)
-                    bullets_group.add(self.bullet)
+        if self.name == 'boomchick':  
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = self.basic_attack_cooldown
+                Bullet("yellow_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'boom', self)
 
-                    self.bullet = Bullet("images/Frigl_bul.png", self.rect.centerx - 8, self.rect.centery - 8,
-                                         self.damage_type, self.atk, self.bullet_speed_x, 0, 'hrom',
-                                         self)
-                    all_sprites_group.add(self.bullet)
-                    bullets_group.add(self.bullet)
+        if self.name == 'kopitel':
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = self.basic_attack_cooldown
+                if self.nakopleno < self.max_nakopit:
+                    self.joska_schitayu_y = 16 * (self.nakopleno) + 16
+                    self.spear_or_sword = randint(0, 1)
+                    if self.spear_or_sword == 0:
+                        self.pulya = Bullet("light_spear", self.rect.centerx-28, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                    if self.spear_or_sword == 1:
+                        self.pulya = Bullet("light_sword", self.rect.centerx-28, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                    self.pulya.remove(bullets_group)
+                    self.nakopleno += 1
 
-                    self.bullet = Bullet("images/Frigl_bul.png", self.rect.centerx - 8, self.rect.centery - 8,
-                                         self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y * -1, 'hrom',
-                                         self)
-                    all_sprites_group.add(self.bullet)
-                    bullets_group.add(self.bullet)
+        if self.name == 'thunder':
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = self.basic_attack_cooldown
+                Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
+                                     self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'hrom',
+                                     self)
 
-            if self.name == 'zeus':
-                if self.attack_cooldown <= 0:
-                    self.attack_cooldown = 225
-                    self.bullet = Bullet("images/Laser.png", self.rect.centerx - 8, self.rect.centery - 8,
-                                        self.damage_type, self.atk, self.bullet_speed_x, 0,
-                                        'ls', self)
-                    all_sprites_group.add(self.bullet)
-                    bullets_group.add(self.bullet)
+                Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
+                                     self.damage_type, self.atk, self.bullet_speed_x, 0, 'hrom',
+                                     self)
 
+                Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
+                                     self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y * -1, 'hrom',
+                                     self)
+
+        if self.name == 'zeus':
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = self.basic_attack_cooldown
+                self.bullet = Bullet("Laser", self.rect.centerx + 640, self.rect.centery,
+                                    self.damage_type, self.atk, self.bullet_speed_x, 0,
+                                    'ls', self)
+
+        if self.name == 'parasitelniy':
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = self.basic_attack_cooldown
+                for enemy in enemies_group:
+                    if enemy not in self.have_parasite:
+                        self.parasix = randint(0, 32)
+                        self.parasiy = randint(-32, 32)
+                        self.parasite = Parasite('sosun', enemy.rect.centerx+self.parasix, enemy.rect.centery+self.parasiy, '', self.atk, enemy, self)
+                        enemy.add(self.have_parasite)
+                        break
+
+    def dayot(self):
+        if self.name == 'davalka':
+            if self.davanie_cooldown <= 0:
+                self.davanie_cooldown = 900
+                global money
+                money += self.skolko_deneg_dast
+                self.plus_dengi = font20.render('+30', True, (0, 70, 200))
+                self.time_on_screen = 50
+
+        
 
     def update(self):
         self.delat_chtoto()
-        
 
-        if self.attack_cooldown > 0:
-            self.attack_cooldown -= 1
+        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'yascerica' or self.name == 'zeus' or self.name == 'boomchick' or self.name == 'parasitelniy' or self.name == 'spike':
+            if self.attack_cooldown > 0:
+                self.attack_cooldown -= 1
+
+        if self.name == 'davalka':
+            if self.davanie_cooldown > 0:
+                self.davanie_cooldown -= 1
+            if self.time_on_screen > 0:
+                screen.blit(self.plus_dengi, (self.rect.centerx-15, self.rect.centery-55))
+                self.time_on_screen -= 1
 
 
-class Bullet(SpriteGame): 
-    def __init__(self, player_image, x, y, damage_type, damage, speed_x, speed_y, name, parent):
-        super().__init__(player_image, x, y)
+class Bullet(sprite.Sprite):
+    def __init__(self, bullet_sprite, x, y, damage_type, damage, speed_x, speed_y, name, parent):
+        super().__init__(all_sprites_group, bullets_group)
+        self.image = image.load(f"images/bullets/{bullet_sprite}.png").convert_alpha()
+        self.rect = self.image.get_rect(center=(x, y))
         self.is_dead = False
         self.damage_type = damage_type
         self.damage = damage
@@ -155,6 +282,12 @@ class Bullet(SpriteGame):
 
         if self.name == 'ls':
             self.off = 75
+        if self.name == 'explosion':
+            self.off = 20
+
+        if self.name == 'yas':
+            self.sumon = 'ready'
+            self.parent.attack_cooldownwn = 375
 
     def bullet_movement(self):
         self.rect.x += self.speed_x
@@ -163,133 +296,510 @@ class Bullet(SpriteGame):
         if self.name == 'hrom':
             if (self.parent.rect.centery - self.rect.centery) >= 128 or (self.rect.centery - self.parent.rect.centery) >= 128:
                 self.speed_y = 0
-
+        
         if self.name == 'ls':
             if self.off <= 0:
-                self.off = 75
+                self.off = 75  # так потом же kill(), зачем возврашать 75? хпхпхппхпххп
+                self.kill()
+            else:
+                self.off -= 1
+
+        if self.name == 'explosion':
+            if self.off <= 0:
+                self.off = 20  # так потом же kill(), зачем возврашать 20? хпхпхппхпххп
+                self.kill()
+            else:
+                self.off -= 1
+
+        if self.name == 'kopilka':
+            for enemy in enemies_group:
+                if enemy.rect.y == self.parent.rect.y and enemy.rect.x >= self.parent.rect.x:
+                    self.speed_x = 7
+                    self.add(bullets_group)
+                    self.parent.nakopleno = 0
+                    self.parent.attack_cooldown = self.parent.basic_attack_cooldown
+
+            if self.parent not in all_sprites_group and self.speed_x == 0:
                 self.kill()
 
-        
-        
+        if self.name == 'yas':
+            for enemy in enemies_group:
+
+                if enemy.rect.y == self.parent.rect.y and enemy.rect.x >= self.parent.rect.x and self.sumon == 'ready':
+                    self.speed_x = 2
+                    self.sumon = 'go'
+                    self.parent.bullet.add(bullets_group)
+
+                if enemy.rect.colliderect(self.rect) and self.sumon == 'go':
+                    self.speed_x *= -1
+                    self.sumon = 'back'
+
+            if self.rect.centerx >= 1500 and self.sumon == 'go':
+                self.speed_x *= -1
+                self.sumon = 'back'
+
+            if self.rect.centerx == self.parent.rect.centerx - 26 and self.sumon == 'back':
+                self.speed_x = 0
+                self.sumon = 'wait'
+
+            if self.parent.attack_cooldown <= 0 and self.sumon == 'wait':
+                self.parent.attack_cooldown = self.parent.basic_attack_cooldown
+                self.sumon = 'ready'
+
+            if self.parent.is_dead == True:
+                self.kill()
+
         if self.rect.x >= 1700:
             self.kill()
 
     def update(self):
         self.bullet_movement()
 
-        if self.name == 'ls':
-            if self.off > 0:
-                self.off -= 1
+        if self.name == 'yas' and self.sumon == 'wait':
+            if self.parent.attack_cooldown > 0:
+                self.parent.attack_cooldown -= 1
 
-class Enemy(SpriteGame):  # враг, он же "зомби"
-    def __init__(self, player_image, x, y, group, name):
-        super().__init__(player_image, x, y)
+
+class Parasite(sprite.Sprite):
+    def __init__(self, name, x, y, damage_type, damage, owner, parent):
+        super().__init__(all_sprites_group, parasites_group)
+        self.image = image.load(f"images/bullets/{name}.png").convert_alpha() # не думаю что их будет много так что пусть в папке пуль будут(если хотите можете поменять)
+        self.rect = self.image.get_rect(center=(x, y))
         self.is_dead = False
-        self.group = group
+        self.damage_type = damage_type
+        self.damage = damage
+        self.name = name
+        self.owner = owner # это враг к которому привязан паразит
+        self.parent = parent
+
+
+        if self.name == 'sosun':
+            self.parasix = self.parent.parasix
+            self.parasiy = self.parent.parasiy
+            self.attack_cooldown = 75
+
+
+    def prisasivanie(self):
+        if self.parent not in all_sprites_group:
+            self.kill()
+        if self.owner not in all_sprites_group:
+            self.kill()
+            self.parent.have_parasite.remove(self.owner)
+        self.rect.centerx = self.owner.rect.centerx+self.parasix
+        self.rect.centery = self.owner.rect.centery+self.parasiy
+
+        if self.attack_cooldown <= 0:
+            self.attack_cooldown = 75
+            self.owner.hp -= self.damage
+            if self.parent.hp < self.parent.max_hp - (self.damage//2):
+                self.parent.hp += self.damage//2
+
+    def delat_buff(self):
+
+        if self.parent not in all_sprites_group:
+            self.kill()
+        if self.name == 'mat':
+
+            for tower in towers_group:
+                if tower.name == 'matricayshon' and tower != self.parent:
+                    if sprite.collide_rect(tower.buff, self):
+                        self.kill()
+
+            for tower in towers_group:
+                if tower not in self.parent.buff_group:
+                    if sprite.collide_rect(tower, self):
+                        if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy':
+                            tower.basic_attack_cooldown //= 2
+                            tower.add(self.parent.buff_group)
+
+            for nekusaemiy in nekusaemie_group:
+                if nekusaemiy not in self.parent.buff_group:
+                    if sprite.collide_rect(nekusaemiy, self):
+                        if nekusaemiy.name == 'spike':
+                            nekusaemiy.basic_attack_cooldown //= 2
+                            nekusaemiy.add(self.parent.buff_group)
+
+            
+    def update(self):
+
+        if self.name == 'mat':
+            self.delat_buff()
+
+        if self.name == 'sosun':
+            self.prisasivanie()
+            if self.attack_cooldown > 0:
+                self.attack_cooldown -= 1
+
+
+#class Buff(sprite.Sprite):
+ #   def __init__(self, buff_sprite, x, y, name, parent):
+  #      ewtuper().__init__(all_sprites_group, parasites_group)
+   #     self.image = image.load(f"images/buffs/{buff_sprite}.png").convert_alpha() # не думаю что их будет много так что пусть в папке пуль будут(если хотите можете поменять)
+    #    self.rect = self.image.get_rect(center=(x, y))
+     #   self.is_dead = False
+        #self.damage_type = damage_type может быть?
+        #self.damage = damage может быть?
+      #  self.name = name
+       # self.parent = parent
+
+    #def delat_buff(self):
+
+     #   if self.name == 'mat':
+      #      for tower in towers_group:
+       #         if sprite.collide_rect(tower, buff):
+
+
+
+class Enemy(sprite.Sprite):  # враг, он же "зомби"
+    def __init__(self, name, pos):
+        super().__init__(all_sprites_group, enemies_group)
+        self.image = image.load(f"images/enemies/{name}.png").convert_alpha()
+        self.rect = self.image.get_rect(topleft=(pos))
+        self.is_dead = False
         self.name = name
         self.stop = False
 
         # СТАТЫ начало
-        if self.group == 'penis':  # тайное послание ---> зутшы
-            
-            if self.name == 'popusk':  # циферки поменять
-                self.hp = 300
-                self.atk = 100
-                self.speed = 1
-                self.attack_cooldown = 75
 
-            if self.name == 'josky':  
-                self.hp = 600
-                self.atk = 100
-                self.speed = 1
-                self.attack_cooldown = 75
+        if self.name == 'popusk':  # циферки поменять
+            self.hp = 300
+            self.atk = 100
+            self.speed = 1
+            self.attack_cooldown = 75
 
-            if self.name == 'sigma':  
-                self.hp = 1200
-                self.atk = 100
-                self.speed = 1
-                self.attack_cooldown = 75
+        if self.name == 'josky':
+            self.hp = 600
+            self.atk = 100
+            self.speed = 1
+            self.attack_cooldown = 75
+
+        if self.name == 'sigma':
+           self.hp = 1200
+           self.atk = 100
+           self.speed = 1
+           self.attack_cooldown = 75
+
         # СТАТЫ конец
-
 
     def delat_chtoto(self):
         if self.is_dead != True:
             if self.stop != True:
                 self.rect.x -= self.speed
 
-            self.stop = False # нужно чтобы в случае колизии останавливался, а если колизии не будет то шёл дальше. ОБЯЗАТЕЛЬНО ПОСЛЕ ПРОВЕРКИ СТОПА НО ПЕРЕД ПРОВЕРКОЙ КОЛИЗИИ
+            self.stop = False  # нужно чтобы в случае колизии останавливался, а если колизии не будет то шёл дальше. ОБЯЗАТЕЛЬНО ПОСЛЕ ПРОВЕРКИ СТОПА НО ПЕРЕД ПРОВЕРКОЙ КОЛИЗИИ
             for tower in towers_group:
-                if sprite.collide_rect(self, tower):
+                if tower.rect.collidepoint(self.rect.centerx, self.rect.centery):
                     self.attack_cooldown -= 1
                     self.stop = True
                     if self.attack_cooldown <= 0:
                         self.attack_cooldown = 75
                         tower.hp -= self.atk
 
-            if self.hp <= 0:
+            if self.hp <= 0 or self.rect.x <= -256:
                 self.is_dead = True
                 self.kill()
-
+        
     def update(self):
         self.delat_chtoto()
 
-tower1 = Tower("images/slime_plr.png", 384, 320, 'attack', 'strelyatel')
-tower2 = Tower("images/slime_plr.png", 1152, 320, 'attack', 'strelyatel')
-tower3 = Tower("images/slime_plr.png", 384, 576, 'attack', 'strelyatel')
-tower4 = Tower("images/terpila.png", 1152, 576, 'defend', 'terpila')
-fury = Tower('images/Thunder(fury).png', 384, 192, 'attack', 'thunder')
-orochi = Tower('images/zeus.png', 384, 320, 'attack', 'zeus',)
 
-enemy1 = Enemy("images/goblin_en_flip.png", 1408, 320, 'penis', 'popusk')
-enemy4 = Enemy("images/goblin_en_flip.png", 1608, 320, 'penis', 'popusk')
-enemy2 = Enemy("images/blue_bullet.png", 1408, 192, 'penis', 'josky')
-enemy3 = Enemy("images/yellow_bullet.png", 1408, 576, 'penis', 'sigma')
+class UI(sprite.Sprite):
+    def __init__(self, pos, path, unit_inside):
+        super().__init__(ui_group, all_sprites_group)
+        self.image = image.load(f"images/{path}/images_inside/{unit_inside}_inside.png").convert_alpha()
+        self.pos = pos
+        self.default_pos = pos
+        self.rect = self.image.get_rect(topleft=self.pos)
+        self.path = path
+        self.unit_inside = unit_inside
+        self.is_move = False
+
+        if self.path == "towers":
+            unit = Tower(self.unit_inside, (0, 0))
+            if hasattr(unit, "cost"):
+                self.cost = unit.cost
+                self.text = font30.render(str(self.cost), True, (255, 255, 255))
+            if hasattr(unit, "bullet"):
+                unit.bullet.kill()
+            if hasattr(unit, "buff"):
+                unit.buff.kill()
+            unit.kill()
+
+    def show_cost(self):
+        pass
+
+    def move(self):
+        self.image = image.load(f"images/{self.path}/{self.unit_inside}.png").convert_alpha()
+        self.pos = mouse.get_pos()
+        self.rect = self.image.get_rect(center=self.pos)
+
+    def back_to_default(self):
+        self.image = image.load(f"images/{self.path}/images_inside/{self.unit_inside}_inside.png").convert_alpha()
+        self.rect = self.image.get_rect(topleft=self.default_pos)
+        self.pos = self.default_pos
+
+    def update(self):
+        if self.is_move:
+            self.move()
+        if self.is_move is not True:
+            self.back_to_default()
+
+        if hasattr(self, "text"):
+            screen.blit(self.text, (self.default_pos[0] - 49, self.default_pos[1] + 4))
 
 
-all_sprites_group = sprite.Group()
+class Button:
+    def __init__(self, text, font, pos, col=(255, 255, 255)):  # Можно добавить scale
+        self.image = font.render(text, font, col)   # По дефолту цвет текста белый. Я ебал по 50 раз писать одно и тоже
+        self.w = self.image.get_width()
+        self.h = self.image.get_height()
+        # self.image = transform.scale(self.image, (int(self.w * scale), int(self.h * scale))) # для скейла
+        self.rect = self.image.get_rect(topleft=(pos))
+        self.clicked = False
+        self.pushed = False
+
+    def click(self, surf, mouse_pos):
+        if not self.rect.collidepoint(mouse_pos):
+            self.pushed = False
+        if self.rect.collidepoint(mouse_pos):
+            if mouse.get_pressed()[0] == 1 and not self.pushed:
+                self.pushed = True
+        if mouse.get_pressed()[0] == 0 and self.pushed:
+            self.pushed = False
+            return True
+
+        surf.blit(self.image, self.rect)
+
+
+def random_spawn_enemies():
+    pass
+    line_cords = [192, 320, 448, 576, 704]
+    enemy_sprites = ["josky", "popusk", "sigma"]
+    y_cord = choice(line_cords)
+    name = choice(enemy_sprites)
+    Enemy(name, (1600, y_cord))
+
+
+def is_free(object):
+    global money
+    is_free_list = []  # Проверка свободна ли клетка
+    for tower in towers_group:
+        is_free_list.append(tower.rect.collidepoint(object.rect.centerx, object.rect.centery) is False)
+    for nekusaemiy in nekusaemie_group:
+        is_free_list.append(nekusaemiy.rect.collidepoint(object.rect.centerx, object.rect.centery) is False)
+    if all(is_free_list):
+        is_free_list.clear()
+        return True
+    is_free_list.clear()
+
+
+def spawn_level(current_level):
+    if current_level == 1:
+        pass
+        Enemy("popusk", (1408, 320))
+        # Enemy("sigma", (1408, 192))
+        # Enemy("josky", (1408, 576))
+        # Enemy("popusk", (1208, 576))
+        # Enemy("popusk", (1508, 576))
+
+    elif current_level == 2:
+        Enemy("josky", (1408, 320))
+        Enemy("popusk", (1208, 576))
+
+    return "run", current_level + 1
+
+
+def clear_level():
+    for enemy in enemies_group:
+        enemy.kill()
+    for tower in towers_group:
+        tower.kill()
+        if hasattr(tower, "bullet"):
+            tower.bullet.kill()
+        if hasattr(tower, "buff"):
+            tower.buff.kill()
+    for nekusaemiy in nekusaemie_group:
+        nekusaemiy.kill()
+    for bullet in bullets_group:
+        bullet.kill()
+
+
 bullets_group = sprite.Group()
+parasites_group = sprite.Group()
 enemies_group = sprite.Group()
 towers_group = sprite.Group()
+nekusaemie_group = sprite.Group()
+#buff_group = sprite.Group()
+ui_group = sprite.Group()
+all_sprites_group = sprite.Group()
+buttons_group = sprite.Group()
 
-all_sprites_group.add( tower4, tower1, tower2, tower3, fury, orochi, enemy1, enemy2, enemy3, enemy4)#tower1, tower2, tower3, fury,
-enemies_group.add(enemy1, enemy2, enemy3, enemy4)
-towers_group.add( tower4, tower1, tower2, tower3, fury, orochi)
+
+UI((1500, 800), "shovel", "lopata")
+
+UI((94, 160), "towers", "davalka", )
+UI((94, 256), "towers", "terpila")
+UI((94, 352), "towers", "matricayshon")
+UI((94, 448), "towers", "kopitel")
+UI((94, 544), "towers", "spike")
+UI((94, 640), "towers", "yascerica")
+UI((94, 736), "towers", "fire_mag")  # +0, +96
+
+
+pause_button = Button("||", font40, (1550, 30))
+restart_button = Button("Перезапустить", font60, (582, 360))
+resume_button = Button("Продолжить", font60, (614, 360))
+settings_button = Button("Настройки", font60, (642, 440))
+maim_menu_button = Button("В главное меню", font60, (567, 520))
+back_button = Button("Назад", font60, (709, 520))
 
 running = True
 
 while running:
 
-    screen.blit(img, (0, 0))
-
-    all_sprites_group.update()
+    screen.blit(bg, (0, 0))
+    screen.blit(font40.render(str(money), True, (0, 0, 0)), (88, 53))
     all_sprites_group.draw(screen)
+    mouse_pos = mouse.get_pos()
+
+    if level_state == "not_run":
+        level_state, current_level = spawn_level(current_level)
+
+    # -------
+    if game_state == "run":
+        all_sprites_group.update()
+        time_to_spawn += 1
+        if time_to_spawn == 375:
+            random_spawn_enemies()
+            time_to_spawn = 0
+
+    if game_state == "paused":
+        screen.blit(pause_menu, (480, 250))
+        screen.blit(font60.render("Пауза", True, (193, 8, 42)), (700, 280))
+        if resume_button.click(screen, mouse_pos):
+            game_state = "run"
+        if settings_button.click(screen, mouse_pos):
+            game_state = "settings_menu"
+        if maim_menu_button.click(screen, mouse_pos):
+            game_state = "main_menu"
+
+    if game_state == "settings_menu":
+        screen.blit(settings_menu, (480, 250))
+        if back_button.click(screen, mouse_pos):
+            time.wait(100)
+            game_state = "paused"
+
+    if game_state == "main_menu":
+        screen.blit(main_menu, (0, 0))
+
+    if game_state == "death":
+        screen.blit(pause_menu, (480, 250))
+        screen.blit(font60.render("Вы проиграли", True, (193, 8, 42)), (590, 280))
+        if restart_button.click(screen, mouse_pos):
+            game_state = "run"
+            level_state = "not_run"
+            money = start_money
+            clear_level()
+    # -------
+
+    if pause_button.click(screen, mouse_pos):
+        if game_state == "paused":
+            game_state = "run"
+        elif game_state == "run":
+            game_state = "paused"
 
     for bullet in bullets_group:
-        if bullet.name == 'ls':
+        if bullet.name == 'ls' or bullet.name == 'explosion':
             for enemy in enemies_group:
-                enemy.hp -= bullet.damage
+                if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
+                    enemy.hp -= bullet.damage
             bullet.remove(bullets_group)
-        for enemy in enemies_group:
+
+    for enemy in enemies_group:
+        if enemy.rect.x <= 100:
+            game_state = "death"
+            enemy.kill()
+        for bullet in bullets_group:
             if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
-                if bullet.name == 'default':
+                if bullet.name == 'default' or bullet.name == 'hrom' or bullet.name == 'kopilka':
                     enemy.hp -= bullet.damage
                     bullet.kill()
-                if bullet.name == 'hrom':
+                if bullet.name == 'yas':
+                    enemy.hp -= enemy.hp
+                    bullet.parent.bullet.remove(bullets_group)
+                if bullet.name == 'boom':
                     enemy.hp -= bullet.damage
+                    bullet.explosion = Bullet("explosion", bullet.rect.centerx, bullet.rect.centery, bullet.damage_type, bullet.damage, 0, 0, 'explosion', bullet.parent)
                     bullet.kill()
-
-
-
-
-
-
 
     clock.tick(75)
     display.update()
 
     for e in event.get():
-        keys = key.get_pressed()
-        if keys[K_ESCAPE]:
-            running = False
+        # keys = key.get_pressed()
+        if e.type == KEYDOWN:
+            if e.key == K_ESCAPE and game_state != "death":
+                if game_state == "run":
+                    game_state = "paused"
+                else:
+                    game_state = "run"
+
+            if e.key == K_z:
+                Enemy("popusk", (1508, 192))
+            if e.key == K_x:
+                Enemy("josky", (1508, 320))
+            if e.key == K_c:
+                Enemy("sigma", (1508, 448))
+            if e.key == K_v:
+                Enemy("josky", (1508, 576))
+            if e.key == K_b:
+                Enemy("sigma", (1508, 704))
+
+            if e.key == K_q:
+                running = False
         if e.type == QUIT:
             running = False
+        if e.type == MOUSEBUTTONDOWN:  # При нажатии кнопки мыши
+            mouse_pos = mouse.get_pos()
+            for el in ui_group:
+                if el.rect.collidepoint(mouse_pos):
+                    el.is_move = True
+                    el.last_clicked = True
+
+        if e.type == MOUSEBUTTONUP:  # При отжатии кнопки мыши
+            mouse_pos = mouse.get_pos()
+            unit_pos = (384 + ((mouse_pos[0] - 384) // 128) * 128), (192 + ((mouse_pos[1] - 192) // 128) * 128)
+
+
+            for el in ui_group:
+
+                if el.rect.collidepoint(mouse_pos):  # если элемент отпущен
+                    el.is_move = False
+
+                    if 1536 > unit_pos[0] >= 384 and 832 > unit_pos[1] >= 192:
+
+                        if el.path == "towers":
+                            if is_free(el):
+                                unit = Tower(el.unit_inside, unit_pos)
+                                if money - unit.cost < 0:  # Это пиздец, но оно работает. Придумаете лучше -- переделаете
+                                    unit.kill()
+                                    if hasattr(unit, "bullet"):
+                                        unit.bullet.kill()
+                                    if hasattr(unit, "buff"):
+                                        unit.buff.kill()
+                                else:
+                                    money -= unit.cost
+
+                        if el.path == "shovel":
+                            for tower in towers_group:
+                                if tower.rect.collidepoint(el.rect.centerx, el.rect.centery):
+                                    money += tower.cost // 2
+                                    if hasattr(tower, "bullet"):
+                                        tower.bullet.kill()
+                                    if hasattr(tower, "buff"):
+                                        tower.buff.kill()
+                                    tower.kill()
+                            for nekusaemiy in nekusaemie_group:
+                                if nekusaemiy.rect.collidepoint(el.rect.centerx, el.rect.centery):
+                                    money += nekusaemiy.cost // 2
+                                    nekusaemiy.kill()
