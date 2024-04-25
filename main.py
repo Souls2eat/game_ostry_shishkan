@@ -26,6 +26,16 @@ time_to_spawn = 0
 game_state = "run"
 
 
+class GroupModified(sprite.Group):
+    def __init__(self):
+        super().__init__()
+
+    def draw2(self, surf):
+        for sprite in self.sprites():
+            if hasattr(sprite, "image2"):
+                sprite.draw2(surf)
+
+
 class Tower(sprite.Sprite):
     def __init__(self, unit, pos):
         super().__init__(towers_group, all_sprites_group)
@@ -449,13 +459,11 @@ class UI(sprite.Sprite):
             unit = Tower(self.unit_inside, (0, 0))
             if hasattr(unit, "cost"):
                 self.cost = unit.cost
-                self.text = font30.render(str(self.cost), True, (255, 255, 255))
+                self.image2 = font30.render(str(self.cost), True, (255, 255, 255))
+                self.rect2 = self.image2.get_rect(topleft=(self.default_pos[0] - 49, self.default_pos[1] + 4))
             if hasattr(unit, "bullet"):
                 unit.bullet.kill()
             unit.kill()
-
-    def show_cost(self):
-        pass
 
     def move(self):
         self.image = image.load(f"images/{self.path}/{self.unit_inside}.png").convert_alpha()
@@ -466,6 +474,9 @@ class UI(sprite.Sprite):
         self.image = image.load(f"images/{self.path}/images_inside/{self.unit_inside}_inside.png").convert_alpha()
         self.rect = self.image.get_rect(topleft=self.default_pos)
         self.pos = self.default_pos
+
+    def draw2(self, surface):
+        surface.blit(self.image2, self.rect2)
 
     def update(self):
         if self.is_move:
@@ -557,7 +568,7 @@ enemies_group = sprite.Group()
 towers_group = sprite.Group()
 nekusaemie_group = sprite.Group()
 ui_group = sprite.Group()
-all_sprites_group = sprite.Group()
+all_sprites_group = GroupModified()
 buttons_group = sprite.Group()
 
 
@@ -586,6 +597,7 @@ while running:
     screen.blit(bg, (0, 0))
     screen.blit(font40.render(str(money), True, (0, 0, 0)), (88, 53))
     all_sprites_group.draw(screen)
+    all_sprites_group.draw2(screen)
     mouse_pos = mouse.get_pos()
 
     if level_state == "not_run":
