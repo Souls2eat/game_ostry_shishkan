@@ -646,8 +646,12 @@ while running:
             game_state = "death"
             enemy.kill()
         for bullet in bullets_group:
+            if enemy.rect.collidepoint(bullet.rect.right, bullet.rect.centery):
+                if bullet.name == 'kopilka':
+                    enemy.hp -= bullet.damage
+                    bullet.kill()
             if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
-                if bullet.name == 'default' or bullet.name == 'hrom' or bullet.name == 'kopilka':
+                if bullet.name == 'default' or bullet.name == 'hrom':
                     enemy.hp -= bullet.damage
                     bullet.kill()
                 if bullet.name == 'yas':
