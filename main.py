@@ -105,6 +105,15 @@ class Tower(sprite.Sprite):
             self.have_parasite = sprite.Group()
             self.cost = 20
 
+        if self.name == 'spike':  
+            self.hp = 1
+            self.atk = 20
+            self.attack_cooldown = 75
+            self.damage_type = ''
+            self.remove(towers_group)
+            self.add(nekusaemie_group)
+            self.cost = 10
+
         if self.name == 'terpila':  # циферки поменять
             self.hp = 5000
             self.cost = 30
@@ -139,6 +148,13 @@ class Tower(sprite.Sprite):
                     if enemy not in self.have_parasite:
                         self.is_shooting()
 
+            if self.name == 'spike':
+                if self.attack_cooldown <= 0:
+                    for enemy in enemies_group:
+                        if sprite.collide_rect(self, enemy) and enemy.hp > 0:
+                            enemy.hp -= self.atk
+                    self.attack_cooldown = 75
+
             if self.name == 'davalka':
                 self.dayot()
 
@@ -167,10 +183,10 @@ class Tower(sprite.Sprite):
                     self.joska_schitayu_y = 16 * (self.nakopleno) + 16
                     self.spear_or_sword = randint(0, 1)
                     if self.spear_or_sword == 0:
-                        Bullet("light_spear", self.rect.centerx-28, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                        self.pulya = Bullet("light_spear", self.rect.centerx-28, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
                     if self.spear_or_sword == 1:
-                        Bullet("light_sword", self.rect.centerx-28, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
-
+                        self.pulya = Bullet("light_sword", self.rect.centerx-28, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                    self.pulya.remove(bullets_group)
                     self.nakopleno += 1
 
         if self.name == 'thunder':
@@ -220,7 +236,7 @@ class Tower(sprite.Sprite):
     def update(self):
         self.delat_chtoto()
 
-        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'yascerica' or self.name == 'zeus' or self.name == 'boomchick' or self.name == 'parasitelniy':
+        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'yascerica' or self.name == 'zeus' or self.name == 'boomchick' or self.name == 'parasitelniy' or self.name == 'spike':
             if self.attack_cooldown > 0:
                 self.attack_cooldown -= 1
 
@@ -280,6 +296,7 @@ class Bullet(sprite.Sprite):
             for enemy in enemies_group:
                 if enemy.rect.y == self.parent.rect.y and enemy.rect.x >= self.parent.rect.x:
                     self.speed_x = 7
+                    self.add(bullets_group)
                     self.parent.nakopleno = 0
                     self.parent.attack_cooldown = 100
 
@@ -497,6 +514,8 @@ def is_free(object):
     is_free_list = []  # Проверка свободна ли клетка
     for tower in towers_group:
         is_free_list.append(tower.rect.collidepoint(object.rect.centerx, object.rect.centery) is False)
+    for nekusaemiy in nekusaemie_group:
+        is_free_list.append(nekusaemiy.rect.collidepoint(object.rect.centerx, object.rect.centery) is False)
     if all(is_free_list):
         is_free_list.clear()
         return True
@@ -526,6 +545,8 @@ def clear_level():
         tower.kill()
         if hasattr(tower, "bullet"):
             tower.bullet.kill()
+    for nekusaemiy in nekusaemie_group:
+        nekusaemiy.kill()
     for bullet in bullets_group:
         bullet.kill()
 
@@ -534,6 +555,7 @@ bullets_group = sprite.Group()
 parasites_group = sprite.Group()
 enemies_group = sprite.Group()
 towers_group = sprite.Group()
+nekusaemie_group = sprite.Group()
 ui_group = sprite.Group()
 all_sprites_group = sprite.Group()
 buttons_group = sprite.Group()
@@ -545,7 +567,7 @@ UI((94, 160), "towers", "davalka", )
 UI((94, 256), "towers", "parasitelniy")
 UI((94, 352), "towers", "terpila")
 UI((94, 448), "towers", "kopitel")
-UI((94, 544), "towers", "zeus")
+UI((94, 544), "towers", "spike")
 UI((94, 640), "towers", "yascerica")
 UI((94, 736), "towers", "fire_mag")  # +0, +96
 
@@ -699,3 +721,7 @@ while running:
                                     if hasattr(tower, "bullet"):
                                         tower.bullet.kill()
                                     tower.kill()
+                            for nekusaemiy in nekusaemie_group:
+                                if nekusaemiy.rect.collidepoint(el.rect.centerx, el.rect.centery):
+                                    money += nekusaemiy.cost // 2
+                                    nekusaemiy.kill()
