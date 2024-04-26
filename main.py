@@ -316,6 +316,9 @@ class Bullet(sprite.Sprite):
                 self.off -= 1
 
         if self.name == 'kopilka':
+            if self.parent not in all_sprites_group and self.speed_x == 0:
+                self.kill()
+
             for enemy in enemies_group:
                 if enemy.rect.y == self.parent.rect.y and enemy.rect.x >= self.parent.rect.x:
                     self.speed_x = 7
@@ -323,8 +326,7 @@ class Bullet(sprite.Sprite):
                     self.parent.nakopleno = 0
                     self.parent.attack_cooldown = 100
 
-            if self.parent not in all_sprites_group and self.speed_x == 0:
-                self.kill()
+
 
         if self.name == 'yas':
             for enemy in enemies_group:
@@ -644,7 +646,6 @@ def menu_positioning():
         if settings_button.click(screen, mouse_pos, (30, 700)):                         # 3 кнопка
             game_state = "main_settings_menu"   # Экран под землю
         if quit_button.click(screen, mouse_pos, (30, 780)):                             # 4 кнопка
-            print(quit_button.image.get_height())
             running = False
         if menishe_button.click(screen, mouse_pos, (1550, 660)):                        # 5 кнопка
             if level_menu_open:  # анимация выдвижения
@@ -762,8 +763,8 @@ while running:
 
             # if e.key == K_q:          тоже низя!!!
             #     running = False
-        # if e.type == QUIT:           # низя!!!
-        #      running = False
+        if e.type == QUIT:           # низя!!!
+             running = False
         if e.type == MOUSEBUTTONDOWN:  # При нажатии кнопки мыши
             mouse_pos = mouse.get_pos()
             for el in ui_group:
