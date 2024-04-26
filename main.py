@@ -20,7 +20,7 @@ font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
 
 current_level = 1
 level_state = "not_run"
-money = 300
+money = 30000
 start_money = money
 time_to_spawn = 0
 game_state = "run"
@@ -135,13 +135,11 @@ class Tower(sprite.Sprite):
 
         if self.name == 'matricayshon':
             self.hp = 1500
-            self.buff_cooldown = 75
-            self.buff_group = sprite.Group()
+            #self.buff_cooldown = 75
             for i in range(9):
-                if i != 4:
-                    self.buff_x = 1+(i%3)*128-128
-                    self.buff_y = 1+(i//3)*128-128
-                    self.buff = Parasite('mat', self.rect.centerx + self.buff_x, self.rect.centery + self.buff_y, None, None, None, self)
+                self.buff_x = 1+(i%3)*128-128
+                self.buff_y = 1+(i//3)*128-128
+                self.buff = Buff("mat", self.rect.x + self.buff_x, self.rect.y + self.buff_y)
             self.cost = 30
 
         # СТАТЫ конец
@@ -173,6 +171,17 @@ class Tower(sprite.Sprite):
                         if sprite.collide_rect(self, enemy) and enemy.hp > 0:
                             enemy.hp -= self.atk
                     self.attack_cooldown = self.basic_attack_cooldown
+
+            # if self.name == 'matricayshon':
+            #     if self.buff_cooldown <= 0:
+            #         self.buff_cooldown = 75
+            #
+            #         for i in range(9):
+            #             self.buff_x = 1 + (i % 3) * 128 - 128
+            #             self.buff_y = 1 + (i // 3) * 128 - 128
+            #             self.buff = Parasite('mat', self.rect.centerx + self.buff_x, self.rect.centery + self.buff_y, None,
+            #                                 None, None, self)
+            #             self.buff.add(self.buffs_group)
 
             if self.name == 'davalka':
                 self.dayot()
@@ -265,6 +274,10 @@ class Tower(sprite.Sprite):
             if self.time_on_screen > 0:
                 screen.blit(self.plus_dengi, (self.rect.centerx-15, self.rect.centery-55))
                 self.time_on_screen -= 1
+
+        # if self.name == 'matricayshon':
+        #     if self.buff_cooldown > 0:
+        #         self.buff_cooldown -= 1
 
 
 class Bullet(sprite.Sprite):
@@ -394,36 +407,37 @@ class Parasite(sprite.Sprite):
             if self.parent.hp < self.parent.max_hp - (self.damage//2):
                 self.parent.hp += self.damage//2
 
-    def delat_buff(self):
-
-        if self.parent not in all_sprites_group:
-            self.kill()
-        if self.name == 'mat':
-
-            for tower in towers_group:
-                if tower.name == 'matricayshon' and tower != self.parent:
-                    if sprite.collide_rect(tower.buff, self):
-                        self.kill()
-
-            for tower in towers_group:
-                if tower not in self.parent.buff_group:
-                    if sprite.collide_rect(tower, self):
-                        if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy':
-                            tower.basic_attack_cooldown //= 2
-                            tower.add(self.parent.buff_group)
-
-            for nekusaemiy in nekusaemie_group:
-                if nekusaemiy not in self.parent.buff_group:
-                    if sprite.collide_rect(nekusaemiy, self):
-                        if nekusaemiy.name == 'spike':
-                            nekusaemiy.basic_attack_cooldown //= 2
-                            nekusaemiy.add(self.parent.buff_group)
+    # def delat_buff(self):
+    #
+    #     if self.parent not in all_sprites_group:
+    #         self.kill()
+    #     if self.name == 'mat':
+    #
+    #         for tower in towers_group:
+    #             if tower.name == 'matricayshon' and tower != self.parent:
+    #                 for buff in tower.buffs_group:
+    #                     if sprite.collide_rect(self, buff):
+    #                         self.kill()
+    #
+    #         for tower in towers_group:
+    #             if tower not in self.parent.buffed_tower_group:
+    #                 if sprite.collide_rect(tower, self):
+    #                     if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy':
+    #                         tower.basic_attack_cooldown //= 2
+    #                         tower.add(self.parent.buffed_tower_group)
+    #
+    #         for nekusaemiy in nekusaemie_group:
+    #             if nekusaemiy not in self.parent.buffed_tower_group:
+    #                 if sprite.collide_rect(nekusaemiy, self):
+    #                     if nekusaemiy.name == 'spike':
+    #                         nekusaemiy.basic_attack_cooldown //= 2
+    #                         nekusaemiy.add(self.parent.buffed_tower_group)
 
             
     def update(self):
 
-        if self.name == 'mat':
-            self.delat_buff()
+        # if self.name == 'mat':
+        #     self.delat_buff()
 
         if self.name == 'sosun':
             self.prisasivanie()
@@ -431,23 +445,38 @@ class Parasite(sprite.Sprite):
                 self.attack_cooldown -= 1
 
 
-#class Buff(sprite.Sprite):
- #   def __init__(self, buff_sprite, x, y, name, parent):
-  #      ewtuper().__init__(all_sprites_group, parasites_group)
-   #     self.image = image.load(f"images/buffs/{buff_sprite}.png").convert_alpha() # не думаю что их будет много так что пусть в папке пуль будут(если хотите можете поменять)
-    #    self.rect = self.image.get_rect(center=(x, y))
-     #   self.is_dead = False
-        #self.damage_type = damage_type может быть?
-        #self.damage = damage может быть?
-      #  self.name = name
-       # self.parent = parent
+class Buff(sprite.Sprite):
+    def __init__(self, name, x, y):
+        super().__init__(all_sprites_group, buffs_group)
+        self.image = image.load(f"images/buffs/{name}.png").convert_alpha()
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.rect2 = Rect(x-128, y-128, 384, 384)
+        for buff in buffs_group:
+            if self.rect.collidepoint(buff.rect.centerx, buff.rect.centery) and self != buff:
+                self.kill()
 
-    #def delat_buff(self):
+    def delat_buff(self):
+        for tower in towers_group:
+            if sprite.collide_rect(tower, self):
+                if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy':
+                    tower.basic_attack_cooldown //= 2
 
-     #   if self.name == 'mat':
-      #      for tower in towers_group:
-       #         if sprite.collide_rect(tower, buff):
+        for nekusaemiy in nekusaemie_group:
+            if sprite.collide_rect(nekusaemiy, self):
+                if nekusaemiy.name == 'spike':
+                    nekusaemiy.basic_attack_cooldown //= 2
 
+    def check_tower(self):
+        for tower in towers_group:
+            if tower.name == 'matricayshon':
+                if not self.rect2.colliderect(tower.rect):
+                    print('ffff')
+                    self.kill()
+
+    def update(self):
+        self.delat_buff()
+        self.check_tower()
+        pass
 
 
 class Enemy(sprite.Sprite):  # враг, он же "зомби"
@@ -514,16 +543,16 @@ class UI(sprite.Sprite):
         self.unit_inside = unit_inside
         self.is_move = False
 
-        if self.path == "towers":
-            unit = Tower(self.unit_inside, (0, 0))
-            if hasattr(unit, "cost"):
-                self.cost = unit.cost
-                self.text = font30.render(str(self.cost), True, (255, 255, 255))
-            if hasattr(unit, "bullet"):
-                unit.bullet.kill()
-            if hasattr(unit, "buff"):
-                unit.buff.kill()
-            unit.kill()
+        #if self.path == "towers":
+         #   unit = Tower(self.unit_inside, (0, 0))
+          #  if hasattr(unit, "cost"):
+           #     self.cost = unit.cost
+            #    self.text = font30.render(str(self.cost), True, (255, 255, 255))
+            #if hasattr(unit, "bullet"):
+            #    unit.bullet.kill()
+            #if hasattr(unit, "buff"):
+            #    unit.buff.kill()
+            #unit.kill()
 
     def show_cost(self):
         pass
@@ -629,13 +658,13 @@ parasites_group = sprite.Group()
 enemies_group = sprite.Group()
 towers_group = sprite.Group()
 nekusaemie_group = sprite.Group()
-#buff_group = sprite.Group()
+buffs_group = sprite.Group()
 ui_group = sprite.Group()
 all_sprites_group = sprite.Group()
 buttons_group = sprite.Group()
 
 
-UI((1500, 800), "shovel", "lopata")
+UI((1500, 800), "shovel", "lopata2")
 
 UI((94, 160), "towers", "davalka", )
 UI((94, 256), "towers", "terpila")
@@ -645,7 +674,7 @@ UI((94, 544), "towers", "spike")
 UI((94, 640), "towers", "yascerica")
 UI((94, 736), "towers", "fire_mag")  # +0, +96
 
-
+#Buff('mat', 300, 500)
 pause_button = Button("||", font40, (1550, 30))
 restart_button = Button("Перезапустить", font60, (582, 360))
 resume_button = Button("Продолжить", font60, (614, 360))
@@ -785,8 +814,8 @@ while running:
                                     unit.kill()
                                     if hasattr(unit, "bullet"):
                                         unit.bullet.kill()
-                                    if hasattr(unit, "buff"):
-                                        unit.buff.kill()
+                                    #if hasattr(unit, 'buff'):
+                                    #    unit.buff.kill()
                                 else:
                                     money -= unit.cost
 
@@ -796,8 +825,6 @@ while running:
                                     money += tower.cost // 2
                                     if hasattr(tower, "bullet"):
                                         tower.bullet.kill()
-                                    if hasattr(tower, "buff"):
-                                        tower.buff.kill()
                                     tower.kill()
                             for nekusaemiy in nekusaemie_group:
                                 if nekusaemiy.rect.collidepoint(el.rect.centerx, el.rect.centery):
