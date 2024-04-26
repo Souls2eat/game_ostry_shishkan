@@ -1,27 +1,52 @@
 from pygame import *
 from random import randint, choice
 
+
 init()
 
 clock = time.Clock()
 screen = display.set_mode((1600, 900))
-display.set_caption("Супер-мега игра")
+display.set_caption("game_ostry_shishkan")
 screen.fill((255, 255, 255))
 
 bg = image.load("images/maps/map2.png").convert_alpha()
 pause_menu = image.load("images/menu/pause_menu.png").convert_alpha()
 settings_menu = image.load("images/menu/settings_menu.png").convert_alpha()
 main_menu = image.load("images/menu/main_menu.png").convert_alpha()
+level_menu = image.load("images/menu/level_menu_n.png").convert_alpha()
 
 font20 = font.Font("fonts/ofont.ru_Nunito.ttf", 20)
+font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
 font40 = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
 font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
 
+
+game_name = font60.render("game_ostry_shishkan", True, (255, 255, 255))
 current_level = 1
 level_state = "not_run"
-money = 1200
+money = 300
+start_money = money
 time_to_spawn = 0
-game_state = "run"
+game_state = "main_menu"
+level_menu_open = False
+
+with open("save.txt", "r", encoding="utf-8") as file:
+    just_text = file.readline().strip()
+    new_game = file.readline().strip()
+    if new_game.lower() == "true":
+        new_game = True
+    else:
+        new_game = False
+
+
+class ModifiedGroup(sprite.Group):
+    def __init__(self):
+        super().__init__()
+
+    def draw2(self, surf):
+        for sprite in self.sprites():
+            if hasattr(sprite, "image2"):
+                sprite.draw2(surf)
 
 
 class Tower(sprite.Sprite):
@@ -61,7 +86,7 @@ class Tower(sprite.Sprite):
             self.attack_cooldown = 80
             self.damage_type = ''
             self.nakopleno = 0
-            self.max_nakopit = 9
+            self.max_nakopit = 7
             self.cost = 20
 
         if self.name == 'thunder':
@@ -86,12 +111,30 @@ class Tower(sprite.Sprite):
             self.hp = 250
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.attack_cooldown = 0
+            self.attack_cooldown = 150
             self.damage_type = ''
-            self.bullet = Bullet("yellow_bullet", self.rect.centerx, self.rect.centery,
+            self.bullet = Bullet("blackik", self.rect.centerx - 26, self.rect.centery,
                                  self.damage_type, 0, self.bullet_speed_x, self.bullet_speed_y, 'yas',
                                  self)
             self.bullet.remove(bullets_group)
+            self.cost = 10
+
+        if self.name == 'parasitelniy':
+            self.hp = 2200
+            self.max_hp = 2200
+            self.atk = 10
+            self.attack_cooldown = 150
+            self.damage_type = ''
+            self.have_parasite = sprite.Group()
+            self.cost = 20
+
+        if self.name == 'spike':  
+            self.hp = 1
+            self.atk = 20
+            self.attack_cooldown = 75
+            self.damage_type = ''
+            self.remove(towers_group)
+            self.add(nekusaemie_group)
             self.cost = 10
 
         if self.name == 'terpila':  # циферки поменять
@@ -123,6 +166,18 @@ class Tower(sprite.Sprite):
                     if (enemy.rect.y == self.rect.y or enemy.rect.y == self.rect.y + 128 or enemy.rect.y == self.rect.y - 128) and enemy.rect.x >= self.rect.x:
                         self.is_shooting()
 
+            if self.name == 'parasitelniy':
+                for enemy in enemies_group:
+                    if enemy not in self.have_parasite:
+                        self.is_shooting()
+
+            if self.name == 'spike':
+                if self.attack_cooldown <= 0:
+                    for enemy in enemies_group:
+                        if sprite.collide_rect(self, enemy) and enemy.hp > 0:
+                            enemy.hp -= self.atk
+                    self.attack_cooldown = 75
+
             if self.name == 'davalka':
                 self.dayot()
 
@@ -148,14 +203,13 @@ class Tower(sprite.Sprite):
             if self.attack_cooldown <= 0:
                 self.attack_cooldown = 100
                 if self.nakopleno < self.max_nakopit:
-                    self.joska_schitayu_x = 64 * (1 + (self.nakopleno // 3))
-                    self.joska_schitayu_y = 32 * (self.nakopleno % 3) + 20
+                    self.joska_schitayu_y = 16 * (self.nakopleno) + 16
                     self.spear_or_sword = randint(0, 1)
                     if self.spear_or_sword == 0:
-                        Bullet("light_spear", self.rect.centerx-self.joska_schitayu_x, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                        self.pulya = Bullet("light_spear", self.rect.centerx-28, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
                     if self.spear_or_sword == 1:
-                        Bullet("light_sword", self.rect.centerx-self.joska_schitayu_x, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
-
+                        self.pulya = Bullet("light_sword", self.rect.centerx-28, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                    self.pulya.remove(bullets_group)
                     self.nakopleno += 1
 
         if self.name == 'thunder':
@@ -180,6 +234,16 @@ class Tower(sprite.Sprite):
                                     self.damage_type, self.atk, self.bullet_speed_x, 0,
                                     'ls', self)
 
+        if self.name == 'parasitelniy':
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = 90
+                for enemy in enemies_group:
+                    if enemy not in self.have_parasite:
+                        self.parasix = randint(0, 32)
+                        self.parasiy = randint(-32, 32)
+                        self.parasite = Parasite('sosun', enemy.rect.centerx+self.parasix, enemy.rect.centery+self.parasiy, '', self.atk, enemy, self)
+                        enemy.add(self.have_parasite)
+                        break
 
     def dayot(self):
         if self.name == 'davalka':
@@ -195,7 +259,7 @@ class Tower(sprite.Sprite):
     def update(self):
         self.delat_chtoto()
 
-        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'yascerica' or self.name == 'zeus' or self.name == 'boomchick':
+        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'yascerica' or self.name == 'zeus' or self.name == 'boomchick' or self.name == 'parasitelniy' or self.name == 'spike':
             if self.attack_cooldown > 0:
                 self.attack_cooldown -= 1
 
@@ -252,14 +316,17 @@ class Bullet(sprite.Sprite):
                 self.off -= 1
 
         if self.name == 'kopilka':
+            if self.parent not in all_sprites_group and self.speed_x == 0:
+                self.kill()
+
             for enemy in enemies_group:
                 if enemy.rect.y == self.parent.rect.y and enemy.rect.x >= self.parent.rect.x:
                     self.speed_x = 7
+                    self.add(bullets_group)
                     self.parent.nakopleno = 0
                     self.parent.attack_cooldown = 100
 
-            if self.parent not in all_sprites_group and self.speed_x == 0:
-                self.kill()
+
 
         if self.name == 'yas':
             for enemy in enemies_group:
@@ -269,16 +336,20 @@ class Bullet(sprite.Sprite):
                     self.sumon = 'go'
                     self.parent.bullet.add(bullets_group)
 
-                if (enemy.rect.colliderect(self.rect) or self.rect.centerx >= 1500) and self.sumon == 'go':
+                if enemy.rect.colliderect(self.rect) and self.sumon == 'go':
                     self.speed_x *= -1
                     self.sumon = 'back'
 
-            if self.rect.centerx == self.parent.rect.centerx and self.sumon == 'back':
+            if self.rect.centerx >= 1500 and self.sumon == 'go':
+                self.speed_x *= -1
+                self.sumon = 'back'
+
+            if self.rect.centerx == self.parent.rect.centerx - 26 and self.sumon == 'back':
                 self.speed_x = 0
                 self.sumon = 'wait'
 
             if self.cooldown <= 0 and self.sumon == 'wait':
-                self.cooldown = 375
+                self.cooldown = 150
                 self.sumon = 'ready'
 
             if self.parent.is_dead == True:
@@ -293,6 +364,46 @@ class Bullet(sprite.Sprite):
         if self.name == 'yas' and self.sumon == 'wait':
             if self.cooldown > 0:
                 self.cooldown -= 1
+
+
+class Parasite(sprite.Sprite):
+    def __init__(self, name, x, y, damage_type, damage, owner, parent):
+        super().__init__(all_sprites_group, parasites_group)
+        self.image = image.load(f"images/bullets/{name}.png").convert_alpha() # не думаю что их будет много так что пусть в папке пуль будут(если хотите можете поменять)
+        self.rect = self.image.get_rect(center=(x, y))
+        self.is_dead = False
+        self.damage_type = damage_type
+        self.damage = damage
+        self.name = name
+        self.owner = owner # это враг к которому привязан паразит
+        self.parent = parent
+        self.parasix = self.parent.parasix
+        self.parasiy = self.parent.parasiy
+
+        if self.name == 'sosun':
+            self.attack_cooldown = 75
+
+    def prisasivanie(self):
+        if self.parent not in all_sprites_group:
+            self.kill()
+        if self.owner not in all_sprites_group:
+            self.kill()
+            self.parent.have_parasite.remove(self.owner)
+        self.rect.centerx = self.owner.rect.centerx+self.parasix
+        self.rect.centery = self.owner.rect.centery+self.parasiy
+
+        if self.attack_cooldown <= 0:
+            self.attack_cooldown = 75
+            self.owner.hp -= self.damage
+            if self.parent.hp < self.parent.max_hp - (self.damage//2):
+                self.parent.hp += self.damage//2
+            
+    def update(self):
+        self.prisasivanie()
+
+        if self.name == 'sosun':
+            if self.attack_cooldown > 0:
+                self.attack_cooldown -= 1
 
 
 class Enemy(sprite.Sprite):  # враг, он же "зомби"
@@ -333,7 +444,7 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
 
             self.stop = False  # нужно чтобы в случае колизии останавливался, а если колизии не будет то шёл дальше. ОБЯЗАТЕЛЬНО ПОСЛЕ ПРОВЕРКИ СТОПА НО ПЕРЕД ПРОВЕРКОЙ КОЛИЗИИ
             for tower in towers_group:
-                if sprite.collide_rect(self, tower):
+                if tower.rect.collidepoint(self.rect.centerx, self.rect.centery):
                     self.attack_cooldown -= 1
                     self.stop = True
                     if self.attack_cooldown <= 0:
@@ -354,38 +465,57 @@ class UI(sprite.Sprite):
         self.image = image.load(f"images/{path}/images_inside/{unit_inside}_inside.png").convert_alpha()
         self.pos = pos
         self.default_pos = pos
-        self.rect = self.image.get_rect(topleft=(self.pos))
-        self.is_move = False
-        self.unit_inside = unit_inside
+        self.rect = self.image.get_rect(topleft=self.pos)
         self.path = path
+        self.unit_inside = unit_inside
+        self.is_move = False
+
+        if self.path == "towers":
+            unit = Tower(self.unit_inside, (0, 0))
+            if hasattr(unit, "cost"):
+                self.cost = unit.cost
+                self.image2 = font30.render(str(self.cost), True, (255, 255, 255))
+                self.rect2 = self.image2.get_rect(topleft=(self.default_pos[0] - 49, self.default_pos[1] + 4))
+            if hasattr(unit, "bullet"):
+                unit.bullet.kill()
+            unit.kill()
 
     def move(self):
         self.image = image.load(f"images/{self.path}/{self.unit_inside}.png").convert_alpha()
         self.pos = mouse.get_pos()
-        self.rect = self.image.get_rect(center=(self.pos))
+        self.rect = self.image.get_rect(center=self.pos)
 
     def back_to_default(self):
         self.image = image.load(f"images/{self.path}/images_inside/{self.unit_inside}_inside.png").convert_alpha()
-        self.rect = self.image.get_rect(topleft=(self.default_pos))
+        self.rect = self.image.get_rect(topleft=self.default_pos)
+        self.pos = self.default_pos
+
+    def draw2(self, surface):
+        surface.blit(self.image2, self.rect2)
 
     def update(self):
-        if self.is_move == True:
+        if self.is_move:
             self.move()
-        if self.is_move == False:
+        if self.is_move is not True:
             self.back_to_default()
 
+        if hasattr(self, "text"):
+            screen.blit(self.text, (self.default_pos[0] - 49, self.default_pos[1] + 4))
 
-class Button:
-    def __init__(self, text, font, pos, col=(255, 255, 255)):  # Можно добавить scale
-        self.image = font.render(text, font, col)   # По дефолту цвет текста белый. Я ебал по 50 раз писать одно и тоже
-        self.w = self.image.get_width()
-        self.h = self.image.get_height()
-        # self.image = transform.scale(self.image, (int(self.w * scale), int(self.h * scale))) # для скейла
-        self.rect = self.image.get_rect(topleft=(pos))
+
+class Button:  # Переделать на спрайты кнопок
+    def __init__(self, text, font):
+        self.text = text
+        self.font = font
         self.clicked = False
         self.pushed = False
 
-    def click(self, surf, mouse_pos):
+    def click(self, surf, mouse_pos, pos, col=(255, 255, 255)):
+        self.image = self.font.render(self.text, font, col)   # По дефолту цвет текста белый. Я ебал по 50 раз писать одно и тоже
+        self.pos = pos
+        self.rect = self.image.get_rect(topleft=self.pos)
+        self.rect = self.image.get_rect(topleft=pos)
+
         if not self.rect.collidepoint(mouse_pos):
             self.pushed = False
         if self.rect.collidepoint(mouse_pos):
@@ -399,6 +529,7 @@ class Button:
 
 
 def random_spawn_enemies():
+    pass
     line_cords = [192, 320, 448, 576, 704]
     enemy_sprites = ["josky", "popusk", "sigma"]
     y_cord = choice(line_cords)
@@ -411,6 +542,8 @@ def is_free(object):
     is_free_list = []  # Проверка свободна ли клетка
     for tower in towers_group:
         is_free_list.append(tower.rect.collidepoint(object.rect.centerx, object.rect.centery) is False)
+    for nekusaemiy in nekusaemie_group:
+        is_free_list.append(nekusaemiy.rect.collidepoint(object.rect.centerx, object.rect.centery) is False)
     if all(is_free_list):
         is_free_list.clear()
         return True
@@ -418,14 +551,12 @@ def is_free(object):
 
 
 def spawn_level(current_level):
-    print(current_level)
     if current_level == 1:
-        pass
-        # Enemy("popusk", (1408, 320))
-        # Enemy("sigma", (1408, 192))
-        # Enemy("josky", (1408, 576))
-        # Enemy("popusk", (1208, 576))
-        # Enemy("popusk", (1508, 576))
+        Enemy("popusk", (1408, 320))
+        Enemy("sigma", (1408, 192))
+        Enemy("josky", (1408, 576))
+        Enemy("popusk", (1208, 576))
+        Enemy("popusk", (1508, 576))
 
     elif current_level == 2:
         Enemy("josky", (1408, 320))
@@ -441,51 +572,23 @@ def clear_level():
         tower.kill()
         if hasattr(tower, "bullet"):
             tower.bullet.kill()
+    for nekusaemiy in nekusaemie_group:
+        nekusaemiy.kill()
     for bullet in bullets_group:
         bullet.kill()
+    for el in ui_group:
+        el.is_move = False
 
 
-bullets_group = sprite.Group()
-enemies_group = sprite.Group()
-towers_group = sprite.Group()
-ui_group = sprite.Group()
-all_sprites_group = sprite.Group()
-buttons_group = sprite.Group()
+def menu_positioning():
+    global game_state, money, level_state, current_level, time_to_spawn, new_game, running, level_menu_open
 
-# Tower("zeus", (384, 704))
-Tower("kopitel", (384, 192))
-Tower("yascerica", (512, 704))
+    if game_state != "main_menu" and game_state != "main_settings_menu":
+        screen.blit(bg, (0, 0))
+        screen.blit(font40.render(str(money), True, (0, 0, 0)), (88, 53))
+        all_sprites_group.draw(screen)
+        all_sprites_group.draw2(screen)
 
-
-
-
-
-UI((1500, 800), "shovel", "lopata")
-
-UI((94, 160), "towers", "davalka", )
-UI((94, 256), "towers", "boomchick")
-UI((94, 352), "towers", "terpila")
-UI((94, 448), "towers", "kopitel")
-UI((94, 544), "towers", "zeus")
-UI((94, 640), "towers", "yascerica")
-UI((94, 736), "towers", "fire_mag")  # +0, +96
-
-
-pause_button = Button("||", font40, (1550, 30))
-death_button = Button("Вы проиграли", font60, (591, 280))
-resume_button = Button("Продолжить", font60, (614, 360))
-settings_button = Button("Настройки", font60, (642, 440))
-maim_menu_button = Button("В главное меню", font60, (567, 520))
-back_button = Button("Назад", font60, (709, 520))
-
-
-running = True
-
-while running:
-
-    screen.blit(bg, (0, 0))
-    screen.blit(font40.render(str(money), True, (0, 0, 0)), (88, 53))
-    all_sprites_group.draw(screen)
     mouse_pos = mouse.get_pos()
 
     if level_state == "not_run":
@@ -498,39 +601,114 @@ while running:
         if time_to_spawn == 375:
             random_spawn_enemies()
             time_to_spawn = 0
+        if pause_button.click(screen, mouse_pos, (1550, 30)):
+            if game_state == "paused":
+                game_state = "run"
+            elif game_state == "run":
+                game_state = "paused"
 
     if game_state == "paused":
         screen.blit(pause_menu, (480, 250))
         screen.blit(font60.render("Пауза", True, (193, 8, 42)), (700, 280))
-        if resume_button.click(screen, mouse_pos):
+        if resume_button.click(screen, mouse_pos, (614, 360)):
             game_state = "run"
-        if settings_button.click(screen, mouse_pos):
+        if settings_button.click(screen, mouse_pos, (642, 440)):
             game_state = "settings_menu"
-        if maim_menu_button.click(screen, mouse_pos):
+        if maim_menu_button.click(screen, mouse_pos, (567, 520)):
             game_state = "main_menu"
+        if pause_button.click(screen, mouse_pos, (1550, 30)):
+            if game_state == "paused":
+                game_state = "run"
+            elif game_state == "run":
+                game_state = "paused"
 
     if game_state == "settings_menu":
         screen.blit(settings_menu, (480, 250))
-        if back_button.click(screen, mouse_pos):
-            time.wait(100)
+        if back_button.click(screen, mouse_pos, (709, 520)):
             game_state = "paused"
 
     if game_state == "main_menu":
         screen.blit(main_menu, (0, 0))
+        screen.blit(game_name, (501, 10))
+
+        if new_game_button.click(screen, mouse_pos, (30, 540)):                         # 1 кнопка
+            game_state = "run"  # новая игра
+            new_game = False
+            clear_level()
+            current_level = 1
+            level_state = "not_run"
+        if new_game:
+            if resume_button.click(screen, mouse_pos, (30, 620), col=(130, 130, 130)):  # 2 кнопка серая
+                print("ДЭБИЛ?")
+        else:
+            if resume_button.click(screen, mouse_pos, (30, 620)):                       # 2 кнопка белая
+                game_state = "run"
+        if settings_button.click(screen, mouse_pos, (30, 700)):                         # 3 кнопка
+            game_state = "main_settings_menu"   # Экран под землю
+        if quit_button.click(screen, mouse_pos, (30, 780)):                             # 4 кнопка
+            running = False
+        if menishe_button.click(screen, mouse_pos, (1550, 660)):                        # 5 кнопка
+            if level_menu_open:  # анимация выдвижения
+                level_menu_open = False
+            else:
+                level_menu_open = True
+        if level_menu_open:
+            screen.blit(level_menu, (520, 540))
+
+
+    if game_state == "main_settings_menu":
+        screen.blit(main_menu, (0, 0))
+        screen.blit(settings_menu, (480, 250))
+        if back_button.click(screen, mouse_pos, (709, 520)):
+            game_state = "main_menu"
 
     if game_state == "death":
         screen.blit(pause_menu, (480, 250))
-        if death_button.click(screen, mouse_pos):
+        screen.blit(font60.render("Вы проиграли", True, (193, 8, 42)), (590, 280))
+        if restart_button.click(screen, mouse_pos, (582, 360)):
             game_state = "run"
             level_state = "not_run"
+            money = start_money
             clear_level()
     # -------
 
-    if pause_button.click(screen, mouse_pos):
-        if game_state == "paused":
-            game_state = "run"
-        elif game_state == "run":
-            game_state = "paused"
+
+bullets_group = sprite.Group()
+parasites_group = sprite.Group()
+enemies_group = sprite.Group()
+towers_group = sprite.Group()
+nekusaemie_group = sprite.Group()
+ui_group = sprite.Group()
+all_sprites_group = ModifiedGroup()
+buttons_group = sprite.Group()
+
+
+UI((1500, 800), "shovel", "lopata")
+
+UI((94, 160), "towers", "davalka", )
+UI((94, 256), "towers", "parasitelniy")
+UI((94, 352), "towers", "terpila")
+UI((94, 448), "towers", "kopitel")
+UI((94, 544), "towers", "spike")
+UI((94, 640), "towers", "yascerica")
+UI((94, 736), "towers", "fire_mag")  # +0, +96
+
+
+pause_button = Button("||", font40)
+restart_button = Button("Перезапустить", font60)
+resume_button = Button("Продолжить", font60)
+settings_button = Button("Настройки", font60)
+maim_menu_button = Button("В главное меню", font60)
+back_button = Button("Назад", font60)
+quit_button = Button("Выход", font60)
+new_game_button = Button("Новая игра", font60)
+menishe_button = Button("<", font60)
+
+
+running = True
+while running:
+
+    menu_positioning()
 
     for bullet in bullets_group:
         if bullet.name == 'ls' or bullet.name == 'explosion':
@@ -540,12 +718,16 @@ while running:
             bullet.remove(bullets_group)
 
     for enemy in enemies_group:
-        if enemy.rect.x <= 100:
+        if enemy.rect.x <= 150:
             game_state = "death"
             enemy.kill()
         for bullet in bullets_group:
+            if enemy.rect.collidepoint(bullet.rect.right, bullet.rect.centery):
+                if bullet.name == 'kopilka':
+                    enemy.hp -= bullet.damage
+                    bullet.kill()
             if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
-                if bullet.name == 'default' or bullet.name == 'hrom' or bullet.name == 'kopilka':
+                if bullet.name == 'default' or bullet.name == 'hrom':
                     enemy.hp -= bullet.damage
                     bullet.kill()
                 if bullet.name == 'yas':
@@ -562,17 +744,27 @@ while running:
     for e in event.get():
         # keys = key.get_pressed()
         if e.type == KEYDOWN:
-            if e.key == K_ESCAPE and game_state != "death":
+            if e.key == K_ESCAPE and game_state == "run" or game_state == "paused" or game_state == "settings_menu":
                 if game_state == "run":
                     game_state = "paused"
                 else:
                     game_state = "run"
-            if e.key == K_SPACE:
+
+            if e.key == K_z:
+                Enemy("popusk", (1508, 192))
+            if e.key == K_x:
+                Enemy("josky", (1508, 320))
+            if e.key == K_c:
+                Enemy("sigma", (1508, 448))
+            if e.key == K_v:
+                Enemy("josky", (1508, 576))
+            if e.key == K_b:
                 Enemy("sigma", (1508, 704))
-            if e.key == K_q:
-                running = False
-        if e.type == QUIT:
-            running = False
+
+            # if e.key == K_q:          тоже низя!!!
+            #     running = False
+        if e.type == QUIT:           # низя!!!
+             running = False
         if e.type == MOUSEBUTTONDOWN:  # При нажатии кнопки мыши
             mouse_pos = mouse.get_pos()
             for el in ui_group:
@@ -586,7 +778,6 @@ while running:
 
 
             for el in ui_group:
-
                 if el.rect.collidepoint(mouse_pos):  # если элемент отпущен
                     el.is_move = False
 
@@ -609,6 +800,13 @@ while running:
                                     if hasattr(tower, "bullet"):
                                         tower.bullet.kill()
                                     tower.kill()
-            # for button in buttons_group:
-            #     if button.rect.collidepoint(mouse_pos):
-            #         button.clicked = True
+                            for nekusaemiy in nekusaemie_group:
+                                if nekusaemiy.rect.collidepoint(el.rect.centerx, el.rect.centery):
+                                    money += nekusaemiy.cost // 2
+                                    nekusaemiy.kill()
+
+
+with open("save.txt", "w", encoding="utf-8") as file:
+    new_game = True
+    file.write(just_text + "\n")
+    file.write(str(new_game))
