@@ -13,6 +13,7 @@ bg = image.load("images/maps/map2.png").convert_alpha()
 pause_menu = image.load("images/menu/pause_menu.png").convert_alpha()
 settings_menu = image.load("images/menu/settings_menu.png").convert_alpha()
 main_menu = image.load("images/menu/main_menu.png").convert_alpha()
+level_menu = image.load("images/menu/level_menu_n.png").convert_alpha()
 
 font20 = font.Font("fonts/ofont.ru_Nunito.ttf", 20)
 font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
@@ -27,6 +28,7 @@ money = 300
 start_money = money
 time_to_spawn = 0
 game_state = "main_menu"
+level_menu_open = False
 
 with open("save.txt", "r", encoding="utf-8") as file:
     just_text = file.readline().strip()
@@ -37,7 +39,7 @@ with open("save.txt", "r", encoding="utf-8") as file:
         new_game = False
 
 
-class GroupModified(sprite.Group):
+class ModifiedGroup(sprite.Group):
     def __init__(self):
         super().__init__()
 
@@ -572,10 +574,12 @@ def clear_level():
         nekusaemiy.kill()
     for bullet in bullets_group:
         bullet.kill()
+    for el in ui_group:
+        el.is_move = False
 
 
 def menu_positioning():
-    global game_state, money, level_state, current_level, time_to_spawn, new_game, running
+    global game_state, money, level_state, current_level, time_to_spawn, new_game, running, level_menu_open
 
     if game_state != "main_menu" and game_state != "main_settings_menu":
         screen.blit(bg, (0, 0))
@@ -623,24 +627,33 @@ def menu_positioning():
 
     if game_state == "main_menu":
         screen.blit(main_menu, (0, 0))
-
         screen.blit(game_name, (501, 10))
-        if new_game_button.click(screen, mouse_pos, (30, 540)):
+
+        if new_game_button.click(screen, mouse_pos, (30, 540)):                         # 1 кнопка
             game_state = "run"  # новая игра
             new_game = False
             clear_level()
             current_level = 1
             level_state = "not_run"
         if new_game:
-            if resume_button.click(screen, mouse_pos, (30, 620), col=(130, 130, 130)):
+            if resume_button.click(screen, mouse_pos, (30, 620), col=(130, 130, 130)):  # 2 кнопка серая
                 print("ДЭБИЛ?")
         else:
-            if resume_button.click(screen, mouse_pos, (30, 620)):
+            if resume_button.click(screen, mouse_pos, (30, 620)):                       # 2 кнопка белая
                 game_state = "run"
-        if settings_button.click(screen, mouse_pos, (30, 700)):  # Экран под землю
-            game_state = "main_settings_menu"
-        if quit_button.click(screen, mouse_pos, (30, 780)):
+        if settings_button.click(screen, mouse_pos, (30, 700)):                         # 3 кнопка
+            game_state = "main_settings_menu"   # Экран под землю
+        if quit_button.click(screen, mouse_pos, (30, 780)):                             # 4 кнопка
+            print(quit_button.image.get_height())
             running = False
+        if menishe_button.click(screen, mouse_pos, (1550, 660)):                        # 5 кнопка
+            if level_menu_open:  # анимация выдвижения
+                level_menu_open = False
+            else:
+                level_menu_open = True
+        if level_menu_open:
+            screen.blit(level_menu, (520, 540))
+
 
     if game_state == "main_settings_menu":
         # screen.blit(main_menu, (0, 0))
@@ -665,7 +678,7 @@ enemies_group = sprite.Group()
 towers_group = sprite.Group()
 nekusaemie_group = sprite.Group()
 ui_group = sprite.Group()
-all_sprites_group = GroupModified()
+all_sprites_group = ModifiedGroup()
 buttons_group = sprite.Group()
 
 
@@ -688,6 +701,7 @@ maim_menu_button = Button("В главное меню", font60)
 back_button = Button("Назад", font60)
 quit_button = Button("Выход", font60)
 new_game_button = Button("Новая игра", font60)
+menishe_button = Button("<", font60)
 
 
 running = True
@@ -703,7 +717,7 @@ while running:
             bullet.remove(bullets_group)
 
     for enemy in enemies_group:
-        if enemy.rect.x <= 100:
+        if enemy.rect.x <= 150:
             game_state = "death"
             enemy.kill()
         for bullet in bullets_group:
