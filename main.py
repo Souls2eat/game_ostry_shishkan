@@ -20,7 +20,6 @@ font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
 font40 = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
 font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
 
-
 game_name = font60.render("game_ostry_shishkan", True, (255, 255, 255))
 current_level = 1
 level_state = "not_run"
@@ -65,7 +64,8 @@ class Tower(sprite.Sprite):
             self.atk = 20
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
-            self.attack_cooldown = 55
+            self.basic_attack_cooldown = 55
+            self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.cost = 10
 
@@ -74,7 +74,8 @@ class Tower(sprite.Sprite):
             self.atk = 20 #типа по кому попадёт получит 40 а остальные по 20
             self.bullet_speed_x = 4
             self.bullet_speed_y = 0
-            self.attack_cooldown = 85
+            self.basic_attack_cooldown = 85
+            self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.cost = 20
 
@@ -83,7 +84,8 @@ class Tower(sprite.Sprite):
             self.atk = 30
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.attack_cooldown = 80
+            self.basic_attack_cooldown = 80
+            self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.nakopleno = 0
             self.max_nakopit = 7
@@ -94,7 +96,8 @@ class Tower(sprite.Sprite):
             self.atk = 30
             self.bullet_speed_x = 7
             self.bullet_speed_y = 3
-            self.attack_cooldown = 200
+            self.basic_attack_cooldown = 200
+            self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.cost = 15
 
@@ -103,7 +106,8 @@ class Tower(sprite.Sprite):
             self.atk = 100
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.attack_cooldown = 150
+            self.basic_attack_cooldown = 225
+            self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.cost = 20
 
@@ -111,7 +115,8 @@ class Tower(sprite.Sprite):
             self.hp = 250
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.attack_cooldown = 150
+            self.basic_attack_cooldown = 150
+            self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.bullet = Bullet("blackik", self.rect.centerx - 26, self.rect.centery,
                                  self.damage_type, 0, self.bullet_speed_x, self.bullet_speed_y, 'yas',
@@ -123,7 +128,8 @@ class Tower(sprite.Sprite):
             self.hp = 2200
             self.max_hp = 2200
             self.atk = 10
-            self.attack_cooldown = 150
+            self.basic_attack_cooldown = 150
+            self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.have_parasite = sprite.Group()
             self.cost = 20
@@ -131,14 +137,15 @@ class Tower(sprite.Sprite):
         if self.name == 'spike':  
             self.hp = 1
             self.atk = 20
-            self.attack_cooldown = 75
+            self.basic_attack_cooldown = 75
+            self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.remove(towers_group)
             self.add(nekusaemie_group)
             self.cost = 10
 
         if self.name == 'terpila':  # циферки поменять
-            self.hp = 5000
+            self.hp = 5500
             self.cost = 30
 
         if self.name == 'davalka':
@@ -147,6 +154,14 @@ class Tower(sprite.Sprite):
             self.davanie_cooldown = 900
             self.cost = 20
             self.time_on_screen = 0 #это для плюс денег
+
+        if self.name == 'matricayshon':
+            self.hp = 500
+            for i in range(9):
+                self.buff_x = 1+(i%3)*128-128
+                self.buff_y = 1+(i//3)*128-128
+                self.buff = Buff("mat", self.rect.x + self.buff_x, self.rect.y + self.buff_y)
+            self.cost = 30
 
         # СТАТЫ конец
 
@@ -176,7 +191,7 @@ class Tower(sprite.Sprite):
                     for enemy in enemies_group:
                         if sprite.collide_rect(self, enemy) and enemy.hp > 0:
                             enemy.hp -= self.atk
-                    self.attack_cooldown = 75
+                    self.attack_cooldown = self.basic_attack_cooldown
 
             if self.name == 'davalka':
                 self.dayot()
@@ -191,17 +206,17 @@ class Tower(sprite.Sprite):
             
         if self.name == "fire_mag":  # пока привет
             if self.attack_cooldown <= 0:
-                self.attack_cooldown = 55
+                self.attack_cooldown = self.basic_attack_cooldown
                 Bullet("blue_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
 
         if self.name == 'boomchick':  
             if self.attack_cooldown <= 0:
-                self.attack_cooldown = 85
+                self.attack_cooldown = self.basic_attack_cooldown
                 Bullet("yellow_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'boom', self)
 
         if self.name == 'kopitel':
             if self.attack_cooldown <= 0:
-                self.attack_cooldown = 100
+                self.attack_cooldown = self.basic_attack_cooldown
                 if self.nakopleno < self.max_nakopit:
                     self.joska_schitayu_y = 16 * (self.nakopleno) + 16
                     self.spear_or_sword = randint(0, 1)
@@ -214,7 +229,7 @@ class Tower(sprite.Sprite):
 
         if self.name == 'thunder':
             if self.attack_cooldown <= 0:
-                self.attack_cooldown = 200
+                self.attack_cooldown = self.basic_attack_cooldown
                 Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
                                      self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'hrom',
                                      self)
@@ -229,14 +244,14 @@ class Tower(sprite.Sprite):
 
         if self.name == 'zeus':
             if self.attack_cooldown <= 0:
-                self.attack_cooldown = 225
+                self.attack_cooldown = self.basic_attack_cooldown
                 self.bullet = Bullet("Laser", self.rect.centerx + 640, self.rect.centery,
                                     self.damage_type, self.atk, self.bullet_speed_x, 0,
                                     'ls', self)
 
         if self.name == 'parasitelniy':
             if self.attack_cooldown <= 0:
-                self.attack_cooldown = 90
+                self.attack_cooldown = self.basic_attack_cooldown
                 for enemy in enemies_group:
                     if enemy not in self.have_parasite:
                         self.parasix = randint(0, 32)
@@ -270,6 +285,8 @@ class Tower(sprite.Sprite):
                 screen.blit(self.plus_dengi, (self.rect.centerx-15, self.rect.centery-55))
                 self.time_on_screen -= 1
 
+       
+
 
 class Bullet(sprite.Sprite):
     def __init__(self, bullet_sprite, x, y, damage_type, damage, speed_x, speed_y, name, parent):
@@ -291,7 +308,7 @@ class Bullet(sprite.Sprite):
 
         if self.name == 'yas':
             self.sumon = 'ready'
-            self.cooldown = 375
+            self.parent.attack_cooldownwn = 375
 
     def bullet_movement(self):
         self.rect.x += self.speed_x
@@ -324,8 +341,7 @@ class Bullet(sprite.Sprite):
                     self.speed_x = 7
                     self.add(bullets_group)
                     self.parent.nakopleno = 0
-                    self.parent.attack_cooldown = 100
-
+                    self.parent.attack_cooldown = self.parent.basic_attack_cooldown
 
 
         if self.name == 'yas':
@@ -348,8 +364,8 @@ class Bullet(sprite.Sprite):
                 self.speed_x = 0
                 self.sumon = 'wait'
 
-            if self.cooldown <= 0 and self.sumon == 'wait':
-                self.cooldown = 150
+            if self.parent.attack_cooldown <= 0 and self.sumon == 'wait':
+                self.parent.attack_cooldown = self.parent.basic_attack_cooldown
                 self.sumon = 'ready'
 
             if self.parent.is_dead == True:
@@ -362,8 +378,8 @@ class Bullet(sprite.Sprite):
         self.bullet_movement()
 
         if self.name == 'yas' and self.sumon == 'wait':
-            if self.cooldown > 0:
-                self.cooldown -= 1
+            if self.parent.attack_cooldown > 0:
+                self.parent.attack_cooldown -= 1
 
 
 class Parasite(sprite.Sprite):
@@ -377,11 +393,13 @@ class Parasite(sprite.Sprite):
         self.name = name
         self.owner = owner # это враг к которому привязан паразит
         self.parent = parent
-        self.parasix = self.parent.parasix
-        self.parasiy = self.parent.parasiy
+
 
         if self.name == 'sosun':
+            self.parasix = self.parent.parasix
+            self.parasiy = self.parent.parasiy
             self.attack_cooldown = 75
+
 
     def prisasivanie(self):
         if self.parent not in all_sprites_group:
@@ -397,13 +415,60 @@ class Parasite(sprite.Sprite):
             self.owner.hp -= self.damage
             if self.parent.hp < self.parent.max_hp - (self.damage//2):
                 self.parent.hp += self.damage//2
+
             
     def update(self):
-        self.prisasivanie()
 
         if self.name == 'sosun':
+            self.prisasivanie()
             if self.attack_cooldown > 0:
                 self.attack_cooldown -= 1
+
+
+class Buff(sprite.Sprite):
+    def __init__(self, name, x, y):
+        super().__init__(all_sprites_group, buffs_group)
+        self.image = image.load(f"images/buffs/{name}.png").convert_alpha()
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.rect.x = x
+        self.rect.y = y
+        self.rect2 = Rect(self.rect.x-128, self.rect.y-128, 384, 384) 
+        self.name = name
+        self.buffed_towers = sprite.Group()
+        if self.name == 'mat':
+            self.mozhet_zhit = False
+        for buff in buffs_group:
+            if self.rect.collidepoint(buff.rect.centerx, buff.rect.centery) and self != buff:
+                self.kill()
+
+    def delat_buff(self):
+        for tower in towers_group:
+            if tower not in self.buffed_towers:
+                if self.rect.collidepoint(tower.rect.centerx, tower.rect.centery):
+                    if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy':
+                        tower.basic_attack_cooldown //= 2
+                        tower.add(self.buffed_towers)
+
+        for nekusaemiy in nekusaemie_group:
+            if nekusaemiy not in self.buffed_towers:
+                if self.rect.collidepoint(nekusaemiy.rect.centerx, nekusaemiy.rect.centery):
+                    if nekusaemiy.name == 'spike':
+                        nekusaemiy.basic_attack_cooldown //= 2
+                        nekusaemiy.add(self.buffed_towers)
+
+    def check_tower(self):
+        for tower in towers_group:
+            if tower.name == 'matricayshon':
+                if self.rect2.collidepoint(tower.rect.centerx, tower.rect.centery):
+                    self.mozhet_zhit = True
+        if self.mozhet_zhit == False:
+            self.kill()
+        self.mozhet_zhit = False
+
+    def update(self):
+        self.delat_buff()
+        self.check_tower()
+        pass
 
 
 class Enemy(sprite.Sprite):  # враг, он же "зомби"
@@ -480,6 +545,7 @@ class UI(sprite.Sprite):
                 unit.bullet.kill()
             unit.kill()
 
+
     def move(self):
         self.image = image.load(f"images/{self.path}/{self.unit_inside}.png").convert_alpha()
         self.pos = mouse.get_pos()
@@ -515,7 +581,6 @@ class Button:  # Переделать на спрайты кнопок
         self.pos = pos
         self.rect = self.image.get_rect(topleft=self.pos)
         self.rect = self.image.get_rect(topleft=pos)
-
         if not self.rect.collidepoint(mouse_pos):
             self.pushed = False
         if self.rect.collidepoint(mouse_pos):
@@ -552,6 +617,7 @@ def is_free(object):
 
 def spawn_level(current_level):
     if current_level == 1:
+        pass
         Enemy("popusk", (1408, 320))
         Enemy("sigma", (1408, 192))
         Enemy("josky", (1408, 576))
@@ -579,7 +645,6 @@ def clear_level():
     for el in ui_group:
         el.is_move = False
 
-
 def menu_positioning():
     global game_state, money, level_state, current_level, time_to_spawn, new_game, running, level_menu_open
 
@@ -593,7 +658,6 @@ def menu_positioning():
 
     if level_state == "not_run":
         level_state, current_level = spawn_level(current_level)
-
     # -------
     if game_state == "run":
         all_sprites_group.update()
@@ -675,6 +739,7 @@ def menu_positioning():
 
 bullets_group = sprite.Group()
 parasites_group = sprite.Group()
+buffs_group = sprite.Group()
 enemies_group = sprite.Group()
 towers_group = sprite.Group()
 nekusaemie_group = sprite.Group()
@@ -686,7 +751,7 @@ buttons_group = sprite.Group()
 UI((1500, 800), "shovel", "lopata")
 
 UI((94, 160), "towers", "davalka", )
-UI((94, 256), "towers", "parasitelniy")
+UI((94, 256), "towers", "matricayshon")
 UI((94, 352), "towers", "terpila")
 UI((94, 448), "towers", "kopitel")
 UI((94, 544), "towers", "spike")
@@ -737,10 +802,8 @@ while running:
                     enemy.hp -= bullet.damage
                     bullet.explosion = Bullet("explosion", bullet.rect.centerx, bullet.rect.centery, bullet.damage_type, bullet.damage, 0, 0, 'explosion', bullet.parent)
                     bullet.kill()
-
     clock.tick(75)
     display.update()
-
     for e in event.get():
         # keys = key.get_pressed()
         if e.type == KEYDOWN:
@@ -749,7 +812,6 @@ while running:
                     game_state = "paused"
                 else:
                     game_state = "run"
-
             if e.key == K_z:
                 Enemy("popusk", (1508, 192))
             if e.key == K_x:
@@ -761,8 +823,8 @@ while running:
             if e.key == K_b:
                 Enemy("sigma", (1508, 704))
 
-            # if e.key == K_q:          тоже низя!!!
-            #     running = False
+            if e.key == K_q:         
+                running = False
         if e.type == QUIT:           # низя!!!
              running = False
         if e.type == MOUSEBUTTONDOWN:  # При нажатии кнопки мыши
@@ -771,7 +833,6 @@ while running:
                 if el.rect.collidepoint(mouse_pos):
                     el.is_move = True
                     el.last_clicked = True
-
         if e.type == MOUSEBUTTONUP:  # При отжатии кнопки мыши
             mouse_pos = mouse.get_pos()
             unit_pos = (384 + ((mouse_pos[0] - 384) // 128) * 128), (192 + ((mouse_pos[1] - 192) // 128) * 128)
@@ -782,7 +843,6 @@ while running:
                     el.is_move = False
 
                     if 1536 > unit_pos[0] >= 384 and 832 > unit_pos[1] >= 192:
-
                         if el.path == "towers":
                             if is_free(el):
                                 unit = Tower(el.unit_inside, unit_pos)
@@ -792,7 +852,6 @@ while running:
                                         unit.bullet.kill()
                                 else:
                                     money -= unit.cost
-
                         if el.path == "shovel":
                             for tower in towers_group:
                                 if tower.rect.collidepoint(el.rect.centerx, el.rect.centery):
