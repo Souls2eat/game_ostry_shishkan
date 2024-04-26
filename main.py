@@ -657,7 +657,7 @@ def menu_positioning():
 
 
     if game_state == "main_settings_menu":
-        # screen.blit(main_menu, (0, 0))
+        screen.blit(main_menu, (0, 0))
         screen.blit(settings_menu, (480, 250))
         if back_button.click(screen, mouse_pos, (709, 520)):
             game_state = "main_menu"
