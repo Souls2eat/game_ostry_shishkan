@@ -9,7 +9,8 @@ screen = display.set_mode((1600, 900))
 display.set_caption("game_ostry_shishkan")
 screen.fill((255, 255, 255))
 
-bg = image.load("images/maps/map2.png").convert_alpha()
+m = randint(1, 3)  # абоба
+bg = image.load(f"images/maps/map{m}.png").convert_alpha()
 pause_menu = image.load("images/menu/pause_menu.png").convert_alpha()
 settings_menu = image.load("images/menu/settings_menu.png").convert_alpha()
 main_menu = image.load("images/menu/main_menu.png").convert_alpha()
@@ -284,8 +285,6 @@ class Tower(sprite.Sprite):
             if self.time_on_screen > 0:
                 screen.blit(self.plus_dengi, (self.rect.centerx-15, self.rect.centery-55))
                 self.time_on_screen -= 1
-
-       
 
 
 class Bullet(sprite.Sprite):
@@ -645,11 +644,13 @@ def clear_level():
     for el in ui_group:
         el.is_move = False
 
+
 def menu_positioning():
     global game_state, money, level_state, current_level, time_to_spawn, new_game, running, level_menu_open
 
     if game_state != "main_menu" and game_state != "main_settings_menu":
         screen.blit(bg, (0, 0))
+        screen.blit(font40.render(str(current_level - 1) + " уровень", True, (255, 255, 255)), (893, 30))
         screen.blit(font40.render(str(money), True, (0, 0, 0)), (88, 53))
         all_sprites_group.draw(screen)
         all_sprites_group.draw2(screen)
@@ -703,7 +704,7 @@ def menu_positioning():
             level_state = "not_run"
         if new_game:
             if resume_button.click(screen, mouse_pos, (30, 620), col=(130, 130, 130)):  # 2 кнопка серая
-                print("ДЭБИЛ?")
+                pass
         else:
             if resume_button.click(screen, mouse_pos, (30, 620)):                       # 2 кнопка белая
                 game_state = "run"
@@ -719,7 +720,6 @@ def menu_positioning():
         if level_menu_open:
             screen.blit(level_menu, (520, 540))
 
-
     if game_state == "main_settings_menu":
         screen.blit(main_menu, (0, 0))
         screen.blit(settings_menu, (480, 250))
@@ -733,6 +733,7 @@ def menu_positioning():
             game_state = "run"
             level_state = "not_run"
             money = start_money
+            current_level -= 1
             clear_level()
     # -------
 
