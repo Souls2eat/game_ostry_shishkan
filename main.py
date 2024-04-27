@@ -9,7 +9,7 @@ screen = display.set_mode((1600, 900))
 display.set_caption("game_ostry_shishkan")
 screen.fill((255, 255, 255))
 
-m = randint(1, 3)  # абоба
+m = randint(1, 3)  # абоба ыыыыы ыыыы абоба ыыыы я назвал переменную одной буквой ыыыыыы я такой крутой абоба ыыыыыыы ыыы ыыы ыы ы ы ы ы
 bg = image.load(f"images/maps/map{m}.png").convert_alpha()
 pause_menu = image.load("images/menu/pause_menu.png").convert_alpha()
 settings_menu = image.load("images/menu/settings_menu.png").convert_alpha()
@@ -137,13 +137,26 @@ class Tower(sprite.Sprite):
 
         if self.name == 'spike':  
             self.hp = 1
-            self.atk = 20
+            self.atk = 35
             self.basic_attack_cooldown = 75
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.remove(towers_group)
             self.add(nekusaemie_group)
             self.cost = 10
+
+        if self.name == 'pukish':  
+            self.hp = 1
+            self.atk = 50
+            self.atk2 = 5
+            self.bullet_speed_x = 2
+            self.bullet_speed_y = 0
+            self.basic_attack_cooldown = 150
+            self.attack_cooldown = self.basic_attack_cooldown
+            self.basic_attack_cooldown2 = 15
+            self.attack_cooldown2 = self.basic_attack_cooldown2
+            self.damage_type = ''
+            self.cost = 25
 
         if self.name == 'terpila':  # циферки поменять
             self.hp = 5500
@@ -169,10 +182,19 @@ class Tower(sprite.Sprite):
 
     def delat_chtoto(self):  # тут надо будет написать условие при котором башня стреляет
         if self.is_dead != True:
+
+            
+
             if self.name == 'zeus' or self.name == "fire_mag" or self.name == 'boomchick':
                 for enemy in enemies_group:
                     if enemy.rect.y == self.rect.y and enemy.rect.x >= self.rect.x:
                         self.is_shooting()
+
+            if self.name == 'pukish':
+                if self in towers_group:
+                    for enemy in enemies_group:
+                        if enemy.rect.y == self.rect.y and enemy.rect.x >= self.rect.x:
+                            self.is_shooting()
 
             if self.name == 'kopitel':
                     self.is_shooting()
@@ -193,6 +215,28 @@ class Tower(sprite.Sprite):
                         if sprite.collide_rect(self, enemy) and enemy.hp > 0:
                             enemy.hp -= self.atk
                     self.attack_cooldown = self.basic_attack_cooldown
+
+
+            if self.name == 'pukish':
+                self.remove(nekusaemie_group)
+                self.add(towers_group)
+                for enemy in enemies_group:
+                    if sprite.collide_rect(self, enemy):
+                        self.remove(towers_group)
+                        self.add(nekusaemie_group)
+                if self in towers_group:
+                    self.image = image.load(f"images/towers/{self.name}.png").convert_alpha()
+                    for enemy in enemies_group:
+                        if enemy.rect.y == self.rect.y and enemy.rect.x >= self.rect.x:
+                            self.is_shooting()
+                if self in nekusaemie_group:
+                    self.image = image.load(f"images/towers/{self.name}2.png").convert_alpha()
+                    for enemy in enemies_group:
+                        if sprite.collide_rect(self, enemy) and enemy.hp > 0:
+                            if self.attack_cooldown2 <= 0:
+                                self.attack_cooldown2 = self.basic_attack_cooldown2
+                                enemy.hp -= self.atk2
+                            
 
             if self.name == 'davalka':
                 self.dayot()
@@ -261,6 +305,12 @@ class Tower(sprite.Sprite):
                         enemy.add(self.have_parasite)
                         break
 
+        if self.name == "pukish":  
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = self.basic_attack_cooldown
+                Bullet("gas", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'gas', self)
+
+
     def dayot(self):
         if self.name == 'davalka':
             if self.davanie_cooldown <= 0:
@@ -275,9 +325,13 @@ class Tower(sprite.Sprite):
     def update(self):
         self.delat_chtoto()
 
-        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'yascerica' or self.name == 'zeus' or self.name == 'boomchick' or self.name == 'parasitelniy' or self.name == 'spike':
+        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'yascerica' or self.name == 'zeus' or self.name == 'boomchick' or self.name == 'parasitelniy' or self.name == 'spike' or self.name == 'pukish':
             if self.attack_cooldown > 0:
                 self.attack_cooldown -= 1
+
+        if self.name == 'pukish':
+            if self.attack_cooldown2 > 0:
+                self.attack_cooldown2 -= 1
 
         if self.name == 'davalka':
             if self.davanie_cooldown > 0:
@@ -308,6 +362,9 @@ class Bullet(sprite.Sprite):
         if self.name == 'yas':
             self.sumon = 'ready'
             self.parent.attack_cooldownwn = 375
+
+        if self.name == 'gas':
+            self.gazirovannie_group = sprite.Group()
 
     def bullet_movement(self):
         self.rect.x += self.speed_x
@@ -369,6 +426,13 @@ class Bullet(sprite.Sprite):
 
             if self.parent.is_dead == True:
                 self.kill()
+
+        if self.name == 'gas':
+            for enemy in enemies_group:
+                if sprite.collide_rect(enemy, self) and enemy.hp > 0:
+                    if enemy not in self.gazirovannie_group:
+                        enemy.hp -= self.damage
+                        enemy.add(self.gazirovannie_group)
 
         if self.rect.x >= 1700:
             self.kill()
@@ -444,7 +508,7 @@ class Buff(sprite.Sprite):
         for tower in towers_group:
             if tower not in self.buffed_towers:
                 if self.rect.collidepoint(tower.rect.centerx, tower.rect.centery):
-                    if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy':
+                    if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy' or tower.name == 'pukish':
                         tower.basic_attack_cooldown //= 2
                         tower.add(self.buffed_towers)
 
@@ -754,7 +818,7 @@ UI((1500, 800), "shovel", "lopata")
 UI((94, 160), "towers", "davalka", )
 UI((94, 256), "towers", "matricayshon")
 UI((94, 352), "towers", "terpila")
-UI((94, 448), "towers", "kopitel")
+UI((94, 448), "towers", "pukish")
 UI((94, 544), "towers", "spike")
 UI((94, 640), "towers", "yascerica")
 UI((94, 736), "towers", "fire_mag")  # +0, +96
