@@ -231,11 +231,11 @@ class Tower(sprite.Sprite):
                             self.is_shooting()
                 if self in nekusaemie_group:
                     self.image = image.load(f"images/towers/{self.name}2.png").convert_alpha()
-                    for enemy in enemies_group:
-                        if sprite.collide_rect(self, enemy) and enemy.hp > 0:
-                            if self.attack_cooldown2 <= 0:
-                                self.attack_cooldown2 = self.basic_attack_cooldown2
+                    if self.attack_cooldown2 <= 0:
+                        for enemy in enemies_group:
+                            if sprite.collide_rect(self, enemy) and enemy.hp > 0:
                                 enemy.hp -= self.atk2
+                        self.attack_cooldown2 = self.basic_attack_cooldown2
                             
 
             if self.name == 'davalka':
