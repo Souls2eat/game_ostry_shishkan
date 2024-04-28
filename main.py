@@ -731,6 +731,11 @@ def clear_level():
 def menu_positioning():
     global game_state, money, level_state, current_level, time_to_spawn, new_game, running, last_game_state
 
+    mouse_pos = mouse.get_pos()
+
+    if level_state == "not_run":
+        level_state, current_level = spawn_level(current_level)
+
     if game_state != "main_menu" and game_state != "main_settings_menu":
         screen.blit(bg, (0, 0))
         screen.blit(font40.render(str(current_level - 1) + " уровень", True, (255, 255, 255)), (893, 30))
@@ -738,11 +743,6 @@ def menu_positioning():
         all_sprites_group.draw(screen)
         all_sprites_group.draw2(screen)
 
-    mouse_pos = mouse.get_pos()
-
-    if level_state == "not_run":
-        level_state, current_level = spawn_level(current_level)
-    # -------
     if game_state == "run":
         all_sprites_group.update()
         time_to_spawn += 1
@@ -814,13 +814,13 @@ def menu_positioning():
                     new_game = False
                     clear_level()
                     game_state, current_level = spawn_level(i+1)
-                screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * i, 238))  # + 380, 40
+                screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * i, 228))  # + 380, 40
             elif i <= 7:
                 if b[i].click(screen, mouse_pos, (48 + 320 + 208 * (i-4), 406)):
                     new_game = False
                     clear_level()
                     game_state, current_level = spawn_level(i+1)
-                screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * (i-4), 448))
+                screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * (i-4), 438))
         draw.line(level_select_menu, (255, 255, 255), (900, 48), (900, 552), 15)
 
         if back_button.click(screen, mouse_pos, (709, 620)):
@@ -867,13 +867,13 @@ clouds_group = sprite.Group()
 
 UI((1500, 800), "shovel", "lopata")
 
-UI((94, 160), "towers", "davalka", )
+UI((94, 160), "towers", "parasitelniy")
 UI((94, 256), "towers", "matricayshon")
 UI((94, 352), "towers", "terpila")
 UI((94, 448), "towers", "pukish")
 UI((94, 544), "towers", "spike")
 UI((94, 640), "towers", "yascerica")
-UI((94, 736), "towers", "fire_mag")  # +0, +96
+UI((94, 736), "towers", "boomchick")  # +0, +96
 
 
 pause_button = Button("text", font40, "||",)
