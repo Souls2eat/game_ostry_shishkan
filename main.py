@@ -1,7 +1,6 @@
 from pygame import *
 from random import randint, choice
 
-
 init()
 
 clock = time.Clock()
@@ -9,26 +8,26 @@ screen = display.set_mode((1600, 900))
 display.set_caption("game_ostry_shishkan")
 screen.fill((255, 255, 255))
 
-m = randint(1, 3)  # абоба ыыыыы ыыыы абоба ыыыы я назвал переменную одной буквой ыыыыыы я такой крутой абоба ыыыыыыы ыыы ыыы ыы ы ы ы ы
-bg = image.load(f"images/maps/map{m}.png").convert_alpha()
-pause_menu = image.load("images/menu/pause_menu.png").convert_alpha()
-settings_menu = image.load("images/menu/settings_menu.png").convert_alpha()
+bg = image.load(f"images/maps/map1.png").convert_alpha()
+menu = image.load("images/menu/pause_menu.png").convert_alpha()
 main_menu = image.load("images/menu/main_menu.png").convert_alpha()
-level_menu = image.load("images/menu/level_menu_n.png").convert_alpha()
+level_select_menu = image.load("images/menu/level_select_menu.png").convert_alpha()
+level_box = image.load("images/menu/level_box.png").convert_alpha()
 
 font20 = font.Font("fonts/ofont.ru_Nunito.ttf", 20)
 font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
 font40 = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
 font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
 
-game_name = font60.render("game_ostry_shishkan", True, (255, 255, 255))
+game_name = font60.render("GAME_OSTRY_SHISHIKAN", True, (255, 255, 255))  # GAME_OSTRY_SHISHIKAN
 current_level = 1
 level_state = "not_run"
 money = 300
 start_money = money
 time_to_spawn = 0
 game_state = "main_menu"
-level_menu_open = False
+last_game_state = game_state
+
 
 with open("save.txt", "r", encoding="utf-8") as file:
     just_text = file.readline().strip()
@@ -72,7 +71,7 @@ class Tower(sprite.Sprite):
 
         if self.name == 'boomchick':  
             self.hp = 200
-            self.atk = 20 #типа по кому попадёт получит 40 а остальные по 20
+            self.atk = 20  # типа по кому попадёт получит 40 а остальные по 20
             self.bullet_speed_x = 4
             self.bullet_speed_y = 0
             self.basic_attack_cooldown = 85
@@ -137,7 +136,7 @@ class Tower(sprite.Sprite):
 
         if self.name == 'spike':  
             self.hp = 1
-            self.atk = 35
+            self.atk = 20
             self.basic_attack_cooldown = 75
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
@@ -145,7 +144,7 @@ class Tower(sprite.Sprite):
             self.add(nekusaemie_group)
             self.cost = 10
 
-        if self.name == 'pukish':  
+        if self.name == 'pukish':
             self.hp = 1
             self.atk = 50
             self.atk2 = 5
@@ -167,7 +166,7 @@ class Tower(sprite.Sprite):
             self.skolko_deneg_dast = 30
             self.davanie_cooldown = 900
             self.cost = 20
-            self.time_on_screen = 0 #это для плюс денег
+            self.time_on_screen = 0  # это для плюс денег
 
         if self.name == 'matricayshon':
             self.hp = 500
@@ -182,9 +181,6 @@ class Tower(sprite.Sprite):
 
     def delat_chtoto(self):  # тут надо будет написать условие при котором башня стреляет
         if self.is_dead != True:
-
-            
-
             if self.name == 'zeus' or self.name == "fire_mag" or self.name == 'boomchick':
                 for enemy in enemies_group:
                     if enemy.rect.y == self.rect.y and enemy.rect.x >= self.rect.x:
@@ -216,7 +212,6 @@ class Tower(sprite.Sprite):
                             enemy.hp -= self.atk
                     self.attack_cooldown = self.basic_attack_cooldown
 
-
             if self.name == 'pukish':
                 self.remove(nekusaemie_group)
                 self.add(towers_group)
@@ -236,7 +231,6 @@ class Tower(sprite.Sprite):
                             if sprite.collide_rect(self, enemy) and enemy.hp > 0:
                                 enemy.hp -= self.atk2
                         self.attack_cooldown2 = self.basic_attack_cooldown2
-                            
 
             if self.name == 'davalka':
                 self.dayot()
@@ -247,8 +241,7 @@ class Tower(sprite.Sprite):
 
 
     def is_shooting(self):
-        #keys = key.get_pressed() если нужно будет затестить по нажатию
-            
+
         if self.name == "fire_mag":  # пока привет
             if self.attack_cooldown <= 0:
                 self.attack_cooldown = self.basic_attack_cooldown
@@ -305,11 +298,10 @@ class Tower(sprite.Sprite):
                         enemy.add(self.have_parasite)
                         break
 
-        if self.name == "pukish":  
+        if self.name == "pukish":
             if self.attack_cooldown <= 0:
                 self.attack_cooldown = self.basic_attack_cooldown
                 Bullet("gas", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'gas', self)
-
 
     def dayot(self):
         if self.name == 'davalka':
@@ -362,9 +354,6 @@ class Bullet(sprite.Sprite):
         if self.name == 'yas':
             self.sumon = 'ready'
             self.parent.attack_cooldownwn = 375
-
-        if self.name == 'gas':
-            self.gazirovannie_group = sprite.Group()
 
     def bullet_movement(self):
         self.rect.x += self.speed_x
@@ -426,13 +415,6 @@ class Bullet(sprite.Sprite):
 
             if self.parent.is_dead == True:
                 self.kill()
-
-        if self.name == 'gas':
-            for enemy in enemies_group:
-                if sprite.collide_rect(enemy, self) and enemy.hp > 0:
-                    if enemy not in self.gazirovannie_group:
-                        enemy.hp -= self.damage
-                        enemy.add(self.gazirovannie_group)
 
         if self.rect.x >= 1700:
             self.kill()
@@ -508,7 +490,7 @@ class Buff(sprite.Sprite):
         for tower in towers_group:
             if tower not in self.buffed_towers:
                 if self.rect.collidepoint(tower.rect.centerx, tower.rect.centery):
-                    if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy' or tower.name == 'pukish':
+                    if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy':
                         tower.basic_attack_cooldown //= 2
                         tower.add(self.buffed_towers)
 
@@ -531,7 +513,6 @@ class Buff(sprite.Sprite):
     def update(self):
         self.delat_buff()
         self.check_tower()
-        pass
 
 
 class Enemy(sprite.Sprite):  # враг, он же "зомби"
@@ -633,14 +614,20 @@ class UI(sprite.Sprite):
 
 
 class Button:  # Переделать на спрайты кнопок
-    def __init__(self, text, font):
-        self.text = text
-        self.font = font
+    def __init__(self, data_type, font_or_path, text_or_img):
+        if data_type == "img":
+            self.image = image.load(f"images/{font_or_path}/{text_or_img}.png").convert_alpha()
+        if data_type == "text":
+            self.font = font_or_path
+            self.text = text_or_img
+
+        self.data_type = data_type
         self.clicked = False
         self.pushed = False
 
     def click(self, surf, mouse_pos, pos, col=(255, 255, 255)):
-        self.image = self.font.render(self.text, font, col)   # По дефолту цвет текста белый. Я ебал по 50 раз писать одно и тоже
+        if self.data_type == "text":
+            self.image = self.font.render(self.text, font, col)   # По дефолту цвет текста белый. Я ебал по 50 раз писать одно и тоже
         self.pos = pos
         self.rect = self.image.get_rect(topleft=self.pos)
         self.rect = self.image.get_rect(topleft=pos)
@@ -654,6 +641,28 @@ class Button:  # Переделать на спрайты кнопок
             return True
 
         surf.blit(self.image, self.rect)
+
+
+class Cloud(sprite.Sprite):
+    def __init__(self, *pos):
+        super().__init__(all_sprites_group, clouds_group)
+        r = randint(1, 5)
+        self.image = image.load(f"images/clouds/cloud{r}.png").convert_alpha()
+        if pos:
+            self.x = pos[0][0]
+            self.y = pos[0][1]
+        else:
+            self.x = 1600
+            self.y = randint(0, 100)
+        self.rect = self.image.get_rect(topleft=(self.x, self.y))
+
+    def update(self):
+        self.x -= 1
+        self.rect = self.image.get_rect(topleft=(self.x, self.y))
+
+        if self.x < - 200:
+            self.kill()
+            Cloud()
 
 
 def random_spawn_enemies():
@@ -691,6 +700,14 @@ def spawn_level(current_level):
         Enemy("josky", (1408, 320))
         Enemy("popusk", (1208, 576))
 
+    Cloud((1000, 100))
+    Cloud((600, 60))
+    Cloud((300, 70))
+    Cloud((720, 20))
+    Cloud((1400, 50))
+    Cloud((1200, 30))
+    Cloud((1800, 90))
+
     return "run", current_level + 1
 
 
@@ -707,10 +724,12 @@ def clear_level():
         bullet.kill()
     for el in ui_group:
         el.is_move = False
+    for cloud in clouds_group:
+        cloud.kill()
 
 
 def menu_positioning():
-    global game_state, money, level_state, current_level, time_to_spawn, new_game, running, level_menu_open
+    global game_state, money, level_state, current_level, time_to_spawn, new_game, running, last_game_state
 
     if game_state != "main_menu" and game_state != "main_settings_menu":
         screen.blit(bg, (0, 0))
@@ -731,74 +750,106 @@ def menu_positioning():
             random_spawn_enemies()
             time_to_spawn = 0
         if pause_button.click(screen, mouse_pos, (1550, 30)):
+            last_game_state = game_state
             if game_state == "paused":
                 game_state = "run"
             elif game_state == "run":
                 game_state = "paused"
 
     if game_state == "paused":
-        screen.blit(pause_menu, (480, 250))
+        screen.blit(menu, (480, 250))
         screen.blit(font60.render("Пауза", True, (193, 8, 42)), (700, 280))
         if resume_button.click(screen, mouse_pos, (614, 360)):
+            last_game_state = game_state
             game_state = "run"
         if settings_button.click(screen, mouse_pos, (642, 440)):
+            last_game_state = game_state
             game_state = "settings_menu"
         if maim_menu_button.click(screen, mouse_pos, (567, 520)):
+            last_game_state = game_state
             game_state = "main_menu"
         if pause_button.click(screen, mouse_pos, (1550, 30)):
+            last_game_state = game_state
             if game_state == "paused":
                 game_state = "run"
             elif game_state == "run":
                 game_state = "paused"
 
-    if game_state == "settings_menu":
-        screen.blit(settings_menu, (480, 250))
-        if back_button.click(screen, mouse_pos, (709, 520)):
-            game_state = "paused"
-
     if game_state == "main_menu":
+
         screen.blit(main_menu, (0, 0))
         screen.blit(game_name, (501, 10))
 
-        if new_game_button.click(screen, mouse_pos, (30, 540)):                         # 1 кнопка
+        if new_game_button.click(screen, mouse_pos, (30, 460)):                         # 1 кнопка
+            last_game_state = game_state
             game_state = "run"  # новая игра
             new_game = False
             clear_level()
             current_level = 1
             level_state = "not_run"
         if new_game:
-            if resume_button.click(screen, mouse_pos, (30, 620), col=(130, 130, 130)):  # 2 кнопка серая
+            if resume_button.click(screen, mouse_pos, (30, 540), col=(130, 130, 130)):  # 2 кнопка серая
                 pass
         else:
-            if resume_button.click(screen, mouse_pos, (30, 620)):                       # 2 кнопка белая
+            if resume_button.click(screen, mouse_pos, (30, 540)):                       # 2 кнопка белая
+                last_game_state = game_state
                 game_state = "run"
+        if level_select_button.click(screen, mouse_pos, (30, 620)):
+            game_state = "level_select"
+
         if settings_button.click(screen, mouse_pos, (30, 700)):                         # 3 кнопка
-            game_state = "main_settings_menu"   # Экран под землю
+            last_game_state = game_state
+            game_state = "settings_menu"   # Экран под землю
         if quit_button.click(screen, mouse_pos, (30, 780)):                             # 4 кнопка
             running = False
-        if menishe_button.click(screen, mouse_pos, (1550, 660)):                        # 5 кнопка
-            if level_menu_open:  # анимация выдвижения
-                level_menu_open = False
-            else:
-                level_menu_open = True
-        if level_menu_open:
-            screen.blit(level_menu, (520, 540))
 
-    if game_state == "main_settings_menu":
+    if game_state == "level_select":
         screen.blit(main_menu, (0, 0))
-        screen.blit(settings_menu, (480, 250))
+        screen.blit(level_select_menu, (320, 150))
+        b = [level_box_button1, level_box_button2, level_box_button3, level_box_button4, level_box_button5, level_box_button6, level_box_button7, level_box_button8]
+
+        for i in range(8):
+            if i <= 3:
+                if b[i].click(screen, mouse_pos, (48 + 320 + 208 * i, 198)):     # +320, 150   (368, 198)
+                    new_game = False
+                    clear_level()
+                    game_state, current_level = spawn_level(i+1)
+                screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * i, 238))  # + 380, 40
+            elif i <= 7:
+                if b[i].click(screen, mouse_pos, (48 + 320 + 208 * (i-4), 406)):
+                    new_game = False
+                    clear_level()
+                    game_state, current_level = spawn_level(i+1)
+                screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * (i-4), 448))
+        draw.line(level_select_menu, (255, 255, 255), (900, 48), (900, 552), 15)
+
+        if back_button.click(screen, mouse_pos, (709, 620)):
+            game_state = last_game_state
+
+    if game_state == "settings_menu":
+        if last_game_state == "main_menu":
+            screen.blit(main_menu, (0, 0))
+            screen.blit(game_name, (501, 10))
+        screen.blit(menu, (480, 250))
         if back_button.click(screen, mouse_pos, (709, 520)):
-            game_state = "main_menu"
+            game_state = last_game_state
 
     if game_state == "death":
-        screen.blit(pause_menu, (480, 250))
+        screen.blit(menu, (480, 250))
         screen.blit(font60.render("Вы проиграли", True, (193, 8, 42)), (590, 280))
-        if restart_button.click(screen, mouse_pos, (582, 360)):
+        if settings_button.click(screen, mouse_pos, (642, 360)):
+            last_game_state = game_state
+            game_state = "settings_menu"
+        if restart_button.click(screen, mouse_pos, (582, 440)):
+            last_game_state = game_state
             game_state = "run"
             level_state = "not_run"
             money = start_money
             current_level -= 1
             clear_level()
+        if maim_menu_button.click(screen, mouse_pos, (567, 520)):
+            last_game_state = game_state
+            game_state = "main_menu"
     # -------
 
 
@@ -811,6 +862,7 @@ nekusaemie_group = sprite.Group()
 ui_group = sprite.Group()
 all_sprites_group = ModifiedGroup()
 buttons_group = sprite.Group()
+clouds_group = sprite.Group()
 
 
 UI((1500, 800), "shovel", "lopata")
@@ -824,19 +876,29 @@ UI((94, 640), "towers", "yascerica")
 UI((94, 736), "towers", "fire_mag")  # +0, +96
 
 
-pause_button = Button("||", font40)
-restart_button = Button("Перезапустить", font60)
-resume_button = Button("Продолжить", font60)
-settings_button = Button("Настройки", font60)
-maim_menu_button = Button("В главное меню", font60)
-back_button = Button("Назад", font60)
-quit_button = Button("Выход", font60)
-new_game_button = Button("Новая игра", font60)
-menishe_button = Button("<", font60)
+pause_button = Button("text", font40, "||",)
+restart_button = Button("text", font60, "Перезапустить")
+resume_button = Button("text", font60, "Продолжить")
+settings_button = Button("text", font60, "Настройки")
+maim_menu_button = Button("text", font60, "В главное меню")
+back_button = Button("text", font60, "Назад")
+quit_button = Button("text", font60, "Выход")
+new_game_button = Button("text", font60, "Новая игра",)
+level_select_button = Button("text", font60, "Выбрать уровень")
+level_box_button1 = Button("img", "menu", "level_box")
+level_box_button2 = Button("img", "menu", "level_box")
+level_box_button3 = Button("img", "menu", "level_box")
+level_box_button4 = Button("img", "menu", "level_box")
+level_box_button5 = Button("img", "menu", "level_box")
+level_box_button6 = Button("img", "menu", "level_box")
+level_box_button7 = Button("img", "menu", "level_box")
+level_box_button8 = Button("img", "menu", "level_box")
 
 
 running = True
 while running:
+
+    mouse_pos = mouse.get_pos()
 
     menu_positioning()
 
