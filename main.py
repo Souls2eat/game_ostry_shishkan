@@ -1,7 +1,6 @@
 from pygame import *
 from random import randint, choice
 
-
 init()
 
 clock = time.Clock()
@@ -9,26 +8,26 @@ screen = display.set_mode((1600, 900))
 display.set_caption("game_ostry_shishkan")
 screen.fill((255, 255, 255))
 
-bg = image.load("images/maps/map2.png").convert_alpha()
-pause_menu = image.load("images/menu/pause_menu.png").convert_alpha()
-settings_menu = image.load("images/menu/settings_menu.png").convert_alpha()
+bg = image.load(f"images/maps/map1.png").convert_alpha()
+menu = image.load("images/menu/pause_menu.png").convert_alpha()
 main_menu = image.load("images/menu/main_menu.png").convert_alpha()
-level_menu = image.load("images/menu/level_menu_n.png").convert_alpha()
+level_select_menu = image.load("images/menu/level_select_menu.png").convert_alpha()
+level_box = image.load("images/menu/level_box.png").convert_alpha()
 
 font20 = font.Font("fonts/ofont.ru_Nunito.ttf", 20)
 font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
 font40 = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
 font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
 
-
-game_name = font60.render("game_ostry_shishkan", True, (255, 255, 255))
+game_name = font60.render("GAME_OSTRY_SHISHIKAN", True, (255, 255, 255))  # GAME_OSTRY_SHISHIKAN
 current_level = 1
 level_state = "not_run"
 money = 300
 start_money = money
 time_to_spawn = 0
 game_state = "main_menu"
-level_menu_open = False
+last_game_state = game_state
+
 
 with open("save.txt", "r", encoding="utf-8") as file:
     just_text = file.readline().strip()
@@ -65,7 +64,8 @@ class Tower(sprite.Sprite):
             self.atk = 20
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
-            self.attack_cooldown = 55
+            self.basic_attack_cooldown = 55
+            self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.cost = 10
 
@@ -74,7 +74,8 @@ class Tower(sprite.Sprite):
             self.atk = 20 #типа по кому попадёт получит 40 а остальные по 20
             self.bullet_speed_x = 4
             self.bullet_speed_y = 0
-            self.attack_cooldown = 85
+            self.basic_attack_cooldown = 85
+            self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.cost = 20
 
@@ -83,7 +84,8 @@ class Tower(sprite.Sprite):
             self.atk = 30
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.attack_cooldown = 80
+            self.basic_attack_cooldown = 80
+            self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.nakopleno = 0
             self.max_nakopit = 7
@@ -94,7 +96,8 @@ class Tower(sprite.Sprite):
             self.atk = 30
             self.bullet_speed_x = 7
             self.bullet_speed_y = 3
-            self.attack_cooldown = 200
+            self.basic_attack_cooldown = 200
+            self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.cost = 15
 
@@ -103,7 +106,8 @@ class Tower(sprite.Sprite):
             self.atk = 100
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.attack_cooldown = 150
+            self.basic_attack_cooldown = 225
+            self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.cost = 20
 
@@ -111,7 +115,8 @@ class Tower(sprite.Sprite):
             self.hp = 250
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.attack_cooldown = 150
+            self.basic_attack_cooldown = 150
+            self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.bullet = Bullet("blackik", self.rect.centerx - 26, self.rect.centery,
                                  self.damage_type, 0, self.bullet_speed_x, self.bullet_speed_y, 'yas',
@@ -123,7 +128,8 @@ class Tower(sprite.Sprite):
             self.hp = 2200
             self.max_hp = 2200
             self.atk = 10
-            self.attack_cooldown = 150
+            self.basic_attack_cooldown = 150
+            self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.have_parasite = sprite.Group()
             self.cost = 20
@@ -131,14 +137,15 @@ class Tower(sprite.Sprite):
         if self.name == 'spike':  
             self.hp = 1
             self.atk = 20
-            self.attack_cooldown = 75
+            self.basic_attack_cooldown = 75
+            self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.remove(towers_group)
             self.add(nekusaemie_group)
             self.cost = 10
 
         if self.name == 'terpila':  # циферки поменять
-            self.hp = 5000
+            self.hp = 5500
             self.cost = 30
 
         if self.name == 'davalka':
@@ -147,6 +154,14 @@ class Tower(sprite.Sprite):
             self.davanie_cooldown = 900
             self.cost = 20
             self.time_on_screen = 0 #это для плюс денег
+
+        if self.name == 'matricayshon':
+            self.hp = 500
+            for i in range(9):
+                self.buff_x = 1+(i%3)*128-128
+                self.buff_y = 1+(i//3)*128-128
+                self.buff = Buff("mat", self.rect.x + self.buff_x, self.rect.y + self.buff_y)
+            self.cost = 30
 
         # СТАТЫ конец
 
@@ -176,7 +191,7 @@ class Tower(sprite.Sprite):
                     for enemy in enemies_group:
                         if sprite.collide_rect(self, enemy) and enemy.hp > 0:
                             enemy.hp -= self.atk
-                    self.attack_cooldown = 75
+                    self.attack_cooldown = self.basic_attack_cooldown
 
             if self.name == 'davalka':
                 self.dayot()
@@ -191,17 +206,17 @@ class Tower(sprite.Sprite):
             
         if self.name == "fire_mag":  # пока привет
             if self.attack_cooldown <= 0:
-                self.attack_cooldown = 55
+                self.attack_cooldown = self.basic_attack_cooldown
                 Bullet("blue_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
 
         if self.name == 'boomchick':  
             if self.attack_cooldown <= 0:
-                self.attack_cooldown = 85
+                self.attack_cooldown = self.basic_attack_cooldown
                 Bullet("yellow_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'boom', self)
 
         if self.name == 'kopitel':
             if self.attack_cooldown <= 0:
-                self.attack_cooldown = 100
+                self.attack_cooldown = self.basic_attack_cooldown
                 if self.nakopleno < self.max_nakopit:
                     self.joska_schitayu_y = 16 * (self.nakopleno) + 16
                     self.spear_or_sword = randint(0, 1)
@@ -214,7 +229,7 @@ class Tower(sprite.Sprite):
 
         if self.name == 'thunder':
             if self.attack_cooldown <= 0:
-                self.attack_cooldown = 200
+                self.attack_cooldown = self.basic_attack_cooldown
                 Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
                                      self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'hrom',
                                      self)
@@ -229,14 +244,14 @@ class Tower(sprite.Sprite):
 
         if self.name == 'zeus':
             if self.attack_cooldown <= 0:
-                self.attack_cooldown = 225
+                self.attack_cooldown = self.basic_attack_cooldown
                 self.bullet = Bullet("Laser", self.rect.centerx + 640, self.rect.centery,
                                     self.damage_type, self.atk, self.bullet_speed_x, 0,
                                     'ls', self)
 
         if self.name == 'parasitelniy':
             if self.attack_cooldown <= 0:
-                self.attack_cooldown = 90
+                self.attack_cooldown = self.basic_attack_cooldown
                 for enemy in enemies_group:
                     if enemy not in self.have_parasite:
                         self.parasix = randint(0, 32)
@@ -291,7 +306,7 @@ class Bullet(sprite.Sprite):
 
         if self.name == 'yas':
             self.sumon = 'ready'
-            self.cooldown = 375
+            self.parent.attack_cooldownwn = 375
 
     def bullet_movement(self):
         self.rect.x += self.speed_x
@@ -324,8 +339,7 @@ class Bullet(sprite.Sprite):
                     self.speed_x = 7
                     self.add(bullets_group)
                     self.parent.nakopleno = 0
-                    self.parent.attack_cooldown = 100
-
+                    self.parent.attack_cooldown = self.parent.basic_attack_cooldown
 
 
         if self.name == 'yas':
@@ -348,8 +362,8 @@ class Bullet(sprite.Sprite):
                 self.speed_x = 0
                 self.sumon = 'wait'
 
-            if self.cooldown <= 0 and self.sumon == 'wait':
-                self.cooldown = 150
+            if self.parent.attack_cooldown <= 0 and self.sumon == 'wait':
+                self.parent.attack_cooldown = self.parent.basic_attack_cooldown
                 self.sumon = 'ready'
 
             if self.parent.is_dead == True:
@@ -362,8 +376,8 @@ class Bullet(sprite.Sprite):
         self.bullet_movement()
 
         if self.name == 'yas' and self.sumon == 'wait':
-            if self.cooldown > 0:
-                self.cooldown -= 1
+            if self.parent.attack_cooldown > 0:
+                self.parent.attack_cooldown -= 1
 
 
 class Parasite(sprite.Sprite):
@@ -377,11 +391,13 @@ class Parasite(sprite.Sprite):
         self.name = name
         self.owner = owner # это враг к которому привязан паразит
         self.parent = parent
-        self.parasix = self.parent.parasix
-        self.parasiy = self.parent.parasiy
+
 
         if self.name == 'sosun':
+            self.parasix = self.parent.parasix
+            self.parasiy = self.parent.parasiy
             self.attack_cooldown = 75
+
 
     def prisasivanie(self):
         if self.parent not in all_sprites_group:
@@ -397,13 +413,60 @@ class Parasite(sprite.Sprite):
             self.owner.hp -= self.damage
             if self.parent.hp < self.parent.max_hp - (self.damage//2):
                 self.parent.hp += self.damage//2
+
             
     def update(self):
-        self.prisasivanie()
 
         if self.name == 'sosun':
+            self.prisasivanie()
             if self.attack_cooldown > 0:
                 self.attack_cooldown -= 1
+
+
+class Buff(sprite.Sprite):
+    def __init__(self, name, x, y):
+        super().__init__(all_sprites_group, buffs_group)
+        self.image = image.load(f"images/buffs/{name}.png").convert_alpha()
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.rect.x = x
+        self.rect.y = y
+        self.rect2 = Rect(self.rect.x-128, self.rect.y-128, 384, 384) 
+        self.name = name
+        self.buffed_towers = sprite.Group()
+        if self.name == 'mat':
+            self.mozhet_zhit = False
+        for buff in buffs_group:
+            if self.rect.collidepoint(buff.rect.centerx, buff.rect.centery) and self != buff:
+                self.kill()
+
+    def delat_buff(self):
+        for tower in towers_group:
+            if tower not in self.buffed_towers:
+                if self.rect.collidepoint(tower.rect.centerx, tower.rect.centery):
+                    if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy':
+                        tower.basic_attack_cooldown //= 2
+                        tower.add(self.buffed_towers)
+
+        for nekusaemiy in nekusaemie_group:
+            if nekusaemiy not in self.buffed_towers:
+                if self.rect.collidepoint(nekusaemiy.rect.centerx, nekusaemiy.rect.centery):
+                    if nekusaemiy.name == 'spike':
+                        nekusaemiy.basic_attack_cooldown //= 2
+                        nekusaemiy.add(self.buffed_towers)
+
+    def check_tower(self):
+        for tower in towers_group:
+            if tower.name == 'matricayshon':
+                if self.rect2.collidepoint(tower.rect.centerx, tower.rect.centery):
+                    self.mozhet_zhit = True
+        if self.mozhet_zhit == False:
+            self.kill()
+        self.mozhet_zhit = False
+
+    def update(self):
+        self.delat_buff()
+        self.check_tower()
+        pass
 
 
 class Enemy(sprite.Sprite):  # враг, он же "зомби"
@@ -480,6 +543,7 @@ class UI(sprite.Sprite):
                 unit.bullet.kill()
             unit.kill()
 
+
     def move(self):
         self.image = image.load(f"images/{self.path}/{self.unit_inside}.png").convert_alpha()
         self.pos = mouse.get_pos()
@@ -504,18 +568,23 @@ class UI(sprite.Sprite):
 
 
 class Button:  # Переделать на спрайты кнопок
-    def __init__(self, text, font):
-        self.text = text
-        self.font = font
+    def __init__(self, data_type, font_or_path, text_or_img):
+        if data_type == "img":
+            self.image = image.load(f"images/{font_or_path}/{text_or_img}.png").convert_alpha()
+        if data_type == "text":
+            self.font = font_or_path
+            self.text = text_or_img
+
+        self.data_type = data_type
         self.clicked = False
         self.pushed = False
 
     def click(self, surf, mouse_pos, pos, col=(255, 255, 255)):
-        self.image = self.font.render(self.text, font, col)   # По дефолту цвет текста белый. Я ебал по 50 раз писать одно и тоже
+        if self.data_type == "text":
+            self.image = self.font.render(self.text, font, col)   # По дефолту цвет текста белый. Я ебал по 50 раз писать одно и тоже
         self.pos = pos
         self.rect = self.image.get_rect(topleft=self.pos)
         self.rect = self.image.get_rect(topleft=pos)
-
         if not self.rect.collidepoint(mouse_pos):
             self.pushed = False
         if self.rect.collidepoint(mouse_pos):
@@ -526,6 +595,28 @@ class Button:  # Переделать на спрайты кнопок
             return True
 
         surf.blit(self.image, self.rect)
+
+
+class Cloud(sprite.Sprite):
+    def __init__(self, *pos):
+        super().__init__(all_sprites_group, clouds_group)
+        r = randint(1, 5)
+        self.image = image.load(f"images/clouds/cloud{r}.png").convert_alpha()
+        if pos:
+            self.x = pos[0][0]
+            self.y = pos[0][1]
+        else:
+            self.x = 1600
+            self.y = randint(0, 100)
+        self.rect = self.image.get_rect(topleft=(self.x, self.y))
+
+    def update(self):
+        self.x -= 1
+        self.rect = self.image.get_rect(topleft=(self.x, self.y))
+
+        if self.x < - 200:
+            self.kill()
+            Cloud()
 
 
 def random_spawn_enemies():
@@ -552,6 +643,7 @@ def is_free(object):
 
 def spawn_level(current_level):
     if current_level == 1:
+        pass
         Enemy("popusk", (1408, 320))
         Enemy("sigma", (1408, 192))
         Enemy("josky", (1408, 576))
@@ -561,6 +653,14 @@ def spawn_level(current_level):
     elif current_level == 2:
         Enemy("josky", (1408, 320))
         Enemy("popusk", (1208, 576))
+
+    Cloud((1000, 100))
+    Cloud((600, 60))
+    Cloud((300, 70))
+    Cloud((720, 20))
+    Cloud((1400, 50))
+    Cloud((1200, 30))
+    Cloud((1800, 90))
 
     return "run", current_level + 1
 
@@ -578,13 +678,16 @@ def clear_level():
         bullet.kill()
     for el in ui_group:
         el.is_move = False
+    for cloud in clouds_group:
+        cloud.kill()
 
 
 def menu_positioning():
-    global game_state, money, level_state, current_level, time_to_spawn, new_game, running, level_menu_open
+    global game_state, money, level_state, current_level, time_to_spawn, new_game, running, last_game_state
 
     if game_state != "main_menu" and game_state != "main_settings_menu":
         screen.blit(bg, (0, 0))
+        screen.blit(font40.render(str(current_level - 1) + " уровень", True, (255, 255, 255)), (893, 30))
         screen.blit(font40.render(str(money), True, (0, 0, 0)), (88, 53))
         all_sprites_group.draw(screen)
         all_sprites_group.draw2(screen)
@@ -593,7 +696,6 @@ def menu_positioning():
 
     if level_state == "not_run":
         level_state, current_level = spawn_level(current_level)
-
     # -------
     if game_state == "run":
         all_sprites_group.update()
@@ -602,91 +704,125 @@ def menu_positioning():
             random_spawn_enemies()
             time_to_spawn = 0
         if pause_button.click(screen, mouse_pos, (1550, 30)):
+            last_game_state = game_state
             if game_state == "paused":
                 game_state = "run"
             elif game_state == "run":
                 game_state = "paused"
 
     if game_state == "paused":
-        screen.blit(pause_menu, (480, 250))
+        screen.blit(menu, (480, 250))
         screen.blit(font60.render("Пауза", True, (193, 8, 42)), (700, 280))
         if resume_button.click(screen, mouse_pos, (614, 360)):
+            last_game_state = game_state
             game_state = "run"
         if settings_button.click(screen, mouse_pos, (642, 440)):
+            last_game_state = game_state
             game_state = "settings_menu"
         if maim_menu_button.click(screen, mouse_pos, (567, 520)):
+            last_game_state = game_state
             game_state = "main_menu"
         if pause_button.click(screen, mouse_pos, (1550, 30)):
+            last_game_state = game_state
             if game_state == "paused":
                 game_state = "run"
             elif game_state == "run":
                 game_state = "paused"
 
-    if game_state == "settings_menu":
-        screen.blit(settings_menu, (480, 250))
-        if back_button.click(screen, mouse_pos, (709, 520)):
-            game_state = "paused"
-
     if game_state == "main_menu":
+
         screen.blit(main_menu, (0, 0))
         screen.blit(game_name, (501, 10))
 
-        if new_game_button.click(screen, mouse_pos, (30, 540)):                         # 1 кнопка
+        if new_game_button.click(screen, mouse_pos, (30, 460)):                         # 1 кнопка
+            last_game_state = game_state
             game_state = "run"  # новая игра
             new_game = False
             clear_level()
             current_level = 1
             level_state = "not_run"
         if new_game:
-            if resume_button.click(screen, mouse_pos, (30, 620), col=(130, 130, 130)):  # 2 кнопка серая
-                print("ДЭБИЛ?")
+            if resume_button.click(screen, mouse_pos, (30, 540), col=(130, 130, 130)):  # 2 кнопка серая
+                pass
         else:
-            if resume_button.click(screen, mouse_pos, (30, 620)):                       # 2 кнопка белая
+            if resume_button.click(screen, mouse_pos, (30, 540)):                       # 2 кнопка белая
+                last_game_state = game_state
                 game_state = "run"
+        if level_select_button.click(screen, mouse_pos, (30, 620)):
+            game_state = "level_select"
+
         if settings_button.click(screen, mouse_pos, (30, 700)):                         # 3 кнопка
-            game_state = "main_settings_menu"   # Экран под землю
+            last_game_state = game_state
+            game_state = "settings_menu"   # Экран под землю
         if quit_button.click(screen, mouse_pos, (30, 780)):                             # 4 кнопка
             running = False
-        if menishe_button.click(screen, mouse_pos, (1550, 660)):                        # 5 кнопка
-            if level_menu_open:  # анимация выдвижения
-                level_menu_open = False
-            else:
-                level_menu_open = True
-        if level_menu_open:
-            screen.blit(level_menu, (520, 540))
 
-
-    if game_state == "main_settings_menu":
+    if game_state == "level_select":
         screen.blit(main_menu, (0, 0))
-        screen.blit(settings_menu, (480, 250))
+        screen.blit(level_select_menu, (320, 150))
+        b = [level_box_button1, level_box_button2, level_box_button3, level_box_button4, level_box_button5, level_box_button6, level_box_button7, level_box_button8]
+
+        for i in range(8):
+            if i <= 3:
+                if b[i].click(screen, mouse_pos, (48 + 320 + 208 * i, 198)):     # +320, 150   (368, 198)
+                    new_game = False
+                    clear_level()
+                    game_state, current_level = spawn_level(i+1)
+                screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * i, 238))  # + 380, 40
+            elif i <= 7:
+                if b[i].click(screen, mouse_pos, (48 + 320 + 208 * (i-4), 406)):
+                    new_game = False
+                    clear_level()
+                    game_state, current_level = spawn_level(i+1)
+                screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * (i-4), 448))
+        draw.line(level_select_menu, (255, 255, 255), (900, 48), (900, 552), 15)
+
+        if back_button.click(screen, mouse_pos, (709, 620)):
+            game_state = last_game_state
+
+    if game_state == "settings_menu":
+        if last_game_state == "main_menu":
+            screen.blit(main_menu, (0, 0))
+            screen.blit(game_name, (501, 10))
+        screen.blit(menu, (480, 250))
         if back_button.click(screen, mouse_pos, (709, 520)):
-            game_state = "main_menu"
+            game_state = last_game_state
 
     if game_state == "death":
-        screen.blit(pause_menu, (480, 250))
+        screen.blit(menu, (480, 250))
         screen.blit(font60.render("Вы проиграли", True, (193, 8, 42)), (590, 280))
-        if restart_button.click(screen, mouse_pos, (582, 360)):
+        if settings_button.click(screen, mouse_pos, (642, 360)):
+            last_game_state = game_state
+            game_state = "settings_menu"
+        if restart_button.click(screen, mouse_pos, (582, 440)):
+            last_game_state = game_state
             game_state = "run"
             level_state = "not_run"
             money = start_money
+            current_level -= 1
             clear_level()
+        if maim_menu_button.click(screen, mouse_pos, (567, 520)):
+            last_game_state = game_state
+            game_state = "main_menu"
     # -------
 
 
 bullets_group = sprite.Group()
 parasites_group = sprite.Group()
+buffs_group = sprite.Group()
 enemies_group = sprite.Group()
 towers_group = sprite.Group()
 nekusaemie_group = sprite.Group()
 ui_group = sprite.Group()
 all_sprites_group = ModifiedGroup()
 buttons_group = sprite.Group()
+clouds_group = sprite.Group()
 
 
 UI((1500, 800), "shovel", "lopata")
 
 UI((94, 160), "towers", "davalka", )
-UI((94, 256), "towers", "parasitelniy")
+UI((94, 256), "towers", "matricayshon")
 UI((94, 352), "towers", "terpila")
 UI((94, 448), "towers", "kopitel")
 UI((94, 544), "towers", "spike")
@@ -694,19 +830,29 @@ UI((94, 640), "towers", "yascerica")
 UI((94, 736), "towers", "fire_mag")  # +0, +96
 
 
-pause_button = Button("||", font40)
-restart_button = Button("Перезапустить", font60)
-resume_button = Button("Продолжить", font60)
-settings_button = Button("Настройки", font60)
-maim_menu_button = Button("В главное меню", font60)
-back_button = Button("Назад", font60)
-quit_button = Button("Выход", font60)
-new_game_button = Button("Новая игра", font60)
-menishe_button = Button("<", font60)
+pause_button = Button("text", font40, "||",)
+restart_button = Button("text", font60, "Перезапустить")
+resume_button = Button("text", font60, "Продолжить")
+settings_button = Button("text", font60, "Настройки")
+maim_menu_button = Button("text", font60, "В главное меню")
+back_button = Button("text", font60, "Назад")
+quit_button = Button("text", font60, "Выход")
+new_game_button = Button("text", font60, "Новая игра",)
+level_select_button = Button("text", font60, "Выбрать уровень")
+level_box_button1 = Button("img", "menu", "level_box")
+level_box_button2 = Button("img", "menu", "level_box")
+level_box_button3 = Button("img", "menu", "level_box")
+level_box_button4 = Button("img", "menu", "level_box")
+level_box_button5 = Button("img", "menu", "level_box")
+level_box_button6 = Button("img", "menu", "level_box")
+level_box_button7 = Button("img", "menu", "level_box")
+level_box_button8 = Button("img", "menu", "level_box")
 
 
 running = True
 while running:
+
+    mouse_pos = mouse.get_pos()
 
     menu_positioning()
 
@@ -737,10 +883,8 @@ while running:
                     enemy.hp -= bullet.damage
                     bullet.explosion = Bullet("explosion", bullet.rect.centerx, bullet.rect.centery, bullet.damage_type, bullet.damage, 0, 0, 'explosion', bullet.parent)
                     bullet.kill()
-
     clock.tick(75)
     display.update()
-
     for e in event.get():
         # keys = key.get_pressed()
         if e.type == KEYDOWN:
@@ -749,7 +893,6 @@ while running:
                     game_state = "paused"
                 else:
                     game_state = "run"
-
             if e.key == K_z:
                 Enemy("popusk", (1508, 192))
             if e.key == K_x:
@@ -761,8 +904,8 @@ while running:
             if e.key == K_b:
                 Enemy("sigma", (1508, 704))
 
-            # if e.key == K_q:          тоже низя!!!
-            #     running = False
+            if e.key == K_q:         
+                running = False
         if e.type == QUIT:           # низя!!!
              running = False
         if e.type == MOUSEBUTTONDOWN:  # При нажатии кнопки мыши
@@ -771,7 +914,6 @@ while running:
                 if el.rect.collidepoint(mouse_pos):
                     el.is_move = True
                     el.last_clicked = True
-
         if e.type == MOUSEBUTTONUP:  # При отжатии кнопки мыши
             mouse_pos = mouse.get_pos()
             unit_pos = (384 + ((mouse_pos[0] - 384) // 128) * 128), (192 + ((mouse_pos[1] - 192) // 128) * 128)
@@ -782,7 +924,6 @@ while running:
                     el.is_move = False
 
                     if 1536 > unit_pos[0] >= 384 and 832 > unit_pos[1] >= 192:
-
                         if el.path == "towers":
                             if is_free(el):
                                 unit = Tower(el.unit_inside, unit_pos)
@@ -792,7 +933,6 @@ while running:
                                         unit.bullet.kill()
                                 else:
                                     money -= unit.cost
-
                         if el.path == "shovel":
                             for tower in towers_group:
                                 if tower.rect.collidepoint(el.rect.centerx, el.rect.centery):
