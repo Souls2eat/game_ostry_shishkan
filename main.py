@@ -13,6 +13,7 @@ menu = image.load("images/menu/pause_menu.png").convert_alpha()
 main_menu = image.load("images/menu/main_menu.png").convert_alpha()
 level_select_menu = image.load("images/menu/level_select_menu.png").convert_alpha()
 level_box = image.load("images/menu/level_box.png").convert_alpha()
+tower_select_menu = image.load("images/menu/tower_select_menu.png").convert_alpha()
 
 font20 = font.Font("fonts/ofont.ru_Nunito.ttf", 20)
 font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
@@ -27,7 +28,8 @@ start_money = money
 time_to_spawn = 0
 game_state = "main_menu"
 last_game_state = game_state
-
+selected_towers = []
+buttons_group = []
 
 with open("save.txt", "r", encoding="utf-8") as file:
     just_text = file.readline().strip()
@@ -38,7 +40,7 @@ with open("save.txt", "r", encoding="utf-8") as file:
         new_game = False
 
 
-class ModifiedGroup(sprite.Group):
+class ModGroup(sprite.Group):
     def __init__(self):
         super().__init__()
 
@@ -588,7 +590,8 @@ class UI(sprite.Sprite):
             if hasattr(unit, "bullet"):
                 unit.bullet.kill()
             unit.kill()
-
+            for buff in buffs_group:
+                buff.kill()
 
     def move(self):
         self.image = image.load(f"images/{self.path}/{self.unit_inside}.png").convert_alpha()
@@ -617,6 +620,7 @@ class Button:  # Переделать на спрайты кнопок
     def __init__(self, data_type, font_or_path, text_or_img):
         if data_type == "img":
             self.image = image.load(f"images/{font_or_path}/{text_or_img}.png").convert_alpha()
+            self.unit_inside = text_or_img
         if data_type == "text":
             self.font = font_or_path
             self.text = text_or_img
@@ -624,6 +628,8 @@ class Button:  # Переделать на спрайты кнопок
         self.data_type = data_type
         self.clicked = False
         self.pushed = False
+        self.ok = False
+        buttons_group.append(self)
 
     def click(self, surf, mouse_pos, pos, col=(255, 255, 255)):
         if self.data_type == "text":
@@ -641,6 +647,8 @@ class Button:  # Переделать на спрайты кнопок
             return True
 
         surf.blit(self.image, self.rect)
+        if self.ok is True:
+            surf.blit(image.load("images/other/ok.png").convert_alpha(), self.rect)
 
 
 class Cloud(sprite.Sprite):
@@ -665,6 +673,20 @@ class Cloud(sprite.Sprite):
             Cloud()
 
 
+class Alert(sprite.Sprite):
+    def __init__(self, text, pos, alert_time, font=font60, col=(255, 0, 0)):
+        super().__init__(alert_group)
+        self.image = font.render(text, True, col)
+        self.rect = self.image.get_rect(topleft=pos)
+        self.alert_time = alert_time
+
+    def update(self):
+        if self.alert_time < 0:
+            self.kill()
+        else:
+            self.alert_time -= 1
+
+
 def random_spawn_enemies():
     pass
     line_cords = [192, 320, 448, 576, 704]
@@ -674,22 +696,12 @@ def random_spawn_enemies():
     Enemy(name, (1600, y_cord))
 
 
-def is_free(object):
-    global money
-    is_free_list = []  # Проверка свободна ли клетка
-    for tower in towers_group:
-        is_free_list.append(tower.rect.collidepoint(object.rect.centerx, object.rect.centery) is False)
-    for nekusaemiy in nekusaemie_group:
-        is_free_list.append(nekusaemiy.rect.collidepoint(object.rect.centerx, object.rect.centery) is False)
-    if all(is_free_list):
-        is_free_list.clear()
-        return True
-    is_free_list.clear()
-
-
 def spawn_level(current_level):
+    for i, tower in enumerate(selected_towers):
+        UI((94, 160 + i * 96), "towers", tower)
+    selected_towers.clear()
+
     if current_level == 1:
-        pass
         Enemy("popusk", (1408, 320))
         Enemy("sigma", (1408, 192))
         Enemy("josky", (1408, 576))
@@ -708,37 +720,105 @@ def spawn_level(current_level):
     Cloud((1200, 30))
     Cloud((1800, 90))
 
-    return "run", current_level + 1
+    return "run"
 
 
-def clear_level():
-    for enemy in enemies_group:
-        enemy.kill()
+def clear_level(*without):
+    if without:
+        if "enemies_group" not in without:
+            for enemy in enemies_group:
+                enemy.kill()
+        if "towers_group" not in without:
+            for tower in towers_group:
+                tower.kill()
+                if hasattr(tower, "bullet"):
+                    tower.bullet.kill()
+        if "nekusaemie_group" not in without:
+            for nekusaemiy in nekusaemie_group:
+                nekusaemiy.kill()
+        if "bullets_group" not in without:
+            for bullet in bullets_group:
+                bullet.kill()
+        if "ui_group" not in without:
+            for ui in ui_group:
+                ui.kill()
+        if "clouds_group" not in without:
+            for cloud in clouds_group:
+                cloud.kill()
+        if "buttons_group" not in without:
+            for button in buttons_group:
+                button.ok = False
+    else:
+        for enemy in enemies_group:
+            enemy.kill()
+        for tower in towers_group:
+            tower.kill()
+            if hasattr(tower, "bullet"):
+                tower.bullet.kill()
+        for nekusaemiy in nekusaemie_group:
+            nekusaemiy.kill()
+        for bullet in bullets_group:
+            bullet.kill()
+        # for el in ui_group:
+        #     el.is_move = False
+        for cloud in clouds_group:
+            cloud.kill()
+        for ui in ui_group:
+            ui.kill()
+        for button in buttons_group:
+            button.ok = False
+
+
+def is_free(object):
+    global money
+    is_free_list = []  # Проверка свободна ли клетка
     for tower in towers_group:
-        tower.kill()
-        if hasattr(tower, "bullet"):
-            tower.bullet.kill()
+        is_free_list.append(tower.rect.collidepoint(object.rect.centerx, object.rect.centery) is False)
     for nekusaemiy in nekusaemie_group:
-        nekusaemiy.kill()
-    for bullet in bullets_group:
-        bullet.kill()
-    for el in ui_group:
-        el.is_move = False
-    for cloud in clouds_group:
-        cloud.kill()
+        is_free_list.append(nekusaemiy.rect.collidepoint(object.rect.centerx, object.rect.centery) is False)
+    if all(is_free_list):
+        is_free_list.clear()
+        return True
+    is_free_list.clear()
+
+
+def add_to_slots_slots(i):
+    if tower_select_buttons[i].ok:
+        tower_select_buttons[i].ok = False
+        selected_towers.remove(tower_select_buttons[i].unit_inside)
+        for ui in ui_group:
+            if ui.unit_inside == tower_select_buttons[i].unit_inside:
+                ui.kill()
+
+    elif len(selected_towers) <= 6:
+        tower_select_buttons[i].ok = True
+        selected_towers.append(tower_select_buttons[i].unit_inside)
+        UI((94, first_empty_slot()), "towers", tower_select_buttons[i].unit_inside)
+    else:
+        Alert("Закончились пустые слоты", (404, 650), 75)
+
+
+def first_empty_slot():
+    ui_pos_list = {160, 256, 352, 448, 544, 640, 736}
+    fill_pos = set()
+    for ui in ui_group:
+        if ui.rect.y in ui_pos_list:
+            fill_pos.add(ui.rect.y)
+
+    return min(ui_pos_list - fill_pos)
 
 
 def menu_positioning():
-    global game_state, money, level_state, current_level, time_to_spawn, new_game, running, last_game_state
+    global game_state, money, level_state, current_level, time_to_spawn, new_game, running, last_game_state, selected_towers, tower_select_buttons, level_box_buttons
 
     mouse_pos = mouse.get_pos()
 
     if level_state == "not_run":
-        level_state, current_level = spawn_level(current_level)
+        level_state = spawn_level(current_level)
 
     if game_state != "main_menu" and game_state != "main_settings_menu":
         screen.blit(bg, (0, 0))
-        screen.blit(font40.render(str(current_level - 1) + " уровень", True, (255, 255, 255)), (893, 30))
+        screen.blit(font40.render(str(current_level) + " уровень", True, (255, 255, 255)), (893, 30))
         screen.blit(font40.render(str(money), True, (0, 0, 0)), (88, 53))
         all_sprites_group.draw(screen)
         all_sprites_group.draw2(screen)
@@ -765,7 +845,7 @@ def menu_positioning():
         if settings_button.click(screen, mouse_pos, (642, 440)):
             last_game_state = game_state
             game_state = "settings_menu"
-        if maim_menu_button.click(screen, mouse_pos, (567, 520)):
+        if main_menu_button.click(screen, mouse_pos, (567, 520)):
             last_game_state = game_state
             game_state = "main_menu"
         if pause_button.click(screen, mouse_pos, (1550, 30)):
@@ -782,7 +862,7 @@ def menu_positioning():
 
         if new_game_button.click(screen, mouse_pos, (30, 460)):                         # 1 кнопка
             last_game_state = game_state
-            game_state = "run"  # новая игра
+            game_state = "tower_select"  # новая игра
             new_game = False
             clear_level()
             current_level = 1
@@ -806,25 +886,46 @@ def menu_positioning():
     if game_state == "level_select":
         screen.blit(main_menu, (0, 0))
         screen.blit(level_select_menu, (320, 150))
-        b = [level_box_button1, level_box_button2, level_box_button3, level_box_button4, level_box_button5, level_box_button6, level_box_button7, level_box_button8]
+        # clear_level()
 
-        for i in range(8):
+        for i in range(len(level_box_buttons)):
             if i <= 3:
-                if b[i].click(screen, mouse_pos, (48 + 320 + 208 * i, 198)):     # +320, 150   (368, 198)
+                if level_box_buttons[i].click(screen, mouse_pos, (48 + 320 + 208 * i, 198)):     # +320, 150   (368, 198)
                     new_game = False
                     clear_level()
-                    game_state, current_level = spawn_level(i+1)
+                    game_state = "tower_select"
+                    current_level = i+1
                 screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * i, 228))  # + 380, 40
             elif i <= 7:
-                if b[i].click(screen, mouse_pos, (48 + 320 + 208 * (i-4), 406)):
+                if level_box_buttons[i].click(screen, mouse_pos, (48 + 320 + 208 * (i-4), 406)):
                     new_game = False
                     clear_level()
-                    game_state, current_level = spawn_level(i+1)
+                    game_state = "tower_select"
+                    current_level = i+1
                 screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * (i-4), 438))
-        draw.line(level_select_menu, (255, 255, 255), (900, 48), (900, 552), 15)
+        # draw.line(level_select_menu, (255, 255, 255), (900, 48), (900, 552), 15)
 
         if back_button.click(screen, mouse_pos, (709, 620)):
             game_state = last_game_state
+
+    if game_state == "tower_select":
+
+        screen.blit(tower_select_menu, (320, 150))
+        for i in range(len(tower_select_buttons)):
+            if i < 6:
+                if tower_select_buttons[i].click(screen, mouse_pos, (350 + i * 158, 180)):
+                    add_to_slots_slots(i)
+            elif i < 12:
+                if tower_select_buttons[i].click(screen, mouse_pos, (350 + (i-6) * 158, 334)):
+                    add_to_slots_slots(i)
+            elif i < 18:
+                if tower_select_buttons[i].click(screen, mouse_pos, (350 + (i-12) * 158, 488)):
+                    add_to_slots_slots(i)
+        if ok_box_button.click(screen, mouse_pos, (1400, 100)):
+            game_state = "run"
+            clear_level()
+            game_state = spawn_level(current_level)
+        ui_group.draw(screen)
 
     if game_state == "settings_menu":
         if last_game_state == "main_menu":
@@ -845,9 +946,8 @@ def menu_positioning():
             game_state = "run"
             level_state = "not_run"
             money = start_money
-            current_level -= 1
-            clear_level()
-        if maim_menu_button.click(screen, mouse_pos, (567, 520)):
+            clear_level("ui_group")
+        if main_menu_button.click(screen, mouse_pos, (567, 520)):
             last_game_state = game_state
             game_state = "main_menu"
     # -------
@@ -860,10 +960,9 @@ enemies_group = sprite.Group()
 towers_group = sprite.Group()
 nekusaemie_group = sprite.Group()
 ui_group = sprite.Group()
-all_sprites_group = ModifiedGroup()
-buttons_group = sprite.Group()
+all_sprites_group = ModGroup()
 clouds_group = sprite.Group()
-
+alert_group = sprite.Group()
 
 UI((1500, 800), "shovel", "lopata")
 
@@ -880,7 +979,7 @@ pause_button = Button("text", font40, "||",)
 restart_button = Button("text", font60, "Перезапустить")
 resume_button = Button("text", font60, "Продолжить")
 settings_button = Button("text", font60, "Настройки")
-maim_menu_button = Button("text", font60, "В главное меню")
+main_menu_button = Button("text", font60, "В главное меню")
 back_button = Button("text", font60, "Назад")
 quit_button = Button("text", font60, "Выход")
 new_game_button = Button("text", font60, "Новая игра",)
@@ -894,6 +993,46 @@ level_box_button6 = Button("img", "menu", "level_box")
 level_box_button7 = Button("img", "menu", "level_box")
 level_box_button8 = Button("img", "menu", "level_box")
 
+level_box_buttons = [
+    level_box_button1,
+    level_box_button2,
+    level_box_button3,
+    level_box_button4,
+    level_box_button5,
+    level_box_button6,
+    level_box_button7,
+    level_box_button8
+]
+
+ok_box_button = Button("img", "menu", "level_box")
+
+tower_select_button1 = Button("img", "towers", "fire_mag")
+tower_select_button2 = Button("img", "towers", "davalka")
+tower_select_button3 = Button("img", "towers", "boomchick")
+tower_select_button4 = Button("img", "towers", "kopitel")
+tower_select_button5 = Button("img", "towers", "matricayshon")
+tower_select_button6 = Button("img", "towers", "parasitelniy")
+tower_select_button7 = Button("img", "towers", "pukish")
+tower_select_button8 = Button("img", "towers", "spike")
+tower_select_button9 = Button("img", "towers", "terpila")
+tower_select_button10 = Button("img", "towers", "thunder")
+tower_select_button11 = Button("img", "towers", "yascerica")
+tower_select_button12 = Button("img", "towers", "zeus")
+
+tower_select_buttons = [
+            tower_select_button1,
+            tower_select_button2,
+            tower_select_button3,
+            tower_select_button4,
+            tower_select_button5,
+            tower_select_button6,
+            tower_select_button7,
+            tower_select_button8,
+            tower_select_button9,
+            tower_select_button10,
+            tower_select_button11,
+            tower_select_button12]
+
 
 running = True
 while running:
@@ -901,6 +1040,8 @@ while running:
     mouse_pos = mouse.get_pos()
 
     menu_positioning()
+    alert_group.update()
+    alert_group.draw(screen)
 
     for bullet in bullets_group:
         if bullet.name == 'ls' or bullet.name == 'explosion':
