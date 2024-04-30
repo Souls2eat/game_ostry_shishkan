@@ -21,19 +21,16 @@ font40 = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
 font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
 
 game_name = font60.render("GAME_OSTRY_SHISHIKAN", True, (255, 255, 255))  # GAME_OSTRY_SHISHIKAN
-current_level = 1
-level_state = "not_run"
-money = 300
-start_money = money
-time_to_spawn = 0
 game_state = "main_menu"
 last_game_state = game_state
 selected_towers = []
 buttons_group = []
 
+
 with open("save.txt", "r", encoding="utf-8") as file:
     just_text = file.readline().strip()
-    new_game = file.readline().strip()
+    new_game = file.readline().strip().split()[2]               # получить значение переменной
+    unlocked_levels = int(file.readline().strip().split()[2])
     if new_game.lower() == "true":
         new_game = True
     else:
@@ -48,6 +45,120 @@ class ModGroup(sprite.Group):
         for sprite in self.sprites():
             if hasattr(sprite, "image2"):
                 sprite.draw2(surf)
+
+
+class Level:
+    def __init__(self, level_number, level_time, time_to_spawn, start_money):
+        self.image = image.load(f"images/maps/map{level_number}.png").convert_alpha()
+        self.current_level = level_number
+        self.money = self.start_money = start_money
+        self.state = "not_run"
+        self.level_time = self.start_level_time = level_time
+        self.start_time_to_spawn = self.time_to_spawn = time_to_spawn
+
+    @staticmethod
+    def random_spawn_enemies():
+        line_cords = [192, 320, 448, 576, 704]
+        enemy_sprites = ["josky", "popusk", "sigma"]
+        enemy_y_cord = choice(line_cords)
+        enemy_name = choice(enemy_sprites)
+        Enemy(enemy_name, (1600, enemy_y_cord))
+
+    @staticmethod
+    def clear(*without):
+        if without:
+            if "enemies_group" not in without:
+                for enemy in enemies_group:
+                    enemy.kill()
+            if "towers_group" not in without:
+                for tower in towers_group:
+                    tower.kill()
+                    if hasattr(tower, "bullet"):
+                        tower.bullet.kill()
+            if "nekusaemie_group" not in without:
+                for nekusaemiy in nekusaemie_group:
+                    nekusaemiy.kill()
+            if "bullets_group" not in without:
+                for bullet in bullets_group:
+                    bullet.kill()
+            if "ui_group" not in without:
+                for ui in ui_group:
+                    ui.kill()
+            if "clouds_group" not in without:
+                for cloud in clouds_group:
+                    cloud.kill()
+            if "buttons_group" not in without:
+                for button in buttons_group:
+                    button.ok = False
+        else:
+            for enemy in enemies_group:
+                enemy.kill()
+            for tower in towers_group:
+                tower.kill()
+                if hasattr(tower, "bullet"):
+                    tower.bullet.kill()
+            for nekusaemiy in nekusaemie_group:
+                nekusaemiy.kill()
+            for bullet in bullets_group:
+                bullet.kill()
+            # for el in ui_group:
+            #     el.is_move = False
+            for cloud in clouds_group:
+                cloud.kill()
+            for ui in ui_group:
+                ui.kill()
+            for button in buttons_group:
+                button.ok = False
+
+    def spawn(self):
+        UI((1500, 800), "shovel", "lopata")
+        selected_towers.clear()
+        self.money = self.start_money
+        self.time_to_spawn = self.start_time_to_spawn
+
+        if self.current_level == 1:
+            Enemy("popusk", (1408, 320))
+            Enemy("sigma", (1408, 192))
+            Enemy("josky", (1408, 576))
+            Enemy("popusk", (1208, 576))
+            Enemy("popusk", (1508, 576))
+
+        elif self.current_level == 2:
+            Enemy("josky", (1408, 320))
+            Enemy("popusk", (1208, 576))
+
+        Cloud((1000, 100))
+        Cloud((600, 60))
+        Cloud((300, 70))
+        Cloud((720, 20))
+        Cloud((1400, 50))
+        Cloud((1200, 30))
+        Cloud((1800, 90))
+
+        return "run"
+
+    def refresh(self):
+        self.money = self.start_money
+        self.level_time = self.start_level_time
+        self.time_to_spawn = self.start_time_to_spawn
+        self.clear()
+
+    def update(self):
+        all_sprites_group.update()
+        if self.time_to_spawn > 0:
+            self.time_to_spawn -= 1
+        else:
+            self.time_to_spawn = self.start_time_to_spawn
+            self.random_spawn_enemies()
+
+        if self.state == "not_run":
+            self.state = self.spawn()
+
+        if self.level_time > 0:
+            self.level_time -= 1
+            return "run"
+        else:
+            return "level_complited"
 
 
 class Tower(sprite.Sprite):
@@ -617,7 +728,7 @@ class UI(sprite.Sprite):
 
 
 class Button:  # Переделать на спрайты кнопок
-    def __init__(self, data_type, font_or_path, text_or_img):
+    def __init__(self, data_type, font_or_path, text_or_img, closed=False):
         if data_type == "img":
             self.image = image.load(f"images/{font_or_path}/{text_or_img}.png").convert_alpha()
             self.unit_inside = text_or_img
@@ -629,6 +740,7 @@ class Button:  # Переделать на спрайты кнопок
         self.clicked = False
         self.pushed = False
         self.ok = False
+        self.closed = closed
         buttons_group.append(self)
 
     def click(self, surf, mouse_pos, pos, col=(255, 255, 255)):
@@ -687,102 +799,19 @@ class Alert(sprite.Sprite):
             self.alert_time -= 1
 
 
-def random_spawn_enemies():
-    pass
-    line_cords = [192, 320, 448, 576, 704]
-    enemy_sprites = ["josky", "popusk", "sigma"]
-    y_cord = choice(line_cords)
-    name = choice(enemy_sprites)
-    Enemy(name, (1600, y_cord))
-
-
-def spawn_level(current_level):
-    for i, tower in enumerate(selected_towers):
-        UI((94, 160 + i * 96), "towers", tower)
-    selected_towers.clear()
-
-    if current_level == 1:
-        Enemy("popusk", (1408, 320))
-        Enemy("sigma", (1408, 192))
-        Enemy("josky", (1408, 576))
-        Enemy("popusk", (1208, 576))
-        Enemy("popusk", (1508, 576))
-
-    elif current_level == 2:
-        Enemy("josky", (1408, 320))
-        Enemy("popusk", (1208, 576))
-
-    Cloud((1000, 100))
-    Cloud((600, 60))
-    Cloud((300, 70))
-    Cloud((720, 20))
-    Cloud((1400, 50))
-    Cloud((1200, 30))
-    Cloud((1800, 90))
-
-    return "run"
-
-
-def clear_level(*without):
-    if without:
-        if "enemies_group" not in without:
-            for enemy in enemies_group:
-                enemy.kill()
-        if "towers_group" not in without:
-            for tower in towers_group:
-                tower.kill()
-                if hasattr(tower, "bullet"):
-                    tower.bullet.kill()
-        if "nekusaemie_group" not in without:
-            for nekusaemiy in nekusaemie_group:
-                nekusaemiy.kill()
-        if "bullets_group" not in without:
-            for bullet in bullets_group:
-                bullet.kill()
-        if "ui_group" not in without:
-            for ui in ui_group:
-                ui.kill()
-        if "clouds_group" not in without:
-            for cloud in clouds_group:
-                cloud.kill()
-        if "buttons_group" not in without:
-            for button in buttons_group:
-                button.ok = False
-    else:
-        for enemy in enemies_group:
-            enemy.kill()
-        for tower in towers_group:
-            tower.kill()
-            if hasattr(tower, "bullet"):
-                tower.bullet.kill()
-        for nekusaemiy in nekusaemie_group:
-            nekusaemiy.kill()
-        for bullet in bullets_group:
-            bullet.kill()
-        # for el in ui_group:
-        #     el.is_move = False
-        for cloud in clouds_group:
-            cloud.kill()
-        for ui in ui_group:
-            ui.kill()
-        for button in buttons_group:
-            button.ok = False
-
-
-def is_free(object):
-    global money
+def is_free(obj):
     is_free_list = []  # Проверка свободна ли клетка
     for tower in towers_group:
-        is_free_list.append(tower.rect.collidepoint(object.rect.centerx, object.rect.centery) is False)
+        is_free_list.append(tower.rect.collidepoint(obj.rect.centerx, obj.rect.centery) is False)
     for nekusaemiy in nekusaemie_group:
-        is_free_list.append(nekusaemiy.rect.collidepoint(object.rect.centerx, object.rect.centery) is False)
+        is_free_list.append(nekusaemiy.rect.collidepoint(obj.rect.centerx, obj.rect.centery) is False)
     if all(is_free_list):
         is_free_list.clear()
         return True
     is_free_list.clear()
 
 
-def add_to_slots_slots(i):
+def add_to_slots_slots(i, *blocked_slots):
     if tower_select_buttons[i].ok:
         tower_select_buttons[i].ok = False
         selected_towers.remove(tower_select_buttons[i].unit_inside)
@@ -790,16 +819,22 @@ def add_to_slots_slots(i):
             if ui.unit_inside == tower_select_buttons[i].unit_inside:
                 ui.kill()
 
-    elif len(selected_towers) <= 6:
+    elif len(selected_towers) <= 6 - len(blocked_slots):
         tower_select_buttons[i].ok = True
+        if blocked_slots:
+            UI((94, first_empty_slot(*blocked_slots)), "towers", tower_select_buttons[i].unit_inside)
+        else:
+            UI((94, first_empty_slot()), "towers", tower_select_buttons[i].unit_inside)
         selected_towers.append(tower_select_buttons[i].unit_inside)
-        UI((94, first_empty_slot()), "towers", tower_select_buttons[i].unit_inside)
     else:
-        Alert("Закончились пустые слоты", (404, 650), 75)
+        Alert("Закончились пустые слоты", (404, 580), 75)
 
 
-def first_empty_slot():
-    ui_pos_list = {160, 256, 352, 448, 544, 640, 736}
+def first_empty_slot(*blocked_slots):
+    if blocked_slots:
+        ui_pos_list = {160, 256, 352, 448, 544, 640, 736} - set(blocked_slots)
+    else:
+        ui_pos_list = {160, 256, 352, 448, 544, 640, 736}
     fill_pos = set()
     for ui in ui_group:
         if ui.rect.y in ui_pos_list:
@@ -808,27 +843,94 @@ def first_empty_slot():
     return min(ui_pos_list - fill_pos)
 
 
+def level_box_button_create(button_number):
+    if button_number <= unlocked_levels:
+        return Button("img", "menu", "level_box")
+    else:
+        return Button("img", "menu", "level_box_closed", True)
+
+
 def menu_positioning():
-    global game_state, money, level_state, current_level, time_to_spawn, new_game, running, last_game_state, selected_towers, tower_select_buttons, level_box_buttons
+    global game_state,\
+            new_game,\
+            running,\
+            last_game_state,\
+            selected_towers,\
+            tower_select_buttons,\
+            level_box_buttons,\
+            unlocked_levels, \
+            levels, \
+            level
 
     mouse_pos = mouse.get_pos()
 
-    if level_state == "not_run":
-        level_state = spawn_level(current_level)
+    if game_state == "main_menu":
 
-    if game_state != "main_menu" and game_state != "main_settings_menu":
-        screen.blit(bg, (0, 0))
-        screen.blit(font40.render(str(current_level) + " уровень", True, (255, 255, 255)), (893, 30))
-        screen.blit(font40.render(str(money), True, (0, 0, 0)), (88, 53))
+        screen.blit(main_menu, (0, 0))
+        screen.blit(game_name, (501, 10))
+
+        if new_game_button.click(screen, mouse_pos, (30, 460)):                         # 1 кнопка
+            last_game_state = game_state
+            game_state = "tower_select"  # новая игра
+            new_game = False
+            level = levels[0]
+            level.clear()
+            level.state = "not_run"
+        if new_game:
+            if resume_button.click(screen, mouse_pos, (30, 540), col=(130, 130, 130)):  # 2 кнопка серая
+                Alert("<- Тыкай новую игру", (500, 460), 75)
+        else:
+            if resume_button.click(screen, mouse_pos, (30, 540)):                       # 2 кнопка белая
+                last_game_state = game_state
+                game_state = "run"
+        if level_select_button.click(screen, mouse_pos, (30, 620)):                     # 3 кнопка
+            game_state = "level_select"
+        if settings_button.click(screen, mouse_pos, (30, 700)):                         # 4 кнопка
+            last_game_state = game_state
+            game_state = "settings_menu"   # Экран под землю
+        if quit_button.click(screen, mouse_pos, (30, 780)):                             # 5 кнопка
+            running = False
+
+    if game_state == "level_select":
+        screen.blit(main_menu, (0, 0))
+        screen.blit(level_select_menu, (320, 150))
+
+        for i in range(len(level_box_buttons)):
+            if i <= 3:
+                if level_box_buttons[i].click(screen, mouse_pos, (48 + 320 + 208 * i, 198)):     # +320, 150   (368, 198)
+                    if not level_box_buttons[i].closed:
+                        new_game = False
+                        level = levels[i]
+                        level.clear()
+                        game_state = "tower_select"
+                        level.current_level = i+1
+                if not level_box_buttons[i].closed:
+                    screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * i, 228))  # + 380, 40
+
+            elif i <= 7:
+                if level_box_buttons[i].click(screen, mouse_pos, (48 + 320 + 208 * (i-4), 406)):
+                    if not level_box_buttons[i].closed:
+                        new_game = False
+                        level = levels[i]
+                        level.clear()
+                        game_state = "tower_select"
+                        level.current_level = i+1
+                if not level_box_buttons[i].closed:
+                    screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * (i-4), 438))
+        # draw.line(level_select_menu, (255, 255, 255), (900, 48), (900, 552), 15)
+        if back_button.click(screen, mouse_pos, (709, 620)):
+            game_state = last_game_state
+
+    if game_state != "main_menu" and game_state != "main_settings_menu" and game_state != "level_select":
+        screen.blit(bg, (0, 0))     # level.image
+        screen.blit(font40.render(str(level.current_level) + " уровень", True, (255, 255, 255)), (893, 30))
+        screen.blit(font40.render(str(level.money), True, (0, 0, 0)), (88, 53))
         all_sprites_group.draw(screen)
         all_sprites_group.draw2(screen)
 
     if game_state == "run":
-        all_sprites_group.update()
-        time_to_spawn += 1
-        if time_to_spawn == 375:
-            random_spawn_enemies()
-            time_to_spawn = 0
+        game_state = level.update()
+        # ---- ok
         if pause_button.click(screen, mouse_pos, (1550, 30)):
             last_game_state = game_state
             if game_state == "paused":
@@ -855,76 +957,29 @@ def menu_positioning():
             elif game_state == "run":
                 game_state = "paused"
 
-    if game_state == "main_menu":
-
-        screen.blit(main_menu, (0, 0))
-        screen.blit(game_name, (501, 10))
-
-        if new_game_button.click(screen, mouse_pos, (30, 460)):                         # 1 кнопка
-            last_game_state = game_state
-            game_state = "tower_select"  # новая игра
-            new_game = False
-            clear_level()
-            current_level = 1
-            level_state = "not_run"
-        if new_game:
-            if resume_button.click(screen, mouse_pos, (30, 540), col=(130, 130, 130)):  # 2 кнопка серая
-                pass
-        else:
-            if resume_button.click(screen, mouse_pos, (30, 540)):                       # 2 кнопка белая
-                last_game_state = game_state
-                game_state = "run"
-        if level_select_button.click(screen, mouse_pos, (30, 620)):
-            game_state = "level_select"
-
-        if settings_button.click(screen, mouse_pos, (30, 700)):                         # 3 кнопка
-            last_game_state = game_state
-            game_state = "settings_menu"   # Экран под землю
-        if quit_button.click(screen, mouse_pos, (30, 780)):                             # 4 кнопка
-            running = False
-
-    if game_state == "level_select":
-        screen.blit(main_menu, (0, 0))
-        screen.blit(level_select_menu, (320, 150))
-        # clear_level()
-
-        for i in range(len(level_box_buttons)):
-            if i <= 3:
-                if level_box_buttons[i].click(screen, mouse_pos, (48 + 320 + 208 * i, 198)):     # +320, 150   (368, 198)
-                    new_game = False
-                    clear_level()
-                    game_state = "tower_select"
-                    current_level = i+1
-                screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * i, 228))  # + 380, 40
-            elif i <= 7:
-                if level_box_buttons[i].click(screen, mouse_pos, (48 + 320 + 208 * (i-4), 406)):
-                    new_game = False
-                    clear_level()
-                    game_state = "tower_select"
-                    current_level = i+1
-                screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * (i-4), 438))
-        # draw.line(level_select_menu, (255, 255, 255), (900, 48), (900, 552), 15)
-
-        if back_button.click(screen, mouse_pos, (709, 620)):
-            game_state = last_game_state
-
     if game_state == "tower_select":
-
         screen.blit(tower_select_menu, (320, 150))
+        blocked_slots = []  # если надо, чтобы не во все слоты можно было пихать башни
+
+        if level.current_level == 1:            # |
+            blocked_slots = []               # | > Жестки пример
+        if level.current_level == 2:            # |
+            blocked_slots = [160, 352]          # |
+
         for i in range(len(tower_select_buttons)):
             if i < 6:
                 if tower_select_buttons[i].click(screen, mouse_pos, (350 + i * 158, 180)):
-                    add_to_slots_slots(i)
+                    add_to_slots_slots(i, *blocked_slots)
             elif i < 12:
                 if tower_select_buttons[i].click(screen, mouse_pos, (350 + (i-6) * 158, 334)):
-                    add_to_slots_slots(i)
+                    add_to_slots_slots(i, *blocked_slots)
             elif i < 18:
                 if tower_select_buttons[i].click(screen, mouse_pos, (350 + (i-12) * 158, 488)):
-                    add_to_slots_slots(i)
-        if ok_box_button.click(screen, mouse_pos, (1400, 100)):
+                    add_to_slots_slots(i, *blocked_slots)
+        if start_level_button.click(screen, mouse_pos, (567, 650)):
             game_state = "run"
-            clear_level()
-            game_state = spawn_level(current_level)
+            level.clear("ui_group")
+            game_state = "run"
         ui_group.draw(screen)
 
     if game_state == "settings_menu":
@@ -944,9 +999,9 @@ def menu_positioning():
         if restart_button.click(screen, mouse_pos, (582, 440)):
             last_game_state = game_state
             game_state = "run"
-            level_state = "not_run"
-            money = start_money
-            clear_level("ui_group")
+            level.state = "not_run"
+            level.money = level.start_money
+            level.clear("ui_group")
         if main_menu_button.click(screen, mouse_pos, (567, 520)):
             last_game_state = game_state
             game_state = "main_menu"
@@ -963,16 +1018,7 @@ ui_group = sprite.Group()
 all_sprites_group = ModGroup()
 clouds_group = sprite.Group()
 alert_group = sprite.Group()
-
-UI((1500, 800), "shovel", "lopata")
-
-UI((94, 160), "towers", "parasitelniy")
-UI((94, 256), "towers", "matricayshon")
-UI((94, 352), "towers", "terpila")
-UI((94, 448), "towers", "pukish")
-UI((94, 544), "towers", "spike")
-UI((94, 640), "towers", "yascerica")
-UI((94, 736), "towers", "boomchick")  # +0, +96
+level_group = sprite.Group()    # заебись, левел груп в которой 1 значение
 
 
 pause_button = Button("text", font40, "||",)
@@ -984,14 +1030,15 @@ back_button = Button("text", font60, "Назад")
 quit_button = Button("text", font60, "Выход")
 new_game_button = Button("text", font60, "Новая игра",)
 level_select_button = Button("text", font60, "Выбрать уровень")
-level_box_button1 = Button("img", "menu", "level_box")
-level_box_button2 = Button("img", "menu", "level_box")
-level_box_button3 = Button("img", "menu", "level_box")
-level_box_button4 = Button("img", "menu", "level_box")
-level_box_button5 = Button("img", "menu", "level_box")
-level_box_button6 = Button("img", "menu", "level_box")
-level_box_button7 = Button("img", "menu", "level_box")
-level_box_button8 = Button("img", "menu", "level_box")
+
+level_box_button1 = level_box_button_create(1)
+level_box_button2 = level_box_button_create(2)
+level_box_button3 = level_box_button_create(3)
+level_box_button4 = level_box_button_create(4)
+level_box_button5 = level_box_button_create(5)
+level_box_button6 = level_box_button_create(6)
+level_box_button7 = level_box_button_create(7)
+level_box_button8 = level_box_button_create(8)
 
 level_box_buttons = [
     level_box_button1,
@@ -1004,7 +1051,7 @@ level_box_buttons = [
     level_box_button8
 ]
 
-ok_box_button = Button("img", "menu", "level_box")
+start_level_button = Button("text", font60, "Начать уровень")
 
 tower_select_button1 = Button("img", "towers", "fire_mag")
 tower_select_button2 = Button("img", "towers", "davalka")
@@ -1032,6 +1079,9 @@ tower_select_buttons = [
             tower_select_button10,
             tower_select_button11,
             tower_select_button12]
+
+levels = [Level(1, 100000, 375, 300), Level(2, 750, 150, 300)]
+level = levels[0]
 
 
 running = True
@@ -1090,7 +1140,8 @@ while running:
                 Enemy("josky", (1508, 576))
             if e.key == K_b:
                 Enemy("sigma", (1508, 704))
-
+            if e.key == K_r:
+                game_state = "main_menu"
             if e.key == K_q:         
                 running = False
         if e.type == QUIT:           # низя!!!
@@ -1114,26 +1165,27 @@ while running:
                         if el.path == "towers":
                             if is_free(el):
                                 unit = Tower(el.unit_inside, unit_pos)
-                                if money - unit.cost < 0:  # Это пиздец, но оно работает. Придумаете лучше -- переделаете
+                                if level.money - unit.cost < 0:  # Это пиздец, но оно работает. Придумаете лучше -- переделаете
                                     unit.kill()
                                     if hasattr(unit, "bullet"):
                                         unit.bullet.kill()
                                 else:
-                                    money -= unit.cost
+                                    level.money -= unit.cost
                         if el.path == "shovel":
                             for tower in towers_group:
                                 if tower.rect.collidepoint(el.rect.centerx, el.rect.centery):
-                                    money += tower.cost // 2
+                                    level.money += tower.cost // 2
                                     if hasattr(tower, "bullet"):
                                         tower.bullet.kill()
                                     tower.kill()
                             for nekusaemiy in nekusaemie_group:
                                 if nekusaemiy.rect.collidepoint(el.rect.centerx, el.rect.centery):
-                                    money += nekusaemiy.cost // 2
+                                    level.money += nekusaemiy.cost // 2
                                     nekusaemiy.kill()
 
 
 with open("save.txt", "w", encoding="utf-8") as file:
     new_game = True
     file.write(just_text + "\n")
-    file.write(str(new_game))
+    file.write("new_game = " + str(new_game) + "\n")
+    file.write("unlocked_levels = " + str(unlocked_levels))
