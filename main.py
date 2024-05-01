@@ -282,6 +282,15 @@ class Tower(sprite.Sprite):
             self.uragan = None
             self.cost = 20
 
+        if self.name == 'drachun':
+            self.hp = 400
+            self.atk = 30
+            self.kulak_time = 15
+            self.basic_attack_cooldown = 55
+            self.attack_cooldown = self.basic_attack_cooldown
+            self.damage_type = ''
+            self.cost = 10
+
         if self.name == 'terpila':  # циферки поменять
             self.hp = 6000
             self.cost = 30
@@ -364,6 +373,16 @@ class Tower(sprite.Sprite):
                             if sprite.collide_rect(self, enemy) and enemy.hp > 0:
                                 enemy.hp -= self.atk2
                         self.attack_cooldown2 = self.basic_attack_cooldown2
+
+            if self.name == 'drachun':
+                if self.kulak_time > 0:
+                    self.kulak_time -= 1
+                if self.kulak_time <= 0:
+                    self.kulak_time = 15
+                    self.image = image.load(f"images/towers/{self.name}.png").convert_alpha()
+                for enemy in enemies_group:
+                    if enemy.rect.y == self.rect.y and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
+                        self.is_shooting()
 
             if self.name == 'davalka' or self.name == 'oh_shit_i_am_sorry__barrier_mag':
                 self.dayot()
@@ -451,6 +470,18 @@ class Tower(sprite.Sprite):
                     self.uragan = Parasite('uragan', self.nearest_enemy.rect.centerx+128, self.rect.centery, '', self.atk, self, self)
                 else:
                     self.uragan = Parasite('uragan', 1472, self.rect.centery, '', self.atk, self, self)
+
+        if self.name == 'drachun':
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = self.basic_attack_cooldown
+                self.image = image.load(f"images/towers/{self.name}2.png").convert_alpha()
+                for enemy in enemies_group:
+                    if enemy.rect.x - self.rect.x <= 256:
+                        enemy.hp -= self.atk
+                self.kulak_time = 15
+                
+
+
     def dayot(self):
         if self.name == 'davalka':
             if self.davanie_cooldown <= 0:
@@ -473,7 +504,7 @@ class Tower(sprite.Sprite):
     def update(self):
         self.delat_chtoto()
 
-        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'zeus' or self.name == 'boomchick' or self.name == 'parasitelniy' or self.name == 'spike' or self.name == 'pukish':
+        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'zeus' or self.name == 'boomchick' or self.name == 'parasitelniy' or self.name == 'spike' or self.name == 'pukish' or self.name == 'drachun':
             if self.attack_cooldown > 0:
                 self.attack_cooldown -= 1
 
@@ -692,7 +723,7 @@ class Buff(sprite.Sprite):
         for tower in towers_group:
             if tower not in self.buffed_towers:
                 if self.rect.collidepoint(tower.rect.centerx, tower.rect.centery):
-                    if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy':
+                    if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy' or tower.name == 'drachun':
                         tower.basic_attack_cooldown //= 2
                         tower.add(self.buffed_towers)
                     if tower.name == 'urag_anus':
@@ -1171,6 +1202,7 @@ tower_select_button11 = Button("img", "towers", "yascerica")
 tower_select_button12 = Button("img", "towers", "zeus")
 tower_select_button13 = Button("img", "towers", "oh_shit_i_am_sorry__barrier_mag")
 tower_select_button14 = Button("img", "towers", "urag_anus")
+tower_select_button15 = Button("img", "towers", "drachun")
 
 tower_select_buttons = [
             tower_select_button1,
@@ -1186,7 +1218,8 @@ tower_select_buttons = [
             tower_select_button11,
             tower_select_button12,
             tower_select_button13,
-            tower_select_button14]
+            tower_select_button14,
+            tower_select_button15]
 
 levels = [Level(1, 100000, 375, 300), Level(2, 750, 150, 300)]
 level = levels[0]
