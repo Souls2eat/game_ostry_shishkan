@@ -1,4 +1,5 @@
 from pygame import *
+from math import *
 from random import randint, choice
 
 init()
@@ -58,11 +59,12 @@ class Level:
 
     @staticmethod
     def random_spawn_enemies():
-        line_cords = [192, 320, 448, 576, 704]
-        enemy_sprites = ["josky", "popusk", "sigma"]
-        enemy_y_cord = choice(line_cords)
-        enemy_name = choice(enemy_sprites)
-        Enemy(enemy_name, (1600, enemy_y_cord))
+        pass
+        # line_cords = [192, 320, 448, 576, 704]
+        # enemy_sprites = ["josky", "popusk", "sigma"]
+        # enemy_y_cord = choice(line_cords)
+        # enemy_name = choice(enemy_sprites)
+        # Enemy(enemy_name, (1600, enemy_y_cord))
 
     @staticmethod
     def clear(*without):
@@ -271,6 +273,15 @@ class Tower(sprite.Sprite):
             self.damage_type = ''
             self.cost = 25
 
+        if self.name == 'urag_anus':
+            self.hp = 100
+            self.atk = 3
+            self.uragan_duration = 375
+            self.basic_uragan_cooldown = 2250 #3375
+            self.uragan_cooldown = 375
+            self.uragan = None
+            self.cost = 20
+
         if self.name == 'terpila':  # циферки поменять
             self.hp = 6000
             self.cost = 30
@@ -317,7 +328,7 @@ class Tower(sprite.Sprite):
             if self.name == 'kopitel':
                     self.is_shooting()
 
-            if self.name == 'thunder':
+            if self.name == 'thunder' or self.name == 'urag_anus':
                 for enemy in enemies_group:
                     if (enemy.rect.y == self.rect.y or enemy.rect.y == self.rect.y + 128 or enemy.rect.y == self.rect.y - 128) and enemy.rect.x >= self.rect.x:
                         self.is_shooting()
@@ -426,6 +437,20 @@ class Tower(sprite.Sprite):
                 self.attack_cooldown = self.basic_attack_cooldown
                 Bullet("gas", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'gas', self)
 
+        if self.name == 'urag_anus':
+            if self.uragan_cooldown <= 0:
+                self.uragan_cooldown = self.basic_uragan_cooldown
+                self.nearest_enemy = 0
+                for enemy in enemies_group:
+                        if (enemy.rect.y == self.rect.y or enemy.rect.y == self.rect.y + 128 or enemy.rect.y == self.rect.y - 128) and enemy.rect.x >= self.rect.x:
+                            if self.nearest_enemy == 0:
+                                self.nearest_enemy = enemy
+                            if self.nearest_enemy.rect.x > enemy.rect.x:
+                                self.nearest_enemy = enemy 
+                if self.nearest_enemy.rect.centerx+128 < 1500:
+                    self.uragan = Parasite('uragan', self.nearest_enemy.rect.centerx+128, self.rect.centery, '', self.atk, self, self)
+                else:
+                    self.uragan = Parasite('uragan', 1472, self.rect.centery, '', self.atk, self, self)
     def dayot(self):
         if self.name == 'davalka':
             if self.davanie_cooldown <= 0:
@@ -438,7 +463,7 @@ class Tower(sprite.Sprite):
             if self.barrier_cooldown <= 0:
                 self.barrier_cooldown = self.basic_barrier_cooldown
                 self.best_x = self
-                for tower in towers_group: # решил не добавлять некусаемых тк врядли кто то будет ставить барьер на шипы, но я чувствую что с пукишем я задолбаюсь
+                for tower in towers_group:
                     if tower.rect.y == self.rect.y and tower.rect.x > self.best_x.rect.x and tower.name != 'pukish' and tower.have_barrier == False:
                         self.best_x = tower
                 self.best_x.have_barrier = True
@@ -459,6 +484,10 @@ class Tower(sprite.Sprite):
         if self.name == 'oh_shit_i_am_sorry__barrier_mag' and self.barrier not in all_sprites_group:
             if self.barrier_cooldown > 0:
                 self.barrier_cooldown -= 1
+
+        if self.name == 'urag_anus' and self.uragan not in all_sprites_group:
+            if self.uragan_cooldown > 0:
+                self.uragan_cooldown -= 1
 
         if self.name == 'davalka':
             if self.davanie_cooldown > 0:
@@ -583,10 +612,17 @@ class Parasite(sprite.Sprite):
         if self.name == 'oh_shit_i_am_sorry__barrier_mag__sobstvenno_govorya_barrier':
             self.hp = self.parent.barrier_hp
 
+        if self.name == 'uragan':
+            self.duration = self.parent.uragan_duration
+            self.attack_cooldown = 15
+
 
     def prisasivanie(self):
         if self.parent not in all_sprites_group or self.owner not in all_sprites_group:
             self.kill()
+            if self.name == 'uragan':
+                for enemy in enemies_group:
+                    enemy.back_to_line()
             if self.name == 'sosun':        
                 self.parent.have_parasite.remove(self.owner)
             if self.name == 'oh_shit_i_am_sorry__barrier_mag__sobstvenno_govorya_barrier':
@@ -596,7 +632,7 @@ class Parasite(sprite.Sprite):
             self.kill()
             self.owner.have_barrier = False
                 
-        if self.name == 'sosun':            
+        if self.name == 'sosun':
             self.rect.centerx = self.owner.rect.centerx+self.parasix
             self.rect.centery = self.owner.rect.centery+self.parasiy
             if self.attack_cooldown <= 0:
@@ -605,13 +641,35 @@ class Parasite(sprite.Sprite):
                 if self.parent.hp < self.parent.max_hp - (self.damage//2):
                     self.parent.hp += self.damage//2
 
-            
+        if self.name == 'uragan':
+            for enemy in enemies_group:
+                if self.rect.collidepoint(enemy.rect.centerx, enemy.rect.centery):
+                    enemy.angle = atan2(self.rect.centery - enemy.rect.centery, self.rect.centerx - enemy.rect.centerx)
+                    enemy.x_vel = cos(enemy.angle) * enemy.speed * 6
+                    enemy.y_vel = sin(enemy.angle) * enemy.speed * 6
+                    enemy.rect.x += enemy.x_vel
+                    enemy.rect.y += enemy.y_vel
+
+                    if self.attack_cooldown <= 0:
+                        self.attack_cooldown = 15
+                        enemy.hp -= self.damage
+                        
+
+                
     def update(self):
         self.prisasivanie()
         
-        if self.name == 'sosun':
+        if self.name == 'sosun' or self.name == 'uragan':
             if self.attack_cooldown > 0:
                 self.attack_cooldown -= 1
+
+        if self.name == 'uragan':
+            if self.duration > 0:
+                self.duration -= 1
+            else:
+                self.kill()
+                for enemy in enemies_group:
+                    enemy.back_to_line()
 
 
 class Buff(sprite.Sprite):
@@ -636,6 +694,9 @@ class Buff(sprite.Sprite):
                 if self.rect.collidepoint(tower.rect.centerx, tower.rect.centery):
                     if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy':
                         tower.basic_attack_cooldown //= 2
+                        tower.add(self.buffed_towers)
+                    if tower.name == 'urag_anus':
+                        tower.basic_uragan_cooldown //= 2
                         tower.add(self.buffed_towers)
 
         for nekusaemiy in nekusaemie_group:
@@ -714,6 +775,12 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
                 self.is_dead = True
                 self.kill()
         
+    def back_to_line(self):
+        if (self.rect.y-192)%128 < 64:
+            self.rect.y -= (self.rect.y-192)%128
+        else:
+            self.rect.y += 128 - ((self.rect.y-192)%128)
+
     def update(self):
         self.delat_chtoto()
 
@@ -1103,6 +1170,7 @@ tower_select_button10 = Button("img", "towers", "thunder")
 tower_select_button11 = Button("img", "towers", "yascerica")
 tower_select_button12 = Button("img", "towers", "zeus")
 tower_select_button13 = Button("img", "towers", "oh_shit_i_am_sorry__barrier_mag")
+tower_select_button14 = Button("img", "towers", "urag_anus")
 
 tower_select_buttons = [
             tower_select_button1,
@@ -1117,7 +1185,8 @@ tower_select_buttons = [
             tower_select_button10,
             tower_select_button11,
             tower_select_button12,
-            tower_select_button13]
+            tower_select_button13,
+            tower_select_button14]
 
 levels = [Level(1, 100000, 375, 300), Level(2, 750, 150, 300)]
 level = levels[0]
