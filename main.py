@@ -439,7 +439,7 @@ class Tower(sprite.Sprite):
                 self.barrier_cooldown = self.basic_barrier_cooldown
                 self.best_x = self
                 for tower in towers_group: # решил не добавлять некусаемых тк врядли кто то будет ставить барьер на шипы, но я чувствую что с пукишем я задолбаюсь
-                    if tower.rect.y == self.rect.y and tower.rect.x > self.best_x.rect.x and tower.name != 'pukish':
+                    if tower.rect.y == self.rect.y and tower.rect.x > self.best_x.rect.x and tower.name != 'pukish' and tower.have_barrier == False:
                         self.best_x = tower
                 self.best_x.have_barrier = True
                 self.barrier = Parasite('oh_shit_i_am_sorry__barrier_mag__sobstvenno_govorya_barrier', self.best_x.rect.centerx, self.best_x.rect.centery, '', 0, self.best_x, self)
@@ -706,6 +706,7 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
                             for barrier in parasites_group:
                                 if barrier.name == 'oh_shit_i_am_sorry__barrier_mag__sobstvenno_govorya_barrier' and barrier.owner == tower:
                                     barrier.hp -= self.atk
+                                    break
                         else:
                             tower.hp -= self.atk
 
