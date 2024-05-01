@@ -169,6 +169,7 @@ class Tower(sprite.Sprite):
 
         self.name = unit
         self.rect = self.image.get_rect(topleft=(pos))
+        self.have_barrier = False
 
         # СТАТЫ начало
 
@@ -271,13 +272,21 @@ class Tower(sprite.Sprite):
             self.cost = 25
 
         if self.name == 'terpila':  # циферки поменять
-            self.hp = 5500
+            self.hp = 6000
             self.cost = 30
+
+        if self.name == 'oh_shit_i_am_sorry__barrier_mag':
+            self.hp = 1500
+            self.barrier_hp = 3000
+            self.basic_barrier_cooldown = 750 #3375
+            self.barrier_cooldown = 0
+            self.cost = 20
 
         if self.name == 'davalka':
             self.hp = 200
             self.skolko_deneg_dast = 30
-            self.davanie_cooldown = 900
+            self.basic_davanie_cooldown = 900
+            self.davanie_cooldown = self.basic_davanie_cooldown
             self.cost = 20
             self.time_on_screen = 0  # это для плюс денег
 
@@ -345,8 +354,9 @@ class Tower(sprite.Sprite):
                                 enemy.hp -= self.atk2
                         self.attack_cooldown2 = self.basic_attack_cooldown2
 
-            if self.name == 'davalka':
+            if self.name == 'davalka' or self.name == 'oh_shit_i_am_sorry__barrier_mag':
                 self.dayot()
+            
 
             if self.hp <= 0:
                 self.is_dead = True
@@ -419,24 +429,36 @@ class Tower(sprite.Sprite):
     def dayot(self):
         if self.name == 'davalka':
             if self.davanie_cooldown <= 0:
-                self.davanie_cooldown = 900
-                global money
-                money += self.skolko_deneg_dast
+                self.davanie_cooldown = self.basic_davanie_cooldown
+                level.money += self.skolko_deneg_dast
                 self.plus_dengi = font20.render('+30', True, (0, 70, 200))
                 self.time_on_screen = 50
 
-        
+        if self.name == 'oh_shit_i_am_sorry__barrier_mag': 
+            if self.barrier_cooldown <= 0:
+                self.barrier_cooldown = self.basic_barrier_cooldown
+                self.best_x = self
+                for tower in towers_group: # решил не добавлять некусаемых тк врядли кто то будет ставить барьер на шипы, но я чувствую что с пукишем я задолбаюсь
+                    if tower.rect.y == self.rect.y and tower.rect.x > self.best_x.rect.x:
+                        self.best_x = tower
+                self.best_x.have_barrier = True
+                self.barrier = Parasite('oh_shit_i_am_sorry__barrier_mag__sobstvenno_govorya_barrier', self.best_x.rect.centerx, self.best_x.rect.centery, '', 0, self.best_x, self)
+
 
     def update(self):
         self.delat_chtoto()
 
-        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'yascerica' or self.name == 'zeus' or self.name == 'boomchick' or self.name == 'parasitelniy' or self.name == 'spike' or self.name == 'pukish':
+        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'zeus' or self.name == 'boomchick' or self.name == 'parasitelniy' or self.name == 'spike' or self.name == 'pukish':
             if self.attack_cooldown > 0:
                 self.attack_cooldown -= 1
 
         if self.name == 'pukish':
             if self.attack_cooldown2 > 0:
                 self.attack_cooldown2 -= 1
+
+        if self.name == 'oh_shit_i_am_sorry__barrier_mag' and self.barrier not in all_sprites_group:
+            if self.barrier_cooldown > 0:
+                self.barrier_cooldown -= 1
 
         if self.name == 'davalka':
             if self.davanie_cooldown > 0:
@@ -543,7 +565,7 @@ class Bullet(sprite.Sprite):
 class Parasite(sprite.Sprite):
     def __init__(self, name, x, y, damage_type, damage, owner, parent):
         super().__init__(all_sprites_group, parasites_group)
-        self.image = image.load(f"images/bullets/{name}.png").convert_alpha() # не думаю что их будет много так что пусть в папке пуль будут(если хотите можете поменять)
+        self.image = image.load(f"images/buffs/{name}.png").convert_alpha() # не думаю что их будет много так что пусть в папке пуль будут(если хотите можете поменять)
         self.rect = self.image.get_rect(center=(x, y))
         self.is_dead = False
         self.damage_type = damage_type
@@ -557,28 +579,37 @@ class Parasite(sprite.Sprite):
             self.parasix = self.parent.parasix
             self.parasiy = self.parent.parasiy
             self.attack_cooldown = 75
+        
+        if self.name == 'oh_shit_i_am_sorry__barrier_mag__sobstvenno_govorya_barrier':
+            self.hp = self.parent.barrier_hp
 
 
     def prisasivanie(self):
-        if self.parent not in all_sprites_group:
+        if self.parent not in all_sprites_group or self.owner not in all_sprites_group:
             self.kill()
-        if self.owner not in all_sprites_group:
-            self.kill()
-            self.parent.have_parasite.remove(self.owner)
-        self.rect.centerx = self.owner.rect.centerx+self.parasix
-        self.rect.centery = self.owner.rect.centery+self.parasiy
+            if self.name == 'sosun':        
+                self.parent.have_parasite.remove(self.owner)
+            if self.name == 'oh_shit_i_am_sorry__barrier_mag__sobstvenno_govorya_barrier':
+                self.owner.have_barrier = False
 
-        if self.attack_cooldown <= 0:
-            self.attack_cooldown = 75
-            self.owner.hp -= self.damage
-            if self.parent.hp < self.parent.max_hp - (self.damage//2):
-                self.parent.hp += self.damage//2
+        if self.name == 'oh_shit_i_am_sorry__barrier_mag__sobstvenno_govorya_barrier' and self.hp <= 0:
+            self.kill()
+            self.owner.have_barrier = False
+                
+        if self.name == 'sosun':            
+            self.rect.centerx = self.owner.rect.centerx+self.parasix
+            self.rect.centery = self.owner.rect.centery+self.parasiy
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = 75
+                self.owner.hp -= self.damage
+                if self.parent.hp < self.parent.max_hp - (self.damage//2):
+                    self.parent.hp += self.damage//2
 
             
     def update(self):
-
+        self.prisasivanie()
+        
         if self.name == 'sosun':
-            self.prisasivanie()
             if self.attack_cooldown > 0:
                 self.attack_cooldown -= 1
 
@@ -671,7 +702,12 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
                     self.stop = True
                     if self.attack_cooldown <= 0:
                         self.attack_cooldown = 75
-                        tower.hp -= self.atk
+                        if tower.have_barrier == True:
+                            for barrier in parasites_group:
+                                if barrier.name == 'oh_shit_i_am_sorry__barrier_mag__sobstvenno_govorya_barrier' and barrier.owner == tower:
+                                    barrier.hp -= self.atk
+                        else:
+                            tower.hp -= self.atk
 
             if self.hp <= 0 or self.rect.x <= -256:
                 self.is_dead = True
@@ -1065,6 +1101,7 @@ tower_select_button9 = Button("img", "towers", "terpila")
 tower_select_button10 = Button("img", "towers", "thunder")
 tower_select_button11 = Button("img", "towers", "yascerica")
 tower_select_button12 = Button("img", "towers", "zeus")
+tower_select_button13 = Button("img", "towers", "oh_shit_i_am_sorry__barrier_mag")
 
 tower_select_buttons = [
             tower_select_button1,
@@ -1078,7 +1115,8 @@ tower_select_buttons = [
             tower_select_button9,
             tower_select_button10,
             tower_select_button11,
-            tower_select_button12]
+            tower_select_button12,
+            tower_select_button13]
 
 levels = [Level(1, 100000, 375, 300), Level(2, 750, 150, 300)]
 level = levels[0]
