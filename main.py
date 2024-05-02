@@ -22,7 +22,7 @@ font40 = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
 font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
 
 game_name = font60.render("GAME_OSTRY_SHISHIKAN", True, (255, 255, 255))  # GAME_OSTRY_SHISHIKAN
-game_state = "main_menu"
+game_state = "level_complited"
 last_game_state = game_state
 selected_towers = []
 buttons_group = []
@@ -1009,7 +1009,7 @@ def menu_positioning():
             game_state = "tower_select"  # новая игра
             new_game = False
             level = levels[0]
-            level.clear()
+            level.refresh()
             level.state = "not_run"
         if new_game:
             if resume_button.click(screen, mouse_pos, (30, 540), col=(130, 130, 130)):  # 2 кнопка серая
@@ -1022,7 +1022,7 @@ def menu_positioning():
             game_state = "level_select"
         if settings_button.click(screen, mouse_pos, (30, 700)):                         # 4 кнопка
             last_game_state = game_state
-            game_state = "settings_menu"   # Экран под землю
+            game_state = "settings_menu"
         if quit_button.click(screen, mouse_pos, (30, 780)):                             # 5 кнопка
             running = False
 
@@ -1036,20 +1036,17 @@ def menu_positioning():
                     if not level_box_buttons[i].closed:
                         new_game = False
                         level = levels[i]
-                        level.clear()
+                        level.refresh()
                         game_state = "tower_select"
-                        level.current_level = i+1
                 if not level_box_buttons[i].closed:
                     screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * i, 228))  # + 380, 40
-
             elif i <= 7:
                 if level_box_buttons[i].click(screen, mouse_pos, (48 + 320 + 208 * (i-4), 406)):
                     if not level_box_buttons[i].closed:
                         new_game = False
                         level = levels[i]
-                        level.clear()
+                        level.refresh()
                         game_state = "tower_select"
-                        level.current_level = i+1
                 if not level_box_buttons[i].closed:
                     screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * (i-4), 438))
         # draw.line(level_select_menu, (255, 255, 255), (900, 48), (900, 552), 15)
@@ -1057,7 +1054,7 @@ def menu_positioning():
             game_state = last_game_state
 
     if game_state != "main_menu" and game_state != "main_settings_menu" and game_state != "level_select":
-        screen.blit(bg, (0, 0))     # level.image
+        screen.blit(level.image, (0, 0))
         screen.blit(font40.render(str(level.current_level) + " уровень", True, (255, 255, 255)), (893, 30))
         screen.blit(font40.render(str(level.money), True, (0, 0, 0)), (88, 53))
         all_sprites_group.draw(screen)
@@ -1065,7 +1062,6 @@ def menu_positioning():
 
     if game_state == "run":
         game_state = level.update()
-        # ---- ok
         if pause_button.click(screen, mouse_pos, (1550, 30)):
             last_game_state = game_state
             if game_state == "paused":
@@ -1091,6 +1087,23 @@ def menu_positioning():
                 game_state = "run"
             elif game_state == "run":
                 game_state = "paused"
+
+    if game_state == "level_complited":
+        screen.blit(menu, (480, 250))
+        screen.blit(font60.render("Уровень пройден", True, (193, 8, 42)), (544, 280))
+        if next_level_button.click(screen, mouse_pos, (496, 360)):
+            level.refresh()
+            level = Level(level.current_level + 1, 300, 75, 300)
+            game_state = "run"
+        if restart_button.click(screen, mouse_pos, (582, 440)):
+            last_game_state = game_state
+            level.refresh()
+            game_state = "run"
+            level.state = "not_run"
+        if main_menu_button.click(screen, mouse_pos, (567, 520)):
+            last_game_state = game_state
+            game_state = "main_menu"
+
 
     if game_state == "tower_select":
         screen.blit(tower_select_menu, (320, 150))
@@ -1133,10 +1146,9 @@ def menu_positioning():
             game_state = "settings_menu"
         if restart_button.click(screen, mouse_pos, (582, 440)):
             last_game_state = game_state
+            level.refresh()
             game_state = "run"
             level.state = "not_run"
-            level.money = level.start_money
-            level.clear("ui_group")
         if main_menu_button.click(screen, mouse_pos, (567, 520)):
             last_game_state = game_state
             game_state = "main_menu"
@@ -1165,6 +1177,9 @@ back_button = Button("text", font60, "Назад")
 quit_button = Button("text", font60, "Выход")
 new_game_button = Button("text", font60, "Новая игра",)
 level_select_button = Button("text", font60, "Выбрать уровень")
+next_level_button = Button("text", font60, "Следующий уровень")
+
+
 
 level_box_button1 = level_box_button_create(1)
 level_box_button2 = level_box_button_create(2)
@@ -1221,7 +1236,7 @@ tower_select_buttons = [
             tower_select_button14,
             tower_select_button15]
 
-levels = [Level(1, 100000, 375, 300), Level(2, 750, 150, 300)]
+levels = [Level(1, 150, 375, 300), Level(2, 750, 150, 300)]
 level = levels[0]
 
 
