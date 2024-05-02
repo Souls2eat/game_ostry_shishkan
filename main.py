@@ -1068,17 +1068,23 @@ def menu_positioning():
             if game_state == "paused":
                 game_state = "run"
             elif game_state == "run":
+                Alert("Пауза", (700, 200), 75)
                 game_state = "paused"
 
     if game_state == "paused":
         screen.blit(menu, (480, 250))
-        screen.blit(font60.render("Пауза", True, (193, 8, 42)), (700, 280))
-        if resume_button.click(screen, mouse_pos, (614, 360)):
+        # screen.blit(font60.render("Пауза", True, (193, 8, 42)), (700, 280))
+        if resume_button.click(screen, mouse_pos, (614, 280)):
             last_game_state = game_state
             game_state = "run"
-        if settings_button.click(screen, mouse_pos, (642, 440)):
+        if settings_button.click(screen, mouse_pos, (642, 360)):
             last_game_state = game_state
             game_state = "settings_menu"
+        if restart_button.click(screen, mouse_pos, (582, 440)):
+            last_game_state = game_state
+            level.refresh()
+            game_state = "tower_select"
+            level.state = "not_run"
         if main_menu_button.click(screen, mouse_pos, (567, 520)):
             last_game_state = game_state
             game_state = "main_menu"
@@ -1288,9 +1294,11 @@ while running:
                                 or game_state == "tower_select":
                 if game_state == "run":
                     last_game_state = game_state
+                    Alert("Пауза", (700, 200), 75)
                     game_state = "paused"
                 elif game_state == "tower_select":
                     last_game_state = game_state
+                    Alert("Пауза", (700, 200), 75)
                     game_state = "paused"
                 elif last_game_state == "tower_select":
                     last_game_state = game_state
