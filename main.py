@@ -1282,9 +1282,19 @@ while running:
     for e in event.get():
         # keys = key.get_pressed()
         if e.type == KEYDOWN:
-            if e.key == K_ESCAPE and game_state == "run" or game_state == "paused" or game_state == "settings_menu":
+            if e.key == K_ESCAPE and game_state == "run" \
+                                or game_state == "paused"\
+                                or game_state == "settings_menu"\
+                                or game_state == "tower_select":
                 if game_state == "run":
+                    last_game_state = game_state
                     game_state = "paused"
+                elif game_state == "tower_select":
+                    last_game_state = game_state
+                    game_state = "paused"
+                elif last_game_state == "tower_select":
+                    last_game_state = game_state
+                    game_state = "tower_select"
                 else:
                     game_state = "run"
             if e.key == K_z:
