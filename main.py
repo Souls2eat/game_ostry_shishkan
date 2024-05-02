@@ -56,6 +56,7 @@ class Level:
         self.state = "not_run"
         self.level_time = self.start_level_time = level_time
         self.start_time_to_spawn = self.time_to_spawn = time_to_spawn
+        self.cheat = False
 
     @staticmethod
     def random_spawn_enemies():
@@ -115,7 +116,6 @@ class Level:
         UI((1500, 800), "shovel", "lopata")
         selected_towers.clear()
 
-
         if self.current_level == 1:
             Enemy("popusk", (1408, 320))
             Enemy("sigma", (1408, 192))
@@ -145,20 +145,21 @@ class Level:
 
     def update(self):
         all_sprites_group.update()
-        if self.time_to_spawn > 0:
-            self.time_to_spawn -= 1
-        else:
-            self.time_to_spawn = self.start_time_to_spawn
-            self.random_spawn_enemies()
-
         if self.state == "not_run":
             self.state = self.spawn()
-
-        if self.level_time > 0:
-            self.level_time -= 1
-            return "run"
+        if not self.cheat:
+            if self.time_to_spawn > 0:
+                self.time_to_spawn -= 1
+            else:
+                self.time_to_spawn = self.start_time_to_spawn
+                self.random_spawn_enemies()
+            if self.level_time > 0:
+                self.level_time -= 1
+                return "run"
+            else:
+                return "level_complited"
         else:
-            return "level_complited"
+            return "run"
 
 
 class Tower(sprite.Sprite):
@@ -166,6 +167,7 @@ class Tower(sprite.Sprite):
         super().__init__(towers_group, all_sprites_group)
         self.image = image.load(f"images/towers/{unit}.png").convert_alpha()
         self.is_dead = False
+        self.pos = pos
 
         self.name = unit
         self.rect = self.image.get_rect(topleft=(pos))
@@ -275,7 +277,7 @@ class Tower(sprite.Sprite):
             self.hp = 100
             self.atk = 3
             self.uragan_duration = 375
-            self.basic_uragan_cooldown = 2250 #3375
+            self.basic_uragan_cooldown = 2250  # 3375
             self.uragan_cooldown = 375
             self.uragan = None
             self.cost = 20
@@ -296,7 +298,7 @@ class Tower(sprite.Sprite):
         if self.name == 'oh_shit_i_am_sorry__barrier_mag':
             self.hp = 1500
             self.barrier_hp = 3000
-            self.basic_barrier_cooldown = 750 #3375
+            self.basic_barrier_cooldown = 750  # 3375
             self.barrier_cooldown = 0
             self.cost = 20
 
@@ -773,10 +775,10 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
             self.attack_cooldown = 75
 
         if self.name == 'sigma':
-           self.hp = 1200
-           self.atk = 100
-           self.speed = 1
-           self.attack_cooldown = 75
+            self.hp = 1200
+            self.atk = 100
+            self.speed = 1
+            self.attack_cooldown = 75
 
         # СТАТЫ конец
 
@@ -805,10 +807,10 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
                 self.kill()
         
     def back_to_line(self):
-        if (self.rect.y-192)%128 < 64:
-            self.rect.y -= (self.rect.y-192)%128
+        if (self.rect.y-192) % 128 < 64:
+            self.rect.y -= (self.rect.y-192) % 128
         else:
-            self.rect.y += 128 - ((self.rect.y-192)%128)
+            self.rect.y += 128 - ((self.rect.y-192) % 128)
 
     def update(self):
         self.delat_chtoto()
@@ -882,6 +884,11 @@ class Button:  # Переделать на спрайты кнопок
         self.pos = pos
         self.rect = self.image.get_rect(topleft=self.pos)
         self.rect = self.image.get_rect(topleft=pos)
+
+        surf.blit(self.image, self.rect)
+        if self.ok is True:
+            surf.blit(image.load("images/other/ok.png").convert_alpha(), self.rect)
+
         if not self.rect.collidepoint(mouse_pos):
             self.pushed = False
         if self.rect.collidepoint(mouse_pos):
@@ -890,10 +897,6 @@ class Button:  # Переделать на спрайты кнопок
         if mouse.get_pressed()[0] == 0 and self.pushed:
             self.pushed = False
             return True
-
-        surf.blit(self.image, self.rect)
-        if self.ok is True:
-            surf.blit(image.load("images/other/ok.png").convert_alpha(), self.rect)
 
 
 class Cloud(sprite.Sprite):
@@ -919,17 +922,27 @@ class Cloud(sprite.Sprite):
 
 
 class Alert(sprite.Sprite):
-    def __init__(self, text, pos, alert_time, font=font60, col=(255, 0, 0)):
+    def __init__(self, text, pos, alert_time, font=font60, col=(255, 0, 0), after_sec=0):
         super().__init__(alert_group)
-        self.image = font.render(text, True, col)
-        self.rect = self.image.get_rect(topleft=pos)
+        self.standard_image = font.render(text, True, col)
+        self.rect = self.standard_image.get_rect(topleft=pos)
         self.alert_time = alert_time
+        self.trigger = after_sec * 75
+        self.already_triggered = False
+        self.text = text
 
     def update(self):
-        if self.alert_time < 0:
-            self.kill()
+        if self.trigger > 0 and not self.already_triggered:
+            self.trigger -= 1
+            self.image = image.load("images/other/nothing.png")
         else:
-            self.alert_time -= 1
+            self.already_triggered = True
+            self.image = self.standard_image
+
+            if self.alert_time < 0:
+                self.kill()
+            else:
+                self.alert_time -= 1
 
 
 def is_free(obj):
@@ -1111,13 +1124,12 @@ def menu_positioning():
             last_game_state = game_state
             game_state = "main_menu"
 
-
     if game_state == "tower_select":
         screen.blit(tower_select_menu, (320, 150))
         blocked_slots = []  # если надо, чтобы не во все слоты можно было пихать башни
 
         if level.current_level == 1:            # |
-            blocked_slots = []               # | > Жестки пример
+            blocked_slots = [160]               # | > Жестки пример
         if level.current_level == 2:            # |
             blocked_slots = [160, 352]          # |
 
@@ -1132,6 +1144,7 @@ def menu_positioning():
                 if tower_select_buttons[i].click(screen, mouse_pos, (350 + (i-12) * 158, 488)):
                     add_to_slots_slots(i, *blocked_slots)
         if start_level_button.click(screen, mouse_pos, (567, 650)):
+
             game_state = "run"
             level.clear("ui_group")
             level.state = "not_run"
@@ -1144,6 +1157,27 @@ def menu_positioning():
         screen.blit(menu, (480, 250))
         if back_button.click(screen, mouse_pos, (709, 520)):
             game_state = last_game_state
+        Alert("Возможна проблема с галочкой", (300, 700), 25)
+        if cheat_button.click(screen, mouse_pos, (736, 280)):
+            if cheat_button.ok:
+                cheat_button.ok = False
+                level.cheat = False
+                # ----
+                alert_list = [alert.text for alert in alert_group]
+                if "Спавн врагов выключен" in alert_list:
+                    Alert("Читы отключены", (450, 30), 150, after_sec=2)
+                else:
+                    Alert("Читы отключены", (450, 30), 150)
+                alert_list.clear()
+                # ----
+            else:
+                Alert("Спавн врагов выключен", (442, 30), 150)
+                Alert("Время уровня бесконечно", (417, 110), 150)
+                Alert("Проиграть невозможно", (452, 190), 150)
+                Alert("Бесконечные деньги", (470, 270), 150)
+
+                cheat_button.ok = True
+                level.cheat = True
 
     if game_state == "death":
         screen.blit(menu, (480, 250))
@@ -1185,7 +1219,7 @@ quit_button = Button("text", font60, "Выход")
 new_game_button = Button("text", font60, "Новая игра",)
 level_select_button = Button("text", font60, "Выбрать уровень")
 next_level_button = Button("text", font60, "Следующий уровень")
-
+cheat_button = Button("img", "menu", "cheat")
 
 
 level_box_button1 = level_box_button_create(1)
@@ -1265,7 +1299,8 @@ while running:
 
     for enemy in enemies_group:
         if enemy.rect.x <= 150:
-            game_state = "death"
+            if not level.cheat:
+                game_state = "death"
             enemy.kill()
         for bullet in bullets_group:
             if enemy.rect.collidepoint(bullet.rect.right, bullet.rect.centery):
@@ -1340,12 +1375,13 @@ while running:
                         if el.path == "towers":
                             if is_free(el):
                                 unit = Tower(el.unit_inside, unit_pos)
-                                if level.money - unit.cost < 0:  # Это пиздец, но оно работает. Придумаете лучше -- переделаете
-                                    unit.kill()
-                                    if hasattr(unit, "bullet"):
-                                        unit.bullet.kill()
-                                else:
-                                    level.money -= unit.cost
+                                if not level.cheat:
+                                    if level.money - unit.cost < 0:  # Это пиздец, но оно работает. Придумаете лучше -- переделаете
+                                        unit.kill()
+                                        if hasattr(unit, "bullet"):
+                                            unit.bullet.kill()
+                                    else:
+                                        level.money -= unit.cost
                         if el.path == "shovel":
                             for tower in towers_group:
                                 if tower.rect.collidepoint(el.rect.centerx, el.rect.centery):
