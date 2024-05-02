@@ -277,7 +277,7 @@ class Tower(sprite.Sprite):
             self.hp = 100
             self.atk = 3
             self.uragan_duration = 375
-            self.basic_uragan_cooldown = 2250  # 3375
+            self.basic_uragan_cooldown = 1875  
             self.uragan_cooldown = 375
             self.uragan = None
             self.cost = 20
@@ -390,6 +390,8 @@ class Tower(sprite.Sprite):
 
             if self.hp <= 0:
                 self.is_dead = True
+                if self.name == 'boomchick':
+                    self.explosion = Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk*5, 0, 0, 'explosion', self)
                 self.kill()
 
 
@@ -550,6 +552,9 @@ class Bullet(sprite.Sprite):
             self.sumon = 'ready'
             self.parent.attack_cooldownwn = 375
 
+        if self.name == 'gas':
+            self.gazirovannie_group = sprite.Group()
+
     def bullet_movement(self):
         self.rect.x += self.speed_x
         self.rect.y += self.speed_y
@@ -610,6 +615,13 @@ class Bullet(sprite.Sprite):
 
             if self.parent.is_dead == True:
                 self.kill()
+
+        if self.name == 'gas':
+            for enemy in enemies_group:
+                if sprite.collide_rect(enemy, self) and enemy.hp > 0:
+                    if enemy not in self.gazirovannie_group:
+                        enemy.hp -= self.damage
+                        enemy.add(self.gazirovannie_group)
 
         if self.rect.x >= 1700:
             self.kill()
@@ -723,7 +735,7 @@ class Buff(sprite.Sprite):
         for tower in towers_group:
             if tower not in self.buffed_towers:
                 if self.rect.collidepoint(tower.rect.centerx, tower.rect.centery):
-                    if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy' or tower.name == 'drachun':
+                    if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy' or tower.name == 'pukish' or tower.name == 'drachun':
                         tower.basic_attack_cooldown //= 2
                         tower.add(self.buffed_towers)
                     if tower.name == 'urag_anus':
