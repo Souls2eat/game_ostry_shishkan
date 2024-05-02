@@ -1094,7 +1094,7 @@ def menu_positioning():
         screen.blit(font60.render("Уровень пройден", True, (193, 8, 42)), (544, 280))
         if next_level_button.click(screen, mouse_pos, (496, 360)):
             level.refresh()
-            level = Level(level.current_level + 1, 300, 75, 300)
+            level = levels[level.current_level]
             game_state = "tower_select"
         if restart_button.click(screen, mouse_pos, (582, 440)):
             last_game_state = game_state
@@ -1148,7 +1148,7 @@ def menu_positioning():
         if restart_button.click(screen, mouse_pos, (582, 440)):
             last_game_state = game_state
             level.refresh()
-            game_state = "run"
+            game_state = "tower_select"
             level.state = "not_run"
         if main_menu_button.click(screen, mouse_pos, (567, 520)):
             last_game_state = game_state
@@ -1237,7 +1237,7 @@ tower_select_buttons = [
             tower_select_button14,
             tower_select_button15]
 
-levels = [Level(1, 7500, 375, 300), Level(2, 150, 150, 300)]
+levels = [Level(1, 7500, 375, 300), Level(2, 3000, 150, 300), Level(3, 6000, 225, 300)]
 level = levels[0]
 
 
