@@ -934,7 +934,7 @@ class Alert(sprite.Sprite):
     def update(self):
         if self.trigger > 0 and not self.already_triggered:
             self.trigger -= 1
-            self.image = image.load("images/other/nothing.png")
+            self.image = image.load("images/other/nothing.png").convert_alpha()
         else:
             self.already_triggered = True
             self.image = self.standard_image
