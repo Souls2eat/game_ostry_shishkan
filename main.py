@@ -476,7 +476,7 @@ class Tower(sprite.Sprite):
                 self.attack_cooldown = self.basic_attack_cooldown
                 self.image = image.load(f"images/towers/{self.name}2.png").convert_alpha()
                 for enemy in enemies_group:
-                    if enemy.rect.x - self.rect.x <= 256:
+                    if enemy.rect.y == self.rect.y and enemy.rect.x - self.rect.x <= 256:
                         enemy.hp -= self.atk
                 self.kulak_time = 15
                 
