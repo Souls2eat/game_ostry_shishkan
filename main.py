@@ -969,7 +969,7 @@ def is_free(obj):
     is_free_list.clear()
 
 
-def add_to_slots_slots(i, *blocked_slots):
+def add_to_slots_slots(i, *blocked_slots):              # instant_select будет потом
     if tower_select_buttons[i].ok:
         tower_select_buttons[i].ok = False
         selected_towers.remove(tower_select_buttons[i].unit_inside)
@@ -985,7 +985,7 @@ def add_to_slots_slots(i, *blocked_slots):
             UI((94, first_empty_slot()), "towers", tower_select_buttons[i].unit_inside)
         selected_towers.append(tower_select_buttons[i].unit_inside)
     else:
-        Alert("Закончились пустые слоты", (404, 580), 75)
+        Alert("Закончились свободные слоты", (345, 580), 75)
 
 
 def first_empty_slot(*blocked_slots):
@@ -1140,10 +1140,10 @@ def menu_positioning():
         screen.blit(tower_select_menu, (320, 150))
         blocked_slots = []  # если надо, чтобы не во все слоты можно было пихать башни
 
-        if level.current_level == 1:            # |
-            blocked_slots = [160]               # | > Жестки пример
-        if level.current_level == 2:            # |
-            blocked_slots = [160, 352]          # |
+        if level.current_level == 1:
+            blocked_slots = []               # 160, 256, 352, 448, 544, 640, 736
+        if level.current_level == 2:
+            blocked_slots = []
 
         for i in range(len(tower_select_buttons)):
             if i < 6:
@@ -1156,10 +1156,12 @@ def menu_positioning():
                 if tower_select_buttons[i].click(screen, mouse_pos, (350 + (i-12) * 158, 488)):
                     add_to_slots_slots(i, *blocked_slots)
         if start_level_button.click(screen, mouse_pos, (567, 650)):
-
-            game_state = "run"
-            level.clear("ui_group")
-            level.state = "not_run"
+            if len(selected_towers) == 7 - len(blocked_slots):
+                game_state = "run"
+                level.clear("ui_group")
+                level.state = "not_run"
+            else:
+                Alert("Остались свободные слоты", (400, 580), 75)
         ui_group.draw(screen)
 
     if game_state == "settings_menu":
