@@ -1018,7 +1018,7 @@ def menu_positioning():
             level_box_buttons,\
             unlocked_levels, \
             levels, \
-            level
+            level, blocked_slots
 
     mouse_pos = mouse.get_pos()
 
@@ -1101,7 +1101,10 @@ def menu_positioning():
         # screen.blit(font60.render("Пауза", True, (193, 8, 42)), (700, 280))
         if resume_button.click(screen, mouse_pos, (614, 280)):
             last_game_state = game_state
-            game_state = "run"
+            if len(selected_towers) == 7 - len(blocked_slots):
+                game_state = "run"
+            else:
+                game_state = "tower_select"
         if settings_button.click(screen, mouse_pos, (642, 360)):
             last_game_state = game_state
             game_state = "settings_menu"
