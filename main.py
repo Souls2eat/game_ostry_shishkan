@@ -26,6 +26,7 @@ game_state = "main_menu"
 last_game_state = game_state
 selected_towers = []
 buttons_group = []
+blocked_slots = []
 
 
 with open("save.txt", "r", encoding="utf-8") as file:
@@ -1040,8 +1041,13 @@ def menu_positioning():
         else:
             if resume_button.click(screen, mouse_pos, (30, 540)):                       # 2 кнопка белая
                 last_game_state = game_state
-                game_state = "run"
+                if level.state == "run":
+                    game_state = "run"
+                else:
+                    selected_towers.clear()
+                    game_state = "level_select"
         if level_select_button.click(screen, mouse_pos, (30, 620)):                     # 3 кнопка
+            last_game_state = game_state
             game_state = "level_select"
         if settings_button.click(screen, mouse_pos, (30, 700)):                         # 4 кнопка
             last_game_state = game_state
@@ -1060,6 +1066,7 @@ def menu_positioning():
                         new_game = False
                         level.refresh()
                         level = levels[i]
+                        last_game_state = game_state
                         game_state = "tower_select"
                         level.state = "not_run"
                 if not level_box_buttons[i].closed:
@@ -1070,6 +1077,7 @@ def menu_positioning():
                         new_game = False
                         level.refresh()
                         level = levels[i]
+                        last_game_state = game_state
                         game_state = "tower_select"
                         level.state = "not_run"
                 if not level_box_buttons[i].closed:
@@ -1080,9 +1088,13 @@ def menu_positioning():
 
     if game_state != "main_menu" and game_state != "main_settings_menu" and game_state != "level_select":
         screen.blit(level.image, (0, 0))
-        screen.blit(font40.render(str(level.level_time) + " осталось", True, (255, 255, 255)), (853, 110))
+        if level.cheat:
+            screen.blit(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110))
+        else:
+            screen.blit(font40.render(str(level.level_time) + " осталось", True, (255, 255, 255)), (853, 110))
         screen.blit(font40.render(str(level.current_level) + " уровень", True, (255, 255, 255)), (893, 30))
         screen.blit(font40.render(str(level.money), True, (0, 0, 0)), (88, 53))
+
         all_sprites_group.draw(screen)
         all_sprites_group.draw2(screen)
 
@@ -1090,25 +1102,22 @@ def menu_positioning():
         game_state = level.update()
         if pause_button.click(screen, mouse_pos, (1550, 30)):
             last_game_state = game_state
-            if game_state == "paused":
-                game_state = "run"
-            elif game_state == "run":
-                Alert("Пауза", (700, 200), 75)
-                game_state = "paused"
+            Alert("Пауза", (700, 200), 75)
+            game_state = "paused"
 
     if game_state == "paused":
         screen.blit(menu, (480, 250))
         # screen.blit(font60.render("Пауза", True, (193, 8, 42)), (700, 280))
         if resume_button.click(screen, mouse_pos, (614, 280)):
             last_game_state = game_state
-            if len(selected_towers) == 7 - len(blocked_slots):
+            if level.state == "run":            # len(selected_towers) == 7 - len(blocked_slots)
                 game_state = "run"
             else:
                 game_state = "tower_select"
         if settings_button.click(screen, mouse_pos, (642, 360)):
             last_game_state = game_state
             game_state = "settings_menu"
-        if last_game_state != "tower_select":           # белая кнопка
+        if level.state == "run":           # белая кнопка
             if restart_button.click(screen, mouse_pos, (582, 440)):
                 last_game_state = game_state
                 level.refresh()
@@ -1121,11 +1130,12 @@ def menu_positioning():
             last_game_state = game_state
             game_state = "main_menu"
         if pause_button.click(screen, mouse_pos, (1550, 30)):
-            last_game_state = game_state
-            if game_state == "paused":
+            Alert("Пауза", (700, 200), 75)
+            if level.state == "run":
+                last_game_state = game_state
                 game_state = "run"
-            elif game_state == "run":
-                game_state = "paused"
+            else:
+                game_state, last_game_state = last_game_state, game_state
 
     if game_state == "level_complited":
         screen.blit(menu, (480, 250))
@@ -1142,6 +1152,7 @@ def menu_positioning():
         if main_menu_button.click(screen, mouse_pos, (567, 520)):
             last_game_state = game_state
             game_state = "main_menu"
+            level.state = "not_run"
 
     if game_state == "tower_select":
         screen.blit(tower_select_menu, (320, 150))
@@ -1169,15 +1180,23 @@ def menu_positioning():
                 level.state = "not_run"
             else:
                 Alert("Остались свободные слоты", (400, 580), 75)
+
+        if pause_button.click(screen, mouse_pos, (1550, 30)):
+            last_game_state = game_state
+            Alert("Пауза", (700, 200), 75)
+            game_state = "paused"
+
+
         ui_group.draw(screen)
 
     if game_state == "settings_menu":
-        if last_game_state == "main_menu":
+        if last_game_state == "main_menu" or last_game_state == "level_select":
             screen.blit(main_menu, (0, 0))
             screen.blit(game_name, (501, 10))
         screen.blit(menu, (480, 250))
         if back_button.click(screen, mouse_pos, (709, 520)):
             game_state = last_game_state
+
         Alert("Возможна проблема с галочкой", (300, 700), 25)
         if cheat_button.click(screen, mouse_pos, (736, 280)):
             if cheat_button.ok:
@@ -1214,6 +1233,7 @@ def menu_positioning():
         if main_menu_button.click(screen, mouse_pos, (567, 520)):
             last_game_state = game_state
             game_state = "main_menu"
+            level.state = "not_run"
     # -------
 
 
@@ -1310,6 +1330,8 @@ while running:
     menu_positioning()
     alert_group.update()
     alert_group.draw(screen)
+    print(f"now: {game_state}, last: {last_game_state}")      # не убирать!!!
+    # print(level.state)
 
     for bullet in bullets_group:
         if bullet.name == 'ls' or bullet.name == 'explosion':
@@ -1356,11 +1378,21 @@ while running:
                     last_game_state = game_state
                     Alert("Пауза", (700, 200), 75)
                     game_state = "paused"
+                elif game_state == "settings_menu" and last_game_state != "main_menu":
+                    game_state = "paused"
+                elif game_state == "settings_menu" and last_game_state == "main_menu":
+                    game_state = "main_menu"
                 elif last_game_state == "tower_select":
                     last_game_state = game_state
                     game_state = "tower_select"
-                else:
-                    game_state = "run"
+                # else:
+                #     if level.state == "run":
+                #         last_game_state = game_state
+                #         game_state = "run"
+                #     else:
+                #         last_game_state = game_state
+                #         game_state = "tower_select"
+
             if e.key == K_z:
                 Enemy("popusk", (1508, 192))
             if e.key == K_x:
