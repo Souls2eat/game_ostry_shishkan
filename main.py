@@ -1108,11 +1108,15 @@ def menu_positioning():
         if settings_button.click(screen, mouse_pos, (642, 360)):
             last_game_state = game_state
             game_state = "settings_menu"
-        if restart_button.click(screen, mouse_pos, (582, 440)):
-            last_game_state = game_state
-            level.refresh()
-            game_state = "tower_select"
-            level.state = "not_run"
+        if last_game_state != "tower_select":           # белая кнопка
+            if restart_button.click(screen, mouse_pos, (582, 440)):
+                last_game_state = game_state
+                level.refresh()
+                game_state = "tower_select"
+                level.state = "not_run"
+        else:
+            if restart_button.click(screen, mouse_pos, (582, 440), col=(130, 130, 130)):  # 2 кнопка серая
+                pass
         if main_menu_button.click(screen, mouse_pos, (567, 520)):
             last_game_state = game_state
             game_state = "main_menu"
