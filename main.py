@@ -1,6 +1,7 @@
 from pygame import *
 from math import *
 from random import randint, choice
+from config import *
 
 init()
 
@@ -15,6 +16,7 @@ main_menu = image.load("images/menu/main_menu.png").convert_alpha()
 level_select_menu = image.load("images/menu/level_select_menu.png").convert_alpha()
 level_box = image.load("images/menu/level_box.png").convert_alpha()
 tower_select_menu = image.load("images/menu/tower_select_menu.png").convert_alpha()
+amogus = image.load("images/other/amogus!!!.png")
 
 font20 = font.Font("fonts/ofont.ru_Nunito.ttf", 20)
 font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
@@ -50,7 +52,7 @@ class ModGroup(sprite.Group):
 
 
 class Level:
-    def __init__(self, level_number, level_time, time_to_spawn, start_money):
+    def __init__(self, level_number, level_time, time_to_spawn, start_money, waves: dict, allowed_enemies: dict, allowed_cords=(192, 320, 448, 576, 704)):
         self.image = image.load(f"images/maps/map{level_number}.png").convert_alpha()
         self.current_level = level_number
         self.money = self.start_money = start_money
@@ -58,13 +60,37 @@ class Level:
         self.level_time = self.start_level_time = level_time
         self.start_time_to_spawn = self.time_to_spawn = time_to_spawn
         self.cheat = False
+        self.waves = waves
+        self.allowed_enemies = allowed_enemies
+        self.allowed_cords = allowed_cords
 
-    @staticmethod
-    def random_spawn_enemies():
-        line_cords = [192, 320, 448, 576, 704]
-        enemy_sprites = ["josky", "popusk", "sigma"]
-        enemy_y_cord = choice(line_cords)
-        enemy_name = choice(enemy_sprites)
+        self.x = 384     # для полоски уровня
+        self.y = 110
+        self.w = 1151
+        self.h = 40
+
+    def draw_level_time(self):      # надо бы написать по-понятней
+        ratio = self.level_time / self.start_level_time
+        draw.rect(screen, (233, 126, 72), (self.x, self.y, self.w, self.h))
+        draw.rect(screen, (55, 127, 236), (self.x, self.y, self.w * ratio, self.h))
+        draw.rect(screen, (0, 0, 0), (self.x, self.y, self.w, self.h), 4)
+        for wave_time in self.waves:
+            mark_ratio = wave_time / self.start_level_time
+            screen.blit(amogus, (self.x + int(mark_ratio * self.w), self.y - 30))
+
+    def wave_spawn_enemies(self, wave_time):
+        waves_points = self.waves[wave_time]
+        enemy_x_cord = 1600
+        while waves_points > 0:
+            enemy_name = choice([*self.allowed_enemies])
+            enemy_y_cord = choice(self.allowed_cords)
+            Enemy(enemy_name, (enemy_x_cord, enemy_y_cord))
+            waves_points -= self.allowed_enemies[enemy_name]
+            enemy_x_cord += randint(10, 30)
+
+    def random_spawn_enemies(self):
+        enemy_y_cord = choice(self.allowed_cords)
+        enemy_name = choice([*self.allowed_enemies])
         Enemy(enemy_name, (1600, enemy_y_cord))
 
     @staticmethod
@@ -146,6 +172,9 @@ class Level:
 
     def update(self):
         all_sprites_group.update()
+        for wave_time in self.waves:
+            if self.level_time == wave_time:
+                self.wave_spawn_enemies(wave_time)
         if self.state == "not_run":
             self.state = self.spawn()
         if not self.cheat:
@@ -841,16 +870,19 @@ class UI(sprite.Sprite):
         self.is_move = False
 
         if self.path == "towers":
-            unit = Tower(self.unit_inside, (0, 0))
-            if hasattr(unit, "cost"):
-                self.cost = unit.cost
-                self.image2 = font30.render(str(self.cost), True, (255, 255, 255))
-                self.rect2 = self.image2.get_rect(topleft=(self.default_pos[0] - 49, self.default_pos[1] + 4))
-            if hasattr(unit, "bullet"):
-                unit.bullet.kill()
-            unit.kill()
-            for buff in buffs_group:
-                buff.kill()
+            # unit = Tower(self.unit_inside, (0, 0))
+            # if hasattr(unit, "cost"):
+            #     self.cost = unit.cost
+            #     self.image2 = font30.render(str(self.cost), True, (255, 255, 255))
+            #     self.rect2 = self.image2.get_rect(topleft=(self.default_pos[0] - 49, self.default_pos[1] + 4))
+            # if hasattr(unit, "bullet"):
+            #     unit.bullet.kill()
+            # unit.kill()
+            # for buff in buffs_group:
+            #     buff.kill()
+            self.cost = tower_costs[unit_inside]                                # Аналог без ебанины :)
+            self.image2 = font30.render(str(self.cost), True, (255, 255, 255))
+            self.rect2 = self.image2.get_rect(topleft=(self.default_pos[0] - 49, self.default_pos[1] + 4))
 
     def move(self):
         self.image = image.load(f"images/{self.path}/{self.unit_inside}.png").convert_alpha()
@@ -862,17 +894,14 @@ class UI(sprite.Sprite):
         self.rect = self.image.get_rect(topleft=self.default_pos)
         self.pos = self.default_pos
 
-    def draw2(self, surface):
-        surface.blit(self.image2, self.rect2)
+    def draw2(self, surf):
+        surf.blit(self.image2, self.rect2)
 
     def update(self):
         if self.is_move:
             self.move()
         if self.is_move is not True:
             self.back_to_default()
-
-        if hasattr(self, "text"):
-            screen.blit(self.text, (self.default_pos[0] - 49, self.default_pos[1] + 4))
 
 
 class Button:  # Переделать на спрайты кнопок
@@ -1026,7 +1055,7 @@ def menu_positioning():
     if game_state == "main_menu":
 
         screen.blit(main_menu, (0, 0))
-        screen.blit(game_name, (501, 10))
+        screen.blit(game_name, (416, 10))
 
         if new_game_button.click(screen, mouse_pos, (30, 460)):                         # 1 кнопка
             last_game_state = game_state
@@ -1091,7 +1120,8 @@ def menu_positioning():
         if level.cheat:
             screen.blit(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110))
         else:
-            screen.blit(font40.render(str(level.level_time) + " осталось", True, (255, 255, 255)), (853, 110))
+            level.draw_level_time()
+            # screen.blit(font40.render(str(level.level_time) + " осталось", True, (255, 255, 255)), (853, 110))    # циферки
         screen.blit(font40.render(str(level.current_level) + " уровень", True, (255, 255, 255)), (893, 30))
         screen.blit(font40.render(str(level.money), True, (0, 0, 0)), (88, 53))
 
@@ -1180,19 +1210,16 @@ def menu_positioning():
                 level.state = "not_run"
             else:
                 Alert("Остались свободные слоты", (400, 580), 75)
-
         if pause_button.click(screen, mouse_pos, (1550, 30)):
             last_game_state = game_state
             Alert("Пауза", (700, 200), 75)
             game_state = "paused"
-
-
         ui_group.draw(screen)
 
     if game_state == "settings_menu":
         if last_game_state == "main_menu" or last_game_state == "level_select":
             screen.blit(main_menu, (0, 0))
-            screen.blit(game_name, (501, 10))
+            screen.blit(game_name, (416, 10))
         screen.blit(menu, (480, 250))
         if back_button.click(screen, mouse_pos, (709, 520)):
             game_state = last_game_state
@@ -1205,9 +1232,9 @@ def menu_positioning():
                 # ----
                 alert_list = [alert.text for alert in alert_group]
                 if "Спавн врагов выключен" in alert_list:
-                    Alert("Читы отключены", (450, 30), 150, after_sec=2)
+                    Alert("Читы отключены", (562, 30), 150, after_sec=2)
                 else:
-                    Alert("Читы отключены", (450, 30), 150)
+                    Alert("Читы отключены", (562, 30), 150)
                 alert_list.clear()
                 # ----
             else:
@@ -1318,7 +1345,10 @@ tower_select_buttons = [
             tower_select_button14,
             tower_select_button15]
 
-levels = [Level(1, 7500, 375, 300), Level(2, 3000, 150, 300), Level(3, 6000, 225, 300)]
+levels = [Level(1, 7500, 375, 300, level_1_waves, enemy_costs),         # enemy_costs -- туда закидывается враг и его стоимость
+          Level(2, 3000, 150, 300, level_2_waves, enemy_costs),         # типо можно выбрать, каких врагов спавнить можно, а каких нет
+          Level(3, 6000, 225, 300, level_3_waves, enemy_costs)]         # это из конфига
+
 level = levels[0]
 
 
@@ -1330,7 +1360,7 @@ while running:
     menu_positioning()
     alert_group.update()
     alert_group.draw(screen)
-    print(f"now: {game_state}, last: {last_game_state}")      # не убирать!!!
+    # print(f"now: {game_state}, last: {last_game_state}")      # не убирать!!!
     # print(level.state)
 
     for bullet in bullets_group:
@@ -1419,7 +1449,6 @@ while running:
             mouse_pos = mouse.get_pos()
             unit_pos = (384 + ((mouse_pos[0] - 384) // 128) * 128), (192 + ((mouse_pos[1] - 192) // 128) * 128)
 
-
             for el in ui_group:
                 if el.rect.collidepoint(mouse_pos):  # если элемент отпущен
                     el.is_move = False
@@ -1427,25 +1456,18 @@ while running:
                     if 1536 > unit_pos[0] >= 384 and 832 > unit_pos[1] >= 192:
                         if el.path == "towers":
                             if is_free(el):
-                                unit = Tower(el.unit_inside, unit_pos)
                                 if not level.cheat:
-                                    if level.money - unit.cost < 0:  # Это пиздец, но оно работает. Придумаете лучше -- переделаете
-                                        unit.kill()
-                                        if hasattr(unit, "bullet"):
-                                            unit.bullet.kill()
-                                    else:
-                                        level.money -= unit.cost
+                                    if level.money - tower_costs[el.unit_inside] > 0:  # Это пиздец, но оно работает. Придумаете лучше -- переделаете
+                                        Tower(el.unit_inside, unit_pos)
+                                        level.money -= tower_costs[el.unit_inside]
+
                         if el.path == "shovel":
-                            for tower in towers_group:
-                                if tower.rect.collidepoint(el.rect.centerx, el.rect.centery):
-                                    level.money += tower.cost // 2
-                                    if hasattr(tower, "bullet"):
-                                        tower.bullet.kill()
-                                    tower.kill()
-                            for nekusaemiy in nekusaemie_group:
-                                if nekusaemiy.rect.collidepoint(el.rect.centerx, el.rect.centery):
-                                    level.money += nekusaemiy.cost // 2
-                                    nekusaemiy.kill()
+                            for obj in [*towers_group, *nekusaemie_group]:           # Сразу по 2 группам
+                                if obj.rect.collidepoint(el.rect.centerx, el.rect.centery):
+                                    level.money += tower_costs[obj.name] // 2
+                                    if hasattr(obj, "bullet"):
+                                        obj.bullet.kill()
+                                    obj.kill()
 
 
 with open("save.txt", "w", encoding="utf-8") as file:
