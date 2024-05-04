@@ -40,7 +40,8 @@ tower_costs = {
     "yascerica": 10,
     "zeus": 20,
     "tolkan": 30,
-    "big_mechman": 15
+    "big_mechman": 15,
+    "nuka_kusni": 15
 
 }
 
@@ -61,5 +62,6 @@ towers_kd = {
     "yascerica": 100,
     "zeus": 200,
     "tolkan": 300,
-    "big_mechman": 150
+    "big_mechman": 150,
+    "nuka_kusni": 150
 }

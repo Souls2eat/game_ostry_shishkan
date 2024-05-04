@@ -322,6 +322,19 @@ class Tower(sprite.Sprite):
             self.damage_type = ''
             self.cost = 10
 
+        if self.name == 'nuka_kusni':
+            self.hpchela = 500
+            self.hpkonya = 500
+            self.speed_x = 0
+            self.atk = 30
+            self.taran_atk = 500
+            self.kulak_time = 15
+            self.basic_attack_cooldown = 55
+            self.attack_cooldown = self.basic_attack_cooldown
+            self.damage_type = ''
+            self.toptop_group = sprite.Group()
+            self.konb_sushestvuet = True
+
         if self.name == 'tolkan':
             self.hp = 2000
             self.atk = 50
@@ -426,14 +439,20 @@ class Tower(sprite.Sprite):
                                 enemy.hp -= self.atk2
                         self.attack_cooldown2 = self.basic_attack_cooldown2
 
-            if self.name == 'drachun' or self.name == 'tolkan' or self.name == 'big_mechman':
+            if self.name == 'drachun' or self.name == 'tolkan' or self.name == 'big_mechman'  or self.name == 'nuka_kusni':
                 if self.kulak_time > 0:
                     self.kulak_time -= 1
                 if self.kulak_time <= 0:
                     self.kulak_time = 15
-                    self.image = image.load(f"images/towers/{self.name}.png").convert_alpha()
+                    if hasattr(self, 'konb_sushestvuet'):
+                        if self.konb_sushestvuet:
+                            self.image = image.load(f"images/towers/{self.name}.png").convert_alpha()
+                        if not self.konb_sushestvuet:
+                            self.image = image.load("images/towers/nuka_kusni_no_net_konya.png").convert_alpha()
+                    else:
+                        self.image = image.load(f"images/towers/{self.name}.png").convert_alpha()
                 for enemy in enemies_group:
-                    if self.name == 'drachun' or self.name == 'tolkan':
+                    if self.name == 'drachun' or self.name == 'tolkan' or self.name == 'nuka_kusni':
                         if enemy.rect.y == self.rect.y and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
                             self.is_shooting()
                     if self.name == 'big_mechman':
@@ -443,12 +462,22 @@ class Tower(sprite.Sprite):
             if self.name == 'davalka' or self.name == 'oh_shit_i_am_sorry__barrier_mag':
                 self.dayot()
             
+            if self.name == 'nuka_kusni':
+                if self.hpkonya <= 0 and self.konb_sushestvuet:
+                    self.konb_sushestvuet = False
+                    self.image = image.load("images/towers/nuka_kusni_no_net_konya.png").convert_alpha()
 
-            if self.hp <= 0:
-                self.is_dead = True
-                if self.name == 'boomchick':
-                    self.explosion = Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk*5, 0, 0, 'explosion', self)
-                self.kill()
+                if self.hpchela <= 0:
+                    if self.konb_sushestvuet == True:
+                        self.konb = Bullet("kusni_ne_probuy", self.rect.centerx, self.rect.centery, '', self.taran_atk, 7, 0, 'gas', self)
+                    self.kill()
+
+            if self.name != 'nuka_kusni':
+                if self.hp <= 0:
+                    self.is_dead = True
+                    if self.name == 'boomchick':
+                        self.explosion = Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk*5, 0, 0, 'explosion', self)
+                    self.kill()
 
 
     def is_shooting(self):
@@ -538,6 +567,18 @@ class Tower(sprite.Sprite):
                         enemy.hp -= self.atk
                 self.kulak_time = 15
 
+        if self.name == 'nuka_kusni':
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = self.basic_attack_cooldown
+                if self.konb_sushestvuet:
+                    self.image = image.load(f"images/towers/{self.name}2.png").convert_alpha()
+                if not self.konb_sushestvuet:
+                    self.image = image.load("images/towers/nuka_kusni_no_net_konya2.png").convert_alpha()
+                for enemy in enemies_group:
+                    if enemy.rect.y == self.rect.y and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
+                        enemy.hp -= self.atk
+                self.kulak_time = 15
+
         if self.name == 'tolkan':
             if self.attack_cooldown <= 0:
                 self.attack_cooldown = self.basic_attack_cooldown
@@ -584,7 +625,19 @@ class Tower(sprite.Sprite):
     def update(self):
         self.delat_chtoto()
 
-        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'zeus' or self.name == 'boomchick' or self.name == 'parasitelniy' or self.name == 'spike' or self.name == 'pukish' or self.name == 'drachun' or self.name == 'tolkan' or self.name == 'big_mechman':
+        if self.name == 'fire_mag'\
+                or self.name == 'kopitel'\
+                or self.name == 'thunder'\
+                or self.name == 'zeus'\
+                or self.name == 'boomchick'\
+                or self.name == 'parasitelniy'\
+                or self.name == 'spike'\
+                or self.name == 'pukish'\
+                or self.name == 'drachun'\
+                or self.name == 'tolkan'\
+                or self.name == 'big_mechman'\
+                or self.name == 'nuka_kusni':
+
             if self.attack_cooldown > 0:
                 self.attack_cooldown -= 1
 
@@ -813,7 +866,19 @@ class Buff(sprite.Sprite):
         for tower in towers_group:
             if tower not in self.buffed_towers:
                 if self.rect.collidepoint(tower.rect.centerx, tower.rect.centery):
-                    if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy' or tower.name == 'pukish' or tower.name == 'drachun' or tower.name == 'tolkan' or tower.name == 'big_mechman':
+                    if tower.name == 'fire_mag'\
+                            or tower.name == 'kopitel'\
+                            or tower.name == 'thunder'\
+                            or tower.name == 'yascerica'\
+                            or tower.name == 'zeus'\
+                            or tower.name == 'boomchick'\
+                            or tower.name == 'parasitelniy'\
+                            or tower.name == 'pukish'\
+                            or tower.name == 'drachun'\
+                            or tower.name == 'tolkan'\
+                            or tower.name == 'big_mechman'\
+                            or tower.name == 'nuka_kusni':
+
                         tower.basic_attack_cooldown //= 2
                         tower.add(self.buffed_towers)
                     if tower.name == 'urag_anus':
@@ -835,7 +900,18 @@ class Buff(sprite.Sprite):
         if self.mozhet_zhit == False:
             self.kill()
             for tower in self.buffed_towers:
-                if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy' or tower.name == 'pukish' or tower.name == 'drachun' or tower.name == 'tolkan' or tower.name == 'big_mechman':
+                if tower.name == 'fire_mag'\
+                        or tower.name == 'kopitel'\
+                        or tower.name == 'thunder'\
+                        or tower.name == 'yascerica'\
+                        or tower.name == 'zeus'\
+                        or tower.name == 'boomchick'\
+                        or tower.name == 'parasitelniy'\
+                        or tower.name == 'pukish'\
+                        or tower.name == 'drachun'\
+                        or tower.name == 'tolkan'\
+                        or tower.name == 'big_mechman'\
+                        or tower.name == 'nuka_kusni':
                     tower.basic_attack_cooldown *= 2
                 if tower.name == 'urag_anus':
                     tower.basic_uragan_cooldown *= 2
@@ -860,18 +936,21 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
         if self.name == 'popusk':  # циферки поменять
             self.hp = 300
             self.atk = 100
+            self.atk_type = 'earth'
             self.speed = 1
             self.attack_cooldown = 75
 
         if self.name == 'josky':
             self.hp = 600
             self.atk = 100
+            self.atk_type = 'earth'
             self.speed = 1
             self.attack_cooldown = 75
 
         if self.name == 'sigma':
             self.hp = 1200
             self.atk = 100
+            self.atk_type = 'air'
             self.speed = 1
             self.attack_cooldown = 75
 
@@ -895,7 +974,16 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
                                     barrier.hp -= self.atk
                                     break
                         else:
-                            tower.hp -= self.atk
+                            if tower.name == 'nuka_kusni':
+                                if self.atk_type == 'earth':
+                                    if tower.konb_sushestvuet == True:
+                                        tower.hpkonya -= self.atk
+                                    else:
+                                        tower.hpchela -= self.atk
+                                if self.atk_type == 'air':
+                                    tower.hpchela -= self.atk
+                            else:
+                                tower.hp -= self.atk
 
             if self.hp <= 0 or self.rect.x <= -256:
                 self.is_dead = True
@@ -1072,7 +1160,7 @@ def add_to_slots_slots(i, *blocked_slots):              # instant_select буд�
         if blocked_slots:
             UI((94, first_empty_slot(*blocked_slots)), "towers", tower_select_buttons[i].unit_inside, towers_kd[tower_select_buttons[i].unit_inside])
         else:
-            UI((94, first_empty_slot()), "towers", tower_select_buttons[i].unit_inside,towers_kd[tower_select_buttons[i].unit_inside])
+            UI((94, first_empty_slot()), "towers", tower_select_buttons[i].unit_inside, towers_kd[tower_select_buttons[i].unit_inside])
         selected_towers.append(tower_select_buttons[i].unit_inside)
     else:
         Alert("Закончились свободные слоты", (345, 580), 75)
@@ -1389,6 +1477,7 @@ tower_select_button14 = Button("img", "towers", "urag_anus")
 tower_select_button15 = Button("img", "towers", "drachun")
 tower_select_button16 = Button("img", "towers", "tolkan")
 tower_select_button17 = Button("img", "towers", "big_mechman")
+tower_select_button18 = Button("img", "towers", "nuka_kusni")
 
 tower_select_buttons = [
             tower_select_button1,
@@ -1407,7 +1496,8 @@ tower_select_buttons = [
             tower_select_button14,
             tower_select_button15,
             tower_select_button16,
-            tower_select_button17
+            tower_select_button17,
+            tower_select_button18
 ]
 
 levels = [Level(1, 7500, 375, 300, level_1_waves, enemy_costs),         # enemy_costs -- туда закидывается враг и его стоимость
