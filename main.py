@@ -8,15 +8,19 @@ init()
 clock = time.Clock()
 screen = display.set_mode((1600, 900))
 display.set_caption("game_ostry_shishkan")
+mouse.set_visible(False)
 screen.fill((255, 255, 255))
 
 bg = image.load(f"images/maps/map1.png").convert_alpha()
 menu = image.load("images/menu/pause_menu.png").convert_alpha()
 main_menu = image.load("images/menu/main_menu.png").convert_alpha()
-level_select_menu = image.load("images/menu/level_select_menu.png").convert_alpha()
+select_menu = image.load("images/menu/level_select_menu.png").convert_alpha()
+select_menu_copy = select_menu.__copy__()
 level_box = image.load("images/menu/level_box.png").convert_alpha()
-tower_select_menu = image.load("images/menu/tower_select_menu.png").convert_alpha()
-amogus = image.load("images/other/amogus!!!.png")
+# tower_select_menu = image.load("images/menu/tower_select_menu.png").convert_alpha()
+# tower_select_menu_copy = tower_select_menu.__copy__()
+amogus = image.load("images/other/amogus!!!.png").convert_alpha()
+cursor = image.load("images/other/cursor.png").convert_alpha()
 
 font20 = font.Font("fonts/ofont.ru_Nunito.ttf", 20)
 font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
@@ -29,6 +33,8 @@ last_game_state = game_state
 selected_towers = []
 buttons_group = []
 blocked_slots = []
+scroll_offset = 0
+current_scroll_offset_state = game_state
 
 
 with open("save.txt", "r", encoding="utf-8") as file:
@@ -214,7 +220,6 @@ class Tower(sprite.Sprite):
             self.basic_attack_cooldown = 55
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
-            self.cost = 10
 
         if self.name == 'boomchick':  
             self.hp = 200
@@ -224,7 +229,6 @@ class Tower(sprite.Sprite):
             self.basic_attack_cooldown = 85
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
-            self.cost = 20
 
         if self.name == 'kopitel':
             self.hp = 200
@@ -236,7 +240,6 @@ class Tower(sprite.Sprite):
             self.damage_type = ''
             self.nakopleno = 0
             self.max_nakopit = 7
-            self.cost = 20
 
         if self.name == 'thunder':
             self.hp = 100
@@ -246,7 +249,6 @@ class Tower(sprite.Sprite):
             self.basic_attack_cooldown = 200
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
-            self.cost = 15
 
         if self.name == 'zeus':
             self.hp = 100
@@ -256,7 +258,6 @@ class Tower(sprite.Sprite):
             self.basic_attack_cooldown = 225
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
-            self.cost = 20
 
         if self.name == 'yascerica':
             self.hp = 250
@@ -269,7 +270,6 @@ class Tower(sprite.Sprite):
                                  self.damage_type, 0, self.bullet_speed_x, self.bullet_speed_y, 'yas',
                                  self)
             self.bullet.remove(bullets_group)
-            self.cost = 10
 
         if self.name == 'parasitelniy':
             self.hp = 2200
@@ -279,7 +279,6 @@ class Tower(sprite.Sprite):
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.have_parasite = sprite.Group()
-            self.cost = 20
 
         if self.name == 'spike':  
             self.hp = 1
@@ -289,7 +288,6 @@ class Tower(sprite.Sprite):
             self.damage_type = ''
             self.remove(towers_group)
             self.add(nekusaemie_group)
-            self.cost = 10
 
         if self.name == 'pukish':
             self.hp = 1
@@ -302,7 +300,6 @@ class Tower(sprite.Sprite):
             self.basic_attack_cooldown2 = 15
             self.attack_cooldown2 = self.basic_attack_cooldown2
             self.damage_type = ''
-            self.cost = 25
 
         if self.name == 'urag_anus':
             self.hp = 100
@@ -311,7 +308,6 @@ class Tower(sprite.Sprite):
             self.basic_uragan_cooldown = 1875  
             self.uragan_cooldown = 375
             self.uragan = None
-            self.cost = 20
 
         if self.name == 'drachun':
             self.hp = 400
@@ -320,7 +316,6 @@ class Tower(sprite.Sprite):
             self.basic_attack_cooldown = 55
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
-            self.cost = 10
 
         if self.name == 'nuka_kusni':
             self.hpchela = 500
@@ -345,7 +340,6 @@ class Tower(sprite.Sprite):
             self.basic_attack_cooldown = 750
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
-            self.cost = 30
 
         if self.name == 'big_mechman':
             self.hp = 600
@@ -354,26 +348,21 @@ class Tower(sprite.Sprite):
             self.basic_attack_cooldown = 250
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
-            self.cost = 15
 
         if self.name == 'terpila':  # циферки поменять
             self.hp = 6000
-            self.cost = 20
 
         if self.name == 'oh_shit_i_am_sorry__barrier_mag':
             self.hp = 1500
             self.barrier_hp = 3000
             self.basic_barrier_cooldown = 750  # 3375
             self.barrier_cooldown = 0
-            self.cost = 20
 
         if self.name == 'davalka':
             self.hp = 200
             self.skolko_deneg_dast = 30
             self.basic_davanie_cooldown = 900
             self.davanie_cooldown = self.basic_davanie_cooldown
-            self.cost = 20
-            self.time_on_screen = 0  # это для плюс денег
 
         if self.name == 'matricayshon':
             self.hp = 500
@@ -381,7 +370,6 @@ class Tower(sprite.Sprite):
                 self.buff_x = 1+(i%3)*128-128
                 self.buff_y = 1+(i//3)*128-128
                 self.buff = Buff("mat", self.rect.x + self.buff_x, self.rect.y + self.buff_y)
-            self.cost = 30
 
         # СТАТЫ конец
 
@@ -608,8 +596,7 @@ class Tower(sprite.Sprite):
             if self.davanie_cooldown <= 0:
                 self.davanie_cooldown = self.basic_davanie_cooldown
                 level.money += self.skolko_deneg_dast
-                self.plus_dengi = font20.render('+30', True, (0, 70, 200))
-                self.time_on_screen = 50
+                Alert("+30", (self.rect.centerx-15, self.rect.centery-55), 50, font30, (0, 70, 200))  # мне было больно смотреть на time_on_screen, когда есть алерты
 
         if self.name == 'oh_shit_i_am_sorry__barrier_mag': 
             if self.barrier_cooldown <= 0:
@@ -656,9 +643,6 @@ class Tower(sprite.Sprite):
         if self.name == 'davalka':
             if self.davanie_cooldown > 0:
                 self.davanie_cooldown -= 1
-            if self.time_on_screen > 0:
-                screen.blit(self.plus_dengi, (self.rect.centerx-15, self.rect.centery-55))
-                self.time_on_screen -= 1
 
 
 class Bullet(sprite.Sprite):
@@ -1053,6 +1037,7 @@ class UI(sprite.Sprite):
 
         screen.blit(font30.render(str(self.kd_time), True, (255, 255, 255)), (self.default_pos[0] - 49, self.default_pos[1] + 50))  # потом будет графически так что пох что пропадает
 
+
 class Button:  # Переделать на спрайты кнопок
     def __init__(self, data_type, font_or_path, text_or_img, closed=False):
         if data_type == "img":
@@ -1069,16 +1054,14 @@ class Button:  # Переделать на спрайты кнопок
         self.closed = closed
         buttons_group.append(self)
 
-    def click(self, surf, mouse_pos, pos, col=(255, 255, 255)):
+    def click(self, surf, mouse_pos, pos, col=(255, 255, 255), offset_pos=(0, 0)):  # offset_pos нужно только где есть скрол
         if self.data_type == "text":
             self.image = self.font.render(self.text, font, col)   # По дефолту цвет текста белый. Я ебал по 50 раз писать одно и тоже
-        self.pos = pos
-        self.rect = self.image.get_rect(topleft=self.pos)
-        self.rect = self.image.get_rect(topleft=pos)
+        self.rect = self.image.get_rect(topleft=(pos[0] + offset_pos[0], pos[1] + offset_pos[1]))
 
-        surf.blit(self.image, self.rect)
+        surf.blit(self.image, (self.rect.x - offset_pos[0], self.rect.y - offset_pos[1]))
         if self.ok is True:
-            surf.blit(image.load("images/other/ok.png").convert_alpha(), self.rect)
+            surf.blit(image.load("images/other/ok.png").convert_alpha(), (self.rect.x - offset_pos[0], self.rect.y - offset_pos[1]))
 
         if not self.rect.collidepoint(mouse_pos):
             self.pushed = False
@@ -1187,6 +1170,19 @@ def level_box_button_create(button_number):
         return Button("img", "menu", "level_box_closed", True)
 
 
+def scroll_offset_min_max(min_offset, max_offset):
+    global scroll_offset, current_scroll_offset_state
+
+    if scroll_offset < min_offset:
+        scroll_offset = min_offset
+    if scroll_offset > max_offset:
+        scroll_offset = max_offset
+
+    if current_scroll_offset_state != game_state:
+        scroll_offset = 0
+        current_scroll_offset_state = game_state
+
+
 def menu_positioning():
     global game_state,\
             new_game,\
@@ -1197,7 +1193,9 @@ def menu_positioning():
             level_box_buttons,\
             unlocked_levels, \
             levels, \
-            level, blocked_slots
+            level,\
+            blocked_slots,\
+            scroll_offset
 
     mouse_pos = mouse.get_pos()
 
@@ -1235,31 +1233,48 @@ def menu_positioning():
 
     if game_state == "level_select":
         screen.blit(main_menu, (0, 0))
-        screen.blit(level_select_menu, (320, 150))
+        screen.blit(select_menu, (320, 150))      # (320, 150) и будет offset_pos
+        select_menu.blit(select_menu_copy, (0, 0))
+        scroll_offset_min_max(-1000, 0)
 
-        for i in range(len(level_box_buttons)):
+        for i in range(1, len(level_box_buttons) + 1):
+            column = i
+            line = i
             if i <= 3:
-                if level_box_buttons[i].click(screen, mouse_pos, (48 + 320 + 208 * i, 198)):     # +320, 150   (368, 198)
-                    if not level_box_buttons[i].closed:
-                        new_game = False
-                        level.refresh()
-                        level = levels[i]
-                        last_game_state = game_state
-                        game_state = "tower_select"
-                        level.state = "not_run"
-                if not level_box_buttons[i].closed:
-                    screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * i, 228))  # + 380, 40
+                column = 0
             elif i <= 7:
-                if level_box_buttons[i].click(screen, mouse_pos, (48 + 320 + 208 * (i-4), 406)):
-                    if not level_box_buttons[i].closed:
-                        new_game = False
-                        level.refresh()
-                        level = levels[i]
-                        last_game_state = game_state
-                        game_state = "tower_select"
-                        level.state = "not_run"
-                if not level_box_buttons[i].closed:
-                    screen.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 320 + 208 * (i-4), 438))
+                column = 1
+            elif i <= 11:
+                column = 2
+            # column = (i % 5)
+
+            line = int((i - 1) / 4)
+            column = (i - 1) % 4
+
+            if level_box_buttons[i-1].click(select_menu, mouse_pos, (48 + 208 * column, 48 + (line * 208) + scroll_offset), offset_pos=(320, 150)):     # +320, 150   (368, 198)
+                print(line, column)
+                if not level_box_buttons[i-1].closed:
+                    scroll_offset = 0
+                    new_game = False
+                    level.refresh()
+                    level = levels[i-1]
+                    last_game_state = game_state
+                    game_state = "tower_select"
+                    level.state = "not_run"
+            if not level_box_buttons[i-1].closed:
+                select_menu.blit(font60.render(str(i), True, (255, 255, 255)), (108 + 208 * column, 68 + (line * 370) + scroll_offset))  # + 380, 40
+            # elif i <= 7:
+            #     if level_box_buttons[i].click(select_menu, mouse_pos, (48 + 208 * (i-4), 256 + scroll_offset), offset_pos=(320, 150)):
+            #         if not level_box_buttons[i].closed:
+            #             scroll_offset = 0
+            #             new_game = False
+            #             level.refresh()
+            #             level = levels[i]
+            #             last_game_state = game_state
+            #             game_state = "tower_select"
+            #             level.state = "not_run"
+            #     if not level_box_buttons[i].closed:
+            #         select_menu.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 208 * (i-4), 438 + scroll_offset))
         # draw.line(level_select_menu, (255, 255, 255), (900, 48), (900, 552), 15)
         if back_button.click(screen, mouse_pos, (709, 620)):
             game_state = last_game_state
@@ -1334,7 +1349,9 @@ def menu_positioning():
             level.state = "not_run"
 
     if game_state == "tower_select":
-        screen.blit(tower_select_menu, (320, 150))
+        screen.blit(select_menu, (320, 150))
+        select_menu.blit(select_menu_copy, (0, 0))
+        scroll_offset_min_max(-1000, 0)
         blocked_slots = []  # если надо, чтобы не во все слоты можно было пихать башни
 
         if level.current_level == 1:
@@ -1344,16 +1361,17 @@ def menu_positioning():
 
         for i in range(len(tower_select_buttons)):
             if i < 6:
-                if tower_select_buttons[i].click(screen, mouse_pos, (350 + i * 158, 180)):
+                if tower_select_buttons[i].click(select_menu, mouse_pos, (i * 158, 30 + scroll_offset), offset_pos=(320, 150)):
                     add_to_slots_slots(i, *blocked_slots)
             elif i < 12:
-                if tower_select_buttons[i].click(screen, mouse_pos, (350 + (i-6) * 158, 334)):
+                if tower_select_buttons[i].click(select_menu, mouse_pos, ((i-6) * 158, 184 + scroll_offset), offset_pos=(320, 150)):
                     add_to_slots_slots(i, *blocked_slots)
             elif i < 18:
-                if tower_select_buttons[i].click(screen, mouse_pos, (350 + (i-12) * 158, 488)):
+                if tower_select_buttons[i].click(select_menu, mouse_pos, ((i-12) * 158, 338 + scroll_offset), offset_pos=(320, 150)):
                     add_to_slots_slots(i, *blocked_slots)
         if start_level_button.click(screen, mouse_pos, (567, 650)):
             if len(selected_towers) == 7 - len(blocked_slots):
+                scroll_offset = 0
                 game_state = "run"
                 level.clear("ui_group")
                 level.state = "not_run"
@@ -1514,8 +1532,11 @@ while running:
     mouse_pos = mouse.get_pos()
 
     menu_positioning()
+    # scroll_offset_back_to_default("level_select", "tower_select")
     alert_group.update()
     alert_group.draw(screen)
+
+    screen.blit(cursor, mouse_pos)
     # print(f"now: {game_state}, last: {last_game_state}")      # не убирать!!!
     # print(level.state)
 
@@ -1551,6 +1572,9 @@ while running:
     display.update()
     for e in event.get():
         # keys = key.get_pressed()
+        if e.type == MOUSEWHEEL and (game_state == "level_select" or game_state == "tower_select"):
+            scroll_offset += e.y * 50
+            print(e.y, scroll_offset)
         if e.type == KEYDOWN:
             if e.key == K_ESCAPE and game_state == "run" \
                                 or game_state == "paused"\
@@ -1625,7 +1649,6 @@ while running:
                                     if hasattr(obj, "bullet"):
                                         obj.bullet.kill()
                                     obj.kill()
-
 
 with open("save.txt", "w", encoding="utf-8") as file:
     new_game = True
