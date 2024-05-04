@@ -1263,18 +1263,6 @@ def menu_positioning():
                     level.state = "not_run"
             if not level_box_buttons[i-1].closed:
                 select_menu.blit(font60.render(str(i), True, (255, 255, 255)), (108 + 208 * column, 68 + (line * 370) + scroll_offset))  # + 380, 40
-            # elif i <= 7:
-            #     if level_box_buttons[i].click(select_menu, mouse_pos, (48 + 208 * (i-4), 256 + scroll_offset), offset_pos=(320, 150)):
-            #         if not level_box_buttons[i].closed:
-            #             scroll_offset = 0
-            #             new_game = False
-            #             level.refresh()
-            #             level = levels[i]
-            #             last_game_state = game_state
-            #             game_state = "tower_select"
-            #             level.state = "not_run"
-            #     if not level_box_buttons[i].closed:
-            #         select_menu.blit(font60.render(str(i+1), True, (255, 255, 255)), (108 + 208 * (i-4), 438 + scroll_offset))
         # draw.line(level_select_menu, (255, 255, 255), (900, 48), (900, 552), 15)
         if back_button.click(screen, mouse_pos, (709, 620)):
             game_state = last_game_state
@@ -1359,16 +1347,12 @@ def menu_positioning():
         if level.current_level == 2:
             blocked_slots = []
 
-        for i in range(len(tower_select_buttons)):
-            if i < 6:
-                if tower_select_buttons[i].click(select_menu, mouse_pos, (i * 158, 30 + scroll_offset), offset_pos=(320, 150)):
-                    add_to_slots_slots(i, *blocked_slots)
-            elif i < 12:
-                if tower_select_buttons[i].click(select_menu, mouse_pos, ((i-6) * 158, 184 + scroll_offset), offset_pos=(320, 150)):
-                    add_to_slots_slots(i, *blocked_slots)
-            elif i < 18:
-                if tower_select_buttons[i].click(select_menu, mouse_pos, ((i-12) * 158, 338 + scroll_offset), offset_pos=(320, 150)):
-                    add_to_slots_slots(i, *blocked_slots)
+        for i in range(1, len(tower_select_buttons) + 1):
+
+            line = int((i - 1) / 6)
+            column = (i - 1) % 6
+            if tower_select_buttons[i-1].click(select_menu, mouse_pos, (column * 158, 30 + line * 154 + scroll_offset), offset_pos=(320, 150)):
+                add_to_slots_slots(i-1, *blocked_slots)
         if start_level_button.click(screen, mouse_pos, (567, 650)):
             if len(selected_towers) == 7 - len(blocked_slots):
                 scroll_offset = 0
