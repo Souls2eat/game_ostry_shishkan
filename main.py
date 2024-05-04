@@ -47,7 +47,7 @@ class ModGroup(sprite.Group):
 
     def draw2(self, surf):
         for obj in self.sprites():
-            if hasattr(sprite, "image2"):
+            if hasattr(obj, "image2"):
                 obj.draw2(surf)
 
 
