@@ -46,9 +46,9 @@ class ModGroup(sprite.Group):
         super().__init__()
 
     def draw2(self, surf):
-        for sprite in self.sprites():
+        for obj in self.sprites():
             if hasattr(sprite, "image2"):
-                sprite.draw2(surf)
+                obj.draw2(surf)
 
 
 class Level:
@@ -198,9 +198,10 @@ class Tower(sprite.Sprite):
         self.image = image.load(f"images/towers/{unit}.png").convert_alpha()
         self.is_dead = False
         self.pos = pos
+        self.kd = 150
 
         self.name = unit
-        self.rect = self.image.get_rect(topleft=(pos))
+        self.rect = self.image.get_rect(topleft=pos)
         self.have_barrier = False
 
         # СТАТЫ начало
@@ -911,7 +912,7 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
 
 
 class UI(sprite.Sprite):
-    def __init__(self, pos, path, unit_inside):
+    def __init__(self, pos, path, unit_inside, kd_time=0):
         super().__init__(ui_group, all_sprites_group)
         self.image = image.load(f"images/{path}/images_inside/{unit_inside}_inside.png").convert_alpha()
         self.pos = pos
@@ -920,24 +921,16 @@ class UI(sprite.Sprite):
         self.path = path
         self.unit_inside = unit_inside
         self.is_move = False
+        self.kd_time = 0
+        self.default_kd_time = kd_time
+        self.loaded_p = False
 
         if self.path == "towers":
-            # unit = Tower(self.unit_inside, (0, 0))
-            # if hasattr(unit, "cost"):
-            #     self.cost = unit.cost
-            #     self.image2 = font30.render(str(self.cost), True, (255, 255, 255))
-            #     self.rect2 = self.image2.get_rect(topleft=(self.default_pos[0] - 49, self.default_pos[1] + 4))
-            # if hasattr(unit, "bullet"):
-            #     unit.bullet.kill()
-            # unit.kill()
-            # for buff in buffs_group:
-            #     buff.kill()
             self.cost = tower_costs[unit_inside]                                # Аналог без ебанины :)
             self.image2 = font30.render(str(self.cost), True, (255, 255, 255))
             self.rect2 = self.image2.get_rect(topleft=(self.default_pos[0] - 49, self.default_pos[1] + 4))
 
     def move(self):
-        self.image = image.load(f"images/{self.path}/{self.unit_inside}.png").convert_alpha()
         self.pos = mouse.get_pos()
         self.rect = self.image.get_rect(center=self.pos)
 
@@ -950,10 +943,25 @@ class UI(sprite.Sprite):
         surf.blit(self.image2, self.rect2)
 
     def update(self):
-        if self.is_move:
+        if level.cheat:
+            self.kd_time = -1
+
+        if self.is_move and self.kd_time == -1:                         # если нажал кнопку и кд откатилось
+            self.image = image.load(f"images/{self.path}/{self.unit_inside}.png").convert_alpha()
             self.move()
-        if self.is_move is not True:
-            self.back_to_default()
+        if self.is_move and self.kd_time != -1:                         # если нажал кнопку и кд не откатилось
+            self.is_move = False
+        if self.is_move is not True and self.pos != self.default_pos:   # если отжал кнопку и не на дефолтной позиции.
+            self.back_to_default()                                      # тут короче баг был, что функция постоянно вызывалась и подгружала изображение :)
+
+        if self.kd_time == self.default_kd_time:                        # когда  обновилось кд, загрузить картинку закрытого слота
+            self.image = image.load("images/other/kd_slota.png").convert_alpha()
+        if self.kd_time == 0:                                           # когда кд дошло до нуля, загрузить картину юнита
+            self.image = image.load(f"images/{self.path}/images_inside/{self.unit_inside}_inside.png").convert_alpha()
+            self.kd_time = -1                                           # чтобы картинка загрузилась только 1 раз, а потом проверка не пройдёт
+
+        if self.kd_time > 0:                                            # уменьшает кд с каждым циклом
+            self.kd_time -= 1
 
 
 class Button:  # Переделать на спрайты кнопок
@@ -1062,9 +1070,9 @@ def add_to_slots_slots(i, *blocked_slots):              # instant_select буд�
     elif len(selected_towers) <= 6 - len(blocked_slots):
         tower_select_buttons[i].ok = True
         if blocked_slots:
-            UI((94, first_empty_slot(*blocked_slots)), "towers", tower_select_buttons[i].unit_inside)
+            UI((94, first_empty_slot(*blocked_slots)), "towers", tower_select_buttons[i].unit_inside, towers_kd[tower_select_buttons[i].unit_inside])
         else:
-            UI((94, first_empty_slot()), "towers", tower_select_buttons[i].unit_inside)
+            UI((94, first_empty_slot()), "towers", tower_select_buttons[i].unit_inside,towers_kd[tower_select_buttons[i].unit_inside])
         selected_towers.append(tower_select_buttons[i].unit_inside)
     else:
         Alert("Закончились свободные слоты", (345, 580), 75)
@@ -1399,7 +1407,8 @@ tower_select_buttons = [
             tower_select_button14,
             tower_select_button15,
             tower_select_button16,
-            tower_select_button17]
+            tower_select_button17
+]
 
 levels = [Level(1, 7500, 375, 300, level_1_waves, enemy_costs),         # enemy_costs -- туда закидывается враг и его стоимость
           Level(2, 3000, 150, 300, level_2_waves, enemy_costs),         # типо можно выбрать, каких врагов спавнить можно, а каких нет
@@ -1500,7 +1509,6 @@ while running:
             for el in ui_group:
                 if el.rect.collidepoint(mouse_pos):
                     el.is_move = True
-                    el.last_clicked = True
         if e.type == MOUSEBUTTONUP:  # При отжатии кнопки мыши
             mouse_pos = mouse.get_pos()
             unit_pos = (384 + ((mouse_pos[0] - 384) // 128) * 128), (192 + ((mouse_pos[1] - 192) // 128) * 128)
@@ -1514,12 +1522,15 @@ while running:
                             if is_free(el):
                                 if level.money - tower_costs[el.unit_inside] >= 0:  # Это пиздец, но оно работает. Придумаете лучше -- переделаете
                                     Tower(el.unit_inside, unit_pos)
-                                    level.money -= tower_costs[el.unit_inside]
+                                    if not level.cheat:
+                                        level.money -= tower_costs[el.unit_inside]
+                                    el.kd_time = el.default_kd_time
 
                         if el.path == "shovel":
                             for obj in [*towers_group, *nekusaemie_group]:           # Сразу по 2 группам
                                 if obj.rect.collidepoint(el.rect.centerx, el.rect.centery):
-                                    level.money += tower_costs[obj.name] // 2
+                                    if not level.cheat:
+                                        level.money += tower_costs[obj.name] // 2
                                     if hasattr(obj, "bullet"):
                                         obj.bullet.kill()
                                     obj.kill()

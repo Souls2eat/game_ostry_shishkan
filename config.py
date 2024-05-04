@@ -43,3 +43,23 @@ tower_costs = {
     "big_mechman": 15
 
 }
+
+towers_kd = {
+    "boomchick": 200,
+    "davalka": 200,
+    "drachun": 100,
+    "fire_mag": 100,
+    "kopitel": 200,
+    "matricayshon": 300,
+    "oh_shit_i_am_sorry__barrier_mag": 200,
+    "parasitelniy": 200,
+    "pukish": 250,
+    "spike": 100,
+    "terpila": 200,
+    "thunder": 150,
+    "urag_anus": 200,
+    "yascerica": 100,
+    "zeus": 200,
+    "tolkan": 300,
+    "big_mechman": 150
+}
