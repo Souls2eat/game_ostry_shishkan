@@ -314,16 +314,37 @@ class Tower(sprite.Sprite):
 
         if self.name == 'drachun':
             self.hp = 400
-            self.atk = 30
+            self.atk = 25
             self.kulak_time = 15
             self.basic_attack_cooldown = 55
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.cost = 10
 
+        if self.name == 'tolkan':
+            self.hp = 2000
+            self.atk = 50
+            self.ottalkivanie_solo = 384
+            self.ottalkivanie_ne_solo = 128
+            self.za_towerom = False
+            self.kulak_time = 15
+            self.basic_attack_cooldown = 750
+            self.attack_cooldown = self.basic_attack_cooldown
+            self.damage_type = ''
+            self.cost = 30
+
+        if self.name == 'big_mechman':
+            self.hp = 600
+            self.atk = 75
+            self.kulak_time = 15
+            self.basic_attack_cooldown = 250
+            self.attack_cooldown = self.basic_attack_cooldown
+            self.damage_type = ''
+            self.cost = 15
+
         if self.name == 'terpila':  # циферки поменять
             self.hp = 6000
-            self.cost = 30
+            self.cost = 20
 
         if self.name == 'oh_shit_i_am_sorry__barrier_mag':
             self.hp = 1500
@@ -404,15 +425,19 @@ class Tower(sprite.Sprite):
                                 enemy.hp -= self.atk2
                         self.attack_cooldown2 = self.basic_attack_cooldown2
 
-            if self.name == 'drachun':
+            if self.name == 'drachun' or self.name == 'tolkan' or self.name == 'big_mechman':
                 if self.kulak_time > 0:
                     self.kulak_time -= 1
                 if self.kulak_time <= 0:
                     self.kulak_time = 15
                     self.image = image.load(f"images/towers/{self.name}.png").convert_alpha()
                 for enemy in enemies_group:
-                    if enemy.rect.y == self.rect.y and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
-                        self.is_shooting()
+                    if self.name == 'drachun' or self.name == 'tolkan':
+                        if enemy.rect.y == self.rect.y and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
+                            self.is_shooting()
+                    if self.name == 'big_mechman':
+                        if (enemy.rect.y - self.rect.y <= 128 or self.rect.y - enemy.rect.y <= 128) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
+                            self.is_shooting()
 
             if self.name == 'davalka' or self.name == 'oh_shit_i_am_sorry__barrier_mag':
                 self.dayot()
@@ -508,9 +533,31 @@ class Tower(sprite.Sprite):
                 self.attack_cooldown = self.basic_attack_cooldown
                 self.image = image.load(f"images/towers/{self.name}2.png").convert_alpha()
                 for enemy in enemies_group:
-                    if enemy.rect.y == self.rect.y and enemy.rect.x - self.rect.x <= 256:
+                    if enemy.rect.y == self.rect.y and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
                         enemy.hp -= self.atk
                 self.kulak_time = 15
+
+        if self.name == 'tolkan':
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = self.basic_attack_cooldown
+                self.image = image.load(f"images/towers/{self.name}2.png").convert_alpha()
+                self.za_towerom = False
+                for tower in towers_group:
+                    if tower.rect.y == self.rect.y and tower.rect.x > self.rect.x and tower.rect.x - self.rect.x <= 128 and tower.name != 'pukish' and tower != self:
+                        self.za_towerom = True
+                for enemy in enemies_group:
+                    if enemy.rect.y == self.rect.y and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
+                        enemy.hp -= self.atk
+                        if self.za_towerom == True:
+                            enemy.rect.x += self.ottalkivanie_ne_solo
+                        else:
+                            enemy.rect.x += self.ottalkivanie_solo
+                self.kulak_time = 15
+
+        if self.name == 'big_mechman':
+            if self.attack_cooldown <= 0:
+                self.attack_cooldown = self.basic_attack_cooldown
+                self.explosion = Bullet("big_mechman2", self.rect.right, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self)
                 
 
 
@@ -536,7 +583,7 @@ class Tower(sprite.Sprite):
     def update(self):
         self.delat_chtoto()
 
-        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'zeus' or self.name == 'boomchick' or self.name == 'parasitelniy' or self.name == 'spike' or self.name == 'pukish' or self.name == 'drachun':
+        if self.name == 'fire_mag' or self.name == 'kopitel' or self.name == 'thunder' or self.name == 'zeus' or self.name == 'boomchick' or self.name == 'parasitelniy' or self.name == 'spike' or self.name == 'pukish' or self.name == 'drachun' or self.name == 'tolkan' or self.name == 'big_mechman':
             if self.attack_cooldown > 0:
                 self.attack_cooldown -= 1
 
@@ -765,7 +812,7 @@ class Buff(sprite.Sprite):
         for tower in towers_group:
             if tower not in self.buffed_towers:
                 if self.rect.collidepoint(tower.rect.centerx, tower.rect.centery):
-                    if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy' or tower.name == 'pukish' or tower.name == 'drachun':
+                    if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy' or tower.name == 'pukish' or tower.name == 'drachun' or tower.name == 'tolkan' or tower.name == 'big_mechman':
                         tower.basic_attack_cooldown //= 2
                         tower.add(self.buffed_towers)
                     if tower.name == 'urag_anus':
@@ -786,6 +833,11 @@ class Buff(sprite.Sprite):
                     self.mozhet_zhit = True
         if self.mozhet_zhit == False:
             self.kill()
+            for tower in self.buffed_towers:
+                if tower.name == 'fire_mag' or tower.name == 'kopitel' or tower.name == 'thunder' or tower.name == 'yascerica' or tower.name == 'zeus' or tower.name == 'boomchick' or tower.name == 'parasitelniy' or tower.name == 'pukish' or tower.name == 'drachun' or tower.name == 'tolkan' or tower.name == 'big_mechman':
+                    tower.basic_attack_cooldown *= 2
+                if tower.name == 'urag_anus':
+                    tower.basic_uragan_cooldown *= 2
         self.mozhet_zhit = False
 
     def update(self):
@@ -1327,6 +1379,8 @@ tower_select_button12 = Button("img", "towers", "zeus")
 tower_select_button13 = Button("img", "towers", "oh_shit_i_am_sorry__barrier_mag")
 tower_select_button14 = Button("img", "towers", "urag_anus")
 tower_select_button15 = Button("img", "towers", "drachun")
+tower_select_button16 = Button("img", "towers", "tolkan")
+tower_select_button17 = Button("img", "towers", "big_mechman")
 
 tower_select_buttons = [
             tower_select_button1,
@@ -1343,7 +1397,9 @@ tower_select_buttons = [
             tower_select_button12,
             tower_select_button13,
             tower_select_button14,
-            tower_select_button15]
+            tower_select_button15,
+            tower_select_button16,
+            tower_select_button17]
 
 levels = [Level(1, 7500, 375, 300, level_1_waves, enemy_costs),         # enemy_costs -- туда закидывается враг и его стоимость
           Level(2, 3000, 150, 300, level_2_waves, enemy_costs),         # типо можно выбрать, каких врагов спавнить можно, а каких нет
@@ -1456,10 +1512,9 @@ while running:
                     if 1536 > unit_pos[0] >= 384 and 832 > unit_pos[1] >= 192:
                         if el.path == "towers":
                             if is_free(el):
-                                if not level.cheat:
-                                    if level.money - tower_costs[el.unit_inside] > 0:  # Это пиздец, но оно работает. Придумаете лучше -- переделаете
-                                        Tower(el.unit_inside, unit_pos)
-                                        level.money -= tower_costs[el.unit_inside]
+                                if level.money - tower_costs[el.unit_inside] >= 0:  # Это пиздец, но оно работает. Придумаете лучше -- переделаете
+                                    Tower(el.unit_inside, unit_pos)
+                                    level.money -= tower_costs[el.unit_inside]
 
                         if el.path == "shovel":
                             for obj in [*towers_group, *nekusaemie_group]:           # Сразу по 2 группам

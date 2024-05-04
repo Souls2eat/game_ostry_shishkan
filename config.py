@@ -34,10 +34,12 @@ tower_costs = {
     "parasitelniy": 20,
     "pukish": 25,
     "spike": 10,
-    "terpila": 30,
+    "terpila": 20,
     "thunder": 15,
     "urag_anus": 20,
     "yascerica": 10,
     "zeus": 20,
+    "tolkan": 30,
+    "big_mechman": 15
 
 }
