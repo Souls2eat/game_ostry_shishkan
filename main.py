@@ -1051,6 +1051,7 @@ class UI(sprite.Sprite):
         if self.kd_time > 0:                                            # уменьшает кд с каждым циклом
             self.kd_time -= 1
 
+        screen.blit(font30.render(str(self.kd_time), True, (255, 255, 255)), (self.default_pos[0] - 49, self.default_pos[1] + 50))  # потом будет графически так что пох что пропадает
 
 class Button:  # Переделать на спрайты кнопок
     def __init__(self, data_type, font_or_path, text_or_img, closed=False):
