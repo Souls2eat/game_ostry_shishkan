@@ -1,3 +1,3 @@
 Думал тут что то будет? Вот сделай)
 new_game = True
-unlocked_levels = 2
+unlocked_levels = 4
