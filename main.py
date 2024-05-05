@@ -1163,11 +1163,15 @@ def first_empty_slot(*blocked_slots):
     return min(ui_pos_list - fill_pos)
 
 
-def level_box_button_create(button_number):
+def level_box_button_creator(button_number):
     if button_number <= unlocked_levels:
         return Button("img", "menu", "level_box")
     else:
         return Button("img", "menu", "level_box_closed", True)
+
+
+def tower_select_button_creator(tower_name):
+    return Button("img", "towers", tower_name)
 
 
 def scroll_offset_min_max(min_offset, max_offset):
@@ -1444,100 +1448,20 @@ new_game_button = Button("text", font60, "Новая игра",)
 level_select_button = Button("text", font60, "Выбрать уровень")
 next_level_button = Button("text", font60, "Следующий уровень")
 cheat_button = Button("img", "menu", "cheat")
-
-
-level_box_button1 = level_box_button_create(1)
-level_box_button2 = level_box_button_create(2)
-level_box_button3 = level_box_button_create(3)
-level_box_button4 = level_box_button_create(4)
-level_box_button5 = level_box_button_create(5)
-level_box_button6 = level_box_button_create(6)
-level_box_button7 = level_box_button_create(7)
-level_box_button8 = level_box_button_create(8)
-level_box_button9 = level_box_button_create(9)
-level_box_button10 = level_box_button_create(10)
-level_box_button11 = level_box_button_create(11)
-level_box_button12 = level_box_button_create(12)
-level_box_button13 = level_box_button_create(13)
-level_box_button14 = level_box_button_create(14)
-level_box_button15 = level_box_button_create(15)
-level_box_button16 = level_box_button_create(16)
-level_box_button17 = level_box_button_create(17)
-level_box_button18 = level_box_button_create(18)
-level_box_button19 = level_box_button_create(19)
-level_box_button20 = level_box_button_create(20)
-
-
-level_box_buttons = [
-    level_box_button1,
-    level_box_button2,
-    level_box_button3,
-    level_box_button4,
-    level_box_button5,
-    level_box_button6,
-    level_box_button7,
-    level_box_button8,
-    level_box_button9,
-    level_box_button10,
-    level_box_button11,
-    level_box_button12,
-    level_box_button13,
-    level_box_button14,
-    level_box_button15,
-    level_box_button16,
-    level_box_button17,
-    level_box_button18,
-    level_box_button19,
-    level_box_button20
-]
-
 start_level_button = Button("text", font60, "Начать уровень")
 
-tower_select_button1 = Button("img", "towers", "fire_mag")
-tower_select_button2 = Button("img", "towers", "davalka")
-tower_select_button3 = Button("img", "towers", "boomchick")
-tower_select_button4 = Button("img", "towers", "kopitel")
-tower_select_button5 = Button("img", "towers", "matricayshon")
-tower_select_button6 = Button("img", "towers", "parasitelniy")
-tower_select_button7 = Button("img", "towers", "pukish")
-tower_select_button8 = Button("img", "towers", "spike")
-tower_select_button9 = Button("img", "towers", "terpila")
-tower_select_button10 = Button("img", "towers", "thunder")
-tower_select_button11 = Button("img", "towers", "yascerica")
-tower_select_button12 = Button("img", "towers", "zeus")
-tower_select_button13 = Button("img", "towers", "oh_shit_i_am_sorry__barrier_mag")
-tower_select_button14 = Button("img", "towers", "urag_anus")
-tower_select_button15 = Button("img", "towers", "drachun")
-tower_select_button16 = Button("img", "towers", "tolkan")
-tower_select_button17 = Button("img", "towers", "big_mechman")
-tower_select_button18 = Button("img", "towers", "nuka_kusni")
 
-tower_select_buttons = [
-            tower_select_button1,
-            tower_select_button2,
-            tower_select_button3,
-            tower_select_button4,
-            tower_select_button5,
-            tower_select_button6,
-            tower_select_button7,
-            tower_select_button8,
-            tower_select_button9,
-            tower_select_button10,
-            tower_select_button11,
-            tower_select_button12,
-            tower_select_button13,
-            tower_select_button14,
-            tower_select_button15,
-            tower_select_button16,
-            tower_select_button17,
-            tower_select_button18,
-]
+level_box_buttons = [level_box_button_creator(i) for i in range(1, 20)]  # создание кнопок уровней без киллометра кода. 20 -- кол-во уровней в игре
+
+tower_sel = ["fire_mag", "davalka", "boomchick", "kopitel", "matricayshon", "parasitelniy", "pukish", "spike",
+             "terpila", "thunder", "yascerica", "zeus", "oh_shit_i_am_sorry__barrier_mag", "urag_anus", "drachun",
+             "tolkan", "big_mechman", "nuka_kusni"]                                                                               # просто добавить имя башни
+tower_select_buttons = [tower_select_button_creator(tower_name) for tower_name in tower_sel]    # создание кнопок выбора башен без киллометра кода
 
 levels = [Level(1, 7500, 300, 300, level_1_waves, enemy_costs),         # enemy_costs -- туда закидывается враг и его стоимость
           Level(2, 3000, 150, 300, level_2_waves, enemy_costs),         # типо можно выбрать, каких врагов спавнить можно, а каких нет
           Level(3, 6000, 225, 300, level_3_waves, enemy_costs),
           Level(4, 4000, 75, 300, level_4_waves, enemy_costs)]         # это из конфига
-
 level = levels[0]
 
 
@@ -1545,14 +1469,13 @@ running = True
 while running:
 
     mouse_pos = mouse.get_pos()
-
     menu_positioning()
-    # scroll_offset_back_to_default("level_select", "tower_select")
     alert_group.update()
     alert_group.draw(screen)
 
     if mouse.get_focused():                                     # прикольно)
         screen.blit(cursor, mouse_pos)
+
     # print(f"now: {game_state}, last: {last_game_state}")      # не убирать!!!
     # print(level.state)
 
@@ -1590,7 +1513,7 @@ while running:
         # keys = key.get_pressed()
         if e.type == MOUSEWHEEL and (game_state == "level_select" or game_state == "tower_select"):
             scroll_offset += e.y * 50
-            print(scroll_offset)
+            # print(scroll_offset)
         if e.type == KEYDOWN:
             if e.key == K_ESCAPE and game_state == "run" \
                                 or game_state == "paused"\
@@ -1639,7 +1562,6 @@ while running:
         if e.type == MOUSEMOTION and (game_state == "level_select" or game_state == "tower_select"):
             if mouse.get_pressed()[0]:
                 scroll_offset -= e.rel[1] * 2
-                print(scroll_offset)
 
         if e.type == MOUSEBUTTONDOWN:                                                       # При нажатии кнопки мыши
             mouse_pos = mouse.get_pos()
