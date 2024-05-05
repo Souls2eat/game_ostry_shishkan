@@ -1235,7 +1235,7 @@ def menu_positioning():
         screen.blit(main_menu, (0, 0))
         screen.blit(select_menu, (320, 150))      # (320, 150) и будет offset_pos
         select_menu.blit(select_menu_copy, (0, 0))
-        scroll_offset_min_max(-1000, 0)
+        scroll_offset_min_max(-450, 0)
 
         for i in range(1, len(level_box_buttons) + 1):
             column = i
@@ -1252,7 +1252,6 @@ def menu_positioning():
             column = (i - 1) % 4
 
             if level_box_buttons[i-1].click(select_menu, mouse_pos, (48 + 208 * column, 48 + (line * 208) + scroll_offset), offset_pos=(320, 150)):     # +320, 150   (368, 198)
-                print(line, column)
                 if not level_box_buttons[i-1].closed:
                     scroll_offset = 0
                     new_game = False
@@ -1262,8 +1261,12 @@ def menu_positioning():
                     game_state = "tower_select"
                     level.state = "not_run"
             if not level_box_buttons[i-1].closed:
-                select_menu.blit(font60.render(str(i), True, (255, 255, 255)), (108 + 208 * column, 68 + (line * 370) + scroll_offset))  # + 380, 40
-        # draw.line(level_select_menu, (255, 255, 255), (900, 48), (900, 552), 15)
+                if i // 10 == 0:
+                    select_menu.blit(font60.render(str(i), True, (255, 255, 255)), (108 + (208 * column), 80 + (line * 208) + scroll_offset))  # + 380, 40
+                if 1 <= i // 10 <= 9:
+                    select_menu.blit(font60.render(str(i), True, (255, 255, 255)), (91 + (208 * column), 80 + (line * 208) + scroll_offset))
+        # draw.line(select_menu, (255, 255, 255), (900, 48), (900, 552), 20)
+        # draw.rect(select_menu, "RED", (895, 53, 12, 100))
         if back_button.click(screen, mouse_pos, (709, 620)):
             game_state = last_game_state
 
@@ -1339,7 +1342,7 @@ def menu_positioning():
     if game_state == "tower_select":
         screen.blit(select_menu, (320, 150))
         select_menu.blit(select_menu_copy, (0, 0))
-        scroll_offset_min_max(-1000, 0)
+        scroll_offset_min_max(-450, 0)
         blocked_slots = []  # если надо, чтобы не во все слоты можно было пихать башни
 
         if level.current_level == 1:
@@ -1349,10 +1352,12 @@ def menu_positioning():
 
         for i in range(1, len(tower_select_buttons) + 1):
 
-            line = int((i - 1) / 6)
-            column = (i - 1) % 6
-            if tower_select_buttons[i-1].click(select_menu, mouse_pos, (column * 158, 30 + line * 154 + scroll_offset), offset_pos=(320, 150)):
+            line = int((i - 1) / 4)
+            column = (i - 1) % 4
+            if tower_select_buttons[i-1].click(select_menu, mouse_pos, (48 + 208 * column, 48 + (line * 208) + scroll_offset), offset_pos=(320, 150)):
                 add_to_slots_slots(i-1, *blocked_slots)
+        # draw.line(select_menu, (255, 255, 255), (900, 48), (900, 552), 20)
+
         if start_level_button.click(screen, mouse_pos, (567, 650)):
             if len(selected_towers) == 7 - len(blocked_slots):
                 scroll_offset = 0
@@ -1449,6 +1454,19 @@ level_box_button5 = level_box_button_create(5)
 level_box_button6 = level_box_button_create(6)
 level_box_button7 = level_box_button_create(7)
 level_box_button8 = level_box_button_create(8)
+level_box_button9 = level_box_button_create(9)
+level_box_button10 = level_box_button_create(10)
+level_box_button11 = level_box_button_create(11)
+level_box_button12 = level_box_button_create(12)
+level_box_button13 = level_box_button_create(13)
+level_box_button14 = level_box_button_create(14)
+level_box_button15 = level_box_button_create(15)
+level_box_button16 = level_box_button_create(16)
+level_box_button17 = level_box_button_create(17)
+level_box_button18 = level_box_button_create(18)
+level_box_button19 = level_box_button_create(19)
+level_box_button20 = level_box_button_create(20)
+
 
 level_box_buttons = [
     level_box_button1,
@@ -1458,7 +1476,19 @@ level_box_buttons = [
     level_box_button5,
     level_box_button6,
     level_box_button7,
-    level_box_button8
+    level_box_button8,
+    level_box_button9,
+    level_box_button10,
+    level_box_button11,
+    level_box_button12,
+    level_box_button13,
+    level_box_button14,
+    level_box_button15,
+    level_box_button16,
+    level_box_button17,
+    level_box_button18,
+    level_box_button19,
+    level_box_button20
 ]
 
 start_level_button = Button("text", font60, "Начать уровень")
@@ -1500,12 +1530,13 @@ tower_select_buttons = [
             tower_select_button15,
             tower_select_button16,
             tower_select_button17,
-            tower_select_button18
+            tower_select_button18,
 ]
 
-levels = [Level(1, 7500, 375, 300, level_1_waves, enemy_costs),         # enemy_costs -- туда закидывается враг и его стоимость
+levels = [Level(1, 7500, 300, 300, level_1_waves, enemy_costs),         # enemy_costs -- туда закидывается враг и его стоимость
           Level(2, 3000, 150, 300, level_2_waves, enemy_costs),         # типо можно выбрать, каких врагов спавнить можно, а каких нет
-          Level(3, 6000, 225, 300, level_3_waves, enemy_costs)]         # это из конфига
+          Level(3, 6000, 225, 300, level_3_waves, enemy_costs),
+          Level(4, 4000, 75, 300, level_4_waves, enemy_costs)]         # это из конфига
 
 level = levels[0]
 
@@ -1520,7 +1551,8 @@ while running:
     alert_group.update()
     alert_group.draw(screen)
 
-    screen.blit(cursor, mouse_pos)
+    if mouse.get_focused():                                     # прикольно)
+        screen.blit(cursor, mouse_pos)
     # print(f"now: {game_state}, last: {last_game_state}")      # не убирать!!!
     # print(level.state)
 
@@ -1558,7 +1590,7 @@ while running:
         # keys = key.get_pressed()
         if e.type == MOUSEWHEEL and (game_state == "level_select" or game_state == "tower_select"):
             scroll_offset += e.y * 50
-            print(e.y, scroll_offset)
+            print(scroll_offset)
         if e.type == KEYDOWN:
             if e.key == K_ESCAPE and game_state == "run" \
                                 or game_state == "paused"\
@@ -1603,17 +1635,23 @@ while running:
                 running = False
         if e.type == QUIT:           # низя!!!
              running = False
-        if e.type == MOUSEBUTTONDOWN:  # При нажатии кнопки мыши
+
+        if e.type == MOUSEMOTION and (game_state == "level_select" or game_state == "tower_select"):
+            if mouse.get_pressed()[0]:
+                scroll_offset -= e.rel[1] * 2
+                print(scroll_offset)
+
+        if e.type == MOUSEBUTTONDOWN:                                                       # При нажатии кнопки мыши
             mouse_pos = mouse.get_pos()
             for el in ui_group:
                 if el.rect.collidepoint(mouse_pos):
                     el.is_move = True
-        if e.type == MOUSEBUTTONUP:  # При отжатии кнопки мыши
+        if e.type == MOUSEBUTTONUP:                                                          # При отжатии кнопки мыши
             mouse_pos = mouse.get_pos()
             unit_pos = (384 + ((mouse_pos[0] - 384) // 128) * 128), (192 + ((mouse_pos[1] - 192) // 128) * 128)
 
             for el in ui_group:
-                if el.rect.collidepoint(mouse_pos):  # если элемент отпущен
+                if el.rect.collidepoint(mouse_pos):                                          # если элемент отпущен
                     el.is_move = False
 
                     if 1536 > unit_pos[0] >= 384 and 832 > unit_pos[1] >= 192:
@@ -1626,7 +1664,7 @@ while running:
                                     el.kd_time = el.default_kd_time
 
                         if el.path == "shovel":
-                            for obj in [*towers_group, *nekusaemie_group]:           # Сразу по 2 группам
+                            for obj in [*towers_group, *nekusaemie_group]:                  # Сразу по 2 группам
                                 if obj.rect.collidepoint(el.rect.centerx, el.rect.centery):
                                     if not level.cheat:
                                         level.money += tower_costs[obj.name] // 2
