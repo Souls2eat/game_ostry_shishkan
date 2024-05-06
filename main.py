@@ -51,10 +51,12 @@ class ModGroup(sprite.Group):
     def __init__(self):
         super().__init__()
 
-    def draw2(self, surf):
+    def draw_other(self, surf):
         for obj in self.sprites():
             if hasattr(obj, "image2"):
                 obj.draw2(surf)
+            if hasattr(obj, "image3"):
+                obj.draw3(surf)
 
 
 class Level:
@@ -88,7 +90,7 @@ class Level:
         waves_points = self.waves[wave_time]
         enemy_x_cord = 1600
         while waves_points > 0:
-            enemy_name = choice([*self.allowed_enemies])
+            enemy_name = choice(self.allowed_enemies)
             enemy_y_cord = choice(self.allowed_cords)
             Enemy(enemy_name, (enemy_x_cord, enemy_y_cord))
             waves_points -= enemy_costs[enemy_name]
@@ -96,7 +98,7 @@ class Level:
 
     def random_spawn_enemies(self):
         enemy_y_cord = choice(self.allowed_cords)
-        enemy_name = choice([*self.allowed_enemies])
+        enemy_name = choice(self.allowed_enemies)
         Enemy(enemy_name, (1600, enemy_y_cord))
 
     @staticmethod
@@ -136,8 +138,6 @@ class Level:
                 nekusaemiy.kill()
             for bullet in bullets_group:
                 bullet.kill()
-            # for el in ui_group:
-            #     el.is_move = False
             for cloud in clouds_group:
                 cloud.kill()
             for ui in ui_group:
@@ -980,12 +980,15 @@ class UI(sprite.Sprite):
         self.pos = pos
         self.default_pos = pos
         self.rect = self.image.get_rect(topleft=self.pos)
+        self.image3 = image.load("images/other/nothing.png").convert_alpha()
+        self.rect3 = self.image3.get_rect(topleft=self.default_pos)
         self.path = path
         self.unit_inside = unit_inside
         self.is_move = False
         self.kd_time = 0
         self.default_kd_time = kd_time
         self.loaded_p = False
+
 
         if self.path == "towers":
             self.cost = tower_costs[unit_inside]                                # Аналог без ебанины :)
@@ -1004,6 +1007,9 @@ class UI(sprite.Sprite):
     def draw2(self, surf):
         surf.blit(self.image2, self.rect2)
 
+    def draw3(self, surf):
+        surf.blit(self.image3, self.rect3)
+
     def update(self):
         if level.cheat:
             self.kd_time = -1
@@ -1017,9 +1023,9 @@ class UI(sprite.Sprite):
             self.back_to_default()                                      # тут короче баг был, что функция постоянно вызывалась и подгружала изображение :)
 
         if self.kd_time == self.default_kd_time:                        # когда  обновилось кд, загрузить картинку закрытого слота
-            self.image = image.load("images/other/kd_slota.png").convert_alpha()
+            self.image3 = image.load("images/other/kd_slota.png").convert_alpha()
         if self.kd_time == 0:                                           # когда кд дошло до нуля, загрузить картину юнита
-            self.image = image.load(f"images/{self.path}/images_inside/{self.unit_inside}_inside.png").convert_alpha()
+            self.image3 = image.load(f"images/other/nothing.png").convert_alpha()
             self.kd_time = -1                                           # чтобы картинка загрузилась только 1 раз, а потом проверка не пройдёт
 
         if self.kd_time > 0:                                            # уменьшает кд с каждым циклом
@@ -1279,7 +1285,7 @@ def menu_positioning():
         screen.blit(font40.render(str(level.money), True, (0, 0, 0)), (88, 53))
 
         all_sprites_group.draw(screen)
-        all_sprites_group.draw2(screen)
+        all_sprites_group.draw_other(screen)
 
     if game_state == "run":
         game_state = level.update()
@@ -1431,7 +1437,7 @@ ui_group = sprite.Group()
 all_sprites_group = ModGroup()
 clouds_group = sprite.Group()
 alert_group = sprite.Group()
-level_group = sprite.Group()    # заебись, левел груп в которой 1 значение
+level_group = sprite.Group()
 
 
 pause_button = Button("text", font40, "||",)
