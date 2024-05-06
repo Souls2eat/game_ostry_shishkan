@@ -1472,6 +1472,8 @@ level = levels[0]
 running = True
 while running:
 
+
+
     mouse_pos = mouse.get_pos()
     menu_positioning()
     alert_group.update()
