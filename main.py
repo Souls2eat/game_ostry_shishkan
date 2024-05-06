@@ -1243,21 +1243,25 @@ def menu_positioning():
 
             if level_box_buttons[i-1].click(select_menu, mouse_pos, (50 + 228 * column, 60 + (line * 228) + scroll_offset), offset_pos=(160, 150)):  # 50 + 10 можно
                 if not level_box_buttons[i-1].closed:
-                    scroll_offset = 0
-                    new_game = False
-                    level.refresh()
-                    level = levels[i-1]
-                    last_game_state = game_state
-                    game_state = "tower_select"
-                    level.state = "not_run"
+                    if len(levels) >= i:        # проверка есть ли уровень в списке
+                        scroll_offset = 0
+                        new_game = False
+                        level.refresh()
+                        level = levels[i-1]
+                        last_game_state = game_state
+                        game_state = "tower_select"
+                        level.state = "not_run"
+                    else:
+                        Alert("Пока не сделан", (572, 750), 75)
             if not level_box_buttons[i-1].closed:
                 if i // 10 == 0:
                     select_menu.blit(font60.render(str(i), True, (255, 255, 255)), (108 + (228 * column), 90 + (line * 228) + scroll_offset))  # 108 + 10 можно
                 if 1 <= i // 10 <= 9:
                     select_menu.blit(font60.render(str(i), True, (255, 255, 255)), (90 + (228 * column), 90 + (line * 228) + scroll_offset))  # 90 + 10 можно
                 if level_box_buttons[i-1].hovered(mouse_pos, (50 + 228 * column, 60 + (line * 228) + scroll_offset), offset_pos=(160, 150)):
-                    for index, enemy_name in enumerate(levels[i-1].allowed_enemies):
-                        screen.blit(image.load(f"images/enemies/{enemy_name}.png"), (1100 + index * 80, 200))
+                    if len(levels) >= i:         # проверка есть ли уровень в списке
+                        for index, enemy_name in enumerate(levels[i-1].allowed_enemies):
+                            screen.blit(image.load(f"images/enemies/{enemy_name}.png"), (1100 + index * 80, 200))
 
         if back_button.click(screen, mouse_pos, (1190, 630)):
             game_state = last_game_state
@@ -1347,6 +1351,9 @@ def menu_positioning():
             column = (i - 1) % 6
             if tower_select_buttons[i-1].click(select_menu, mouse_pos, (20 + 154 * column, 30 + (line * 154) + scroll_offset), offset_pos=(250, 150)):
                 add_to_slots_slots(i-1, *blocked_slots)
+            if tower_select_buttons[i-1].hovered(mouse_pos, (20 + 154 * column, 30 + (line * 154) + scroll_offset), offset_pos=(250, 150)):
+                screen.blit(font40.render(tower_select_buttons[i-1].unit_inside, True, (255, 255, 255)), (1285, 200))
+                screen.blit(font40.render("Цена:" + str(tower_costs[tower_select_buttons[i-1].unit_inside]), True, (255, 255, 255)), (1285, 280))   # пока
 
         if start_level_button.click(screen, mouse_pos, (1265, 630)):
             if len(selected_towers) == 7 - len(blocked_slots):
@@ -1439,15 +1446,16 @@ start_level_button = Button("text", font60, "Начать")
 
 level_box_buttons = [level_box_button_creator(i) for i in range(1, 21)]  # создание кнопок уровней без киллометра кода. 20 -- кол-во уровней в игре
 
-tower_sel = ["fire_mag", "davalka", "boomchick", "kopitel", "matricayshon", "parasitelniy", "pukish", "spike",
-             "terpila", "thunder", "yascerica", "zeus", "oh_shit_i_am_sorry__barrier_mag", "urag_anus", "drachun",
-             "tolkan", "big_mechman", "nuka_kusni"]                                                                               # просто добавить имя башни
-tower_select_buttons = [tower_select_button_creator(tower_name) for tower_name in tower_sel]    # создание кнопок выбора башен без киллометра кода
+tower_button_names = ["fire_mag", "davalka", "boomchick", "kopitel", "matricayshon", "parasitelniy", "pukish", "spike",
+                      "terpila", "thunder", "yascerica", "zeus", "oh_shit_i_am_sorry__barrier_mag", "urag_anus", "drachun",
+                      "tolkan", "big_mechman", "nuka_kusni"]                                                                               # просто добавить имя башни
+tower_select_buttons = [tower_select_button_creator(tower_name) for tower_name in tower_button_names]    # создание кнопок выбора башен без киллометра кода
 
-levels = [Level(1, 7500, 300, 300, level_1_waves, ("popusk", "sigma", "josky")),         # enemy_costs -- туда закидывается враг и его стоимость
-          Level(2, 3000, 150, 300, level_2_waves, ("popusk", "sigma")),         # типо можно выбрать, каких врагов спавнить можно, а каких нет
-          Level(3, 6000, 225, 300, level_3_waves, ("josky", "sigma")),
-          Level(4, 4000, 75, 300, level_4_waves, ("josky", "popusk"))]         # это из конфига
+levels = [Level(1, 7500, 300, 300, level_1_waves, ("popusk", "sigma", "josky")),
+          Level(2, 3000, 150, 300, level_2_waves, ("popusk", "sigma")),             # типо можно выбрать, каких врагов спавнить можно, а каких нет
+          Level(3, 6000, 225, 300, level_3_waves, ("josky", "sigma")),              # это из конфига
+          Level(4, 4000, 75, 300, level_4_waves, ("josky", "popusk")),              # !!! МИНИМУМ 2 ВРАГА, иначе не работает
+          Level(5, 4000, 75, 300, level_4_waves, ("sigma", "josky"))]
 level = levels[0]
 
 
