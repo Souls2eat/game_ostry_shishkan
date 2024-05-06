@@ -20,6 +20,7 @@ select_menu_copy = select_menu.__copy__()
 level_box = image.load("images/menu/level_box.png").convert_alpha()
 amogus = image.load("images/other/amogus!!!.png").convert_alpha()
 cursor = image.load("images/other/cursor.png").convert_alpha()
+tower_window = image.load("images/other/tower_select_window.png").convert_alpha()
 
 font20 = font.Font("fonts/ofont.ru_Nunito.ttf", 20)
 font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
@@ -1028,7 +1029,7 @@ class UI(sprite.Sprite):
 
 
 class Button:  # Переделать на спрайты кнопок
-    def __init__(self, data_type, font_or_path, text_or_img, closed=False):
+    def __init__(self, data_type, font_or_path, text_or_img, closed=False, windowed=False):
         if data_type == "img":
             self.image = image.load(f"images/{font_or_path}/{text_or_img}.png").convert_alpha()
             self.unit_inside = text_or_img
@@ -1041,6 +1042,7 @@ class Button:  # Переделать на спрайты кнопок
         self.pushed = False
         self.ok = False
         self.closed = closed
+        self.windowed = windowed
         buttons_group.append(self)
 
     def click(self, surf, mouse_pos, pos, col=(255, 255, 255), offset_pos=(0, 0)):  # offset_pos нужно только где есть скрол
@@ -1061,7 +1063,7 @@ class Button:  # Переделать на спрайты кнопок
             self.pushed = False
             return True
 
-    def hovered(self, mouse_pos, pos, offset_pos=(0, 0)):
+    def on_hover(self, mouse_pos, pos, offset_pos=(0, 0)):
         self.rect = self.image.get_rect(topleft=(pos[0] + offset_pos[0], pos[1] + offset_pos[1]))
         if self.rect.collidepoint(mouse_pos):
             return True
@@ -1166,7 +1168,7 @@ def level_box_button_creator(button_number):
 
 
 def tower_select_button_creator(tower_name):
-    return Button("img", "towers", tower_name)
+    return Button("img", "towers", tower_name, windowed=True)
 
 
 def scroll_offset_min_max(min_offset, max_offset):
@@ -1258,7 +1260,7 @@ def menu_positioning():
                     select_menu.blit(font60.render(str(i), True, (255, 255, 255)), (108 + (228 * column), 90 + (line * 228) + scroll_offset))  # 108 + 10 можно
                 if 1 <= i // 10 <= 9:
                     select_menu.blit(font60.render(str(i), True, (255, 255, 255)), (90 + (228 * column), 90 + (line * 228) + scroll_offset))  # 90 + 10 можно
-                if level_box_buttons[i-1].hovered(mouse_pos, (50 + 228 * column, 60 + (line * 228) + scroll_offset), offset_pos=(160, 150)):
+                if level_box_buttons[i-1].on_hover(mouse_pos, (50 + 228 * column, 60 + (line * 228) + scroll_offset), offset_pos=(160, 150)):
                     if len(levels) >= i:         # проверка есть ли уровень в списке
                         for index, enemy_name in enumerate(levels[i-1].allowed_enemies):
                             screen.blit(image.load(f"images/enemies/{enemy_name}.png"), (1100 + index * 80, 200))
@@ -1351,7 +1353,9 @@ def menu_positioning():
             column = (i - 1) % 6
             if tower_select_buttons[i-1].click(select_menu, mouse_pos, (20 + 154 * column, 30 + (line * 154) + scroll_offset), offset_pos=(250, 150)):
                 add_to_slots_slots(i-1, *blocked_slots)
-            if tower_select_buttons[i-1].hovered(mouse_pos, (20 + 154 * column, 30 + (line * 154) + scroll_offset), offset_pos=(250, 150)):
+            if tower_select_buttons[i-1].windowed:      # + offset_pos не забудьте
+                select_menu.blit(tower_window, (20 + 154 * column, 30 + (line * 154) + scroll_offset))
+            if tower_select_buttons[i-1].on_hover(mouse_pos, (20 + 154 * column, 30 + (line * 154) + scroll_offset), offset_pos=(250, 150)):
                 screen.blit(font40.render(tower_select_buttons[i-1].unit_inside, True, (255, 255, 255)), (1285, 200))
                 screen.blit(font40.render("Цена:" + str(tower_costs[tower_select_buttons[i-1].unit_inside]), True, (255, 255, 255)), (1285, 280))   # пока
 
