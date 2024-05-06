@@ -48,7 +48,8 @@ tower_costs = {
     "zeus": 20,
     "tolkan": 30,
     "big_mechman": 15,
-    "nuka_kusni": 15
+    "nuka_kusni": 15,
+    "sushnost_v_vide_gnomika1": 35
 
 }
 
@@ -70,5 +71,6 @@ towers_kd = {
     "zeus": 200,
     "tolkan": 300,
     "big_mechman": 150,
-    "nuka_kusni": 150
+    "nuka_kusni": 150,
+    "sushnost_v_vide_gnomika1": 300
 }
