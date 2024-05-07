@@ -384,7 +384,7 @@ class Tower(sprite.Sprite):
             self.max_hp = 2800
             self.hp = 2800
             self.atk = 375
-            self.atk2 = 3
+            self.atk2 = 5
             self.kulak_time = 15
             self.bullet_speed_x = 8
             self.bullet_speed_y = 0
@@ -648,7 +648,7 @@ class Tower(sprite.Sprite):
                             self.image = image.load(f"images/towers/{self.name}_ogonb.png").convert_alpha()
                             for enemy in enemies_group:
                                 if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 192:
-                                    enemy.hp -= self.atk
+                                    enemy.hp -= self.atk2
                             self.kulak_time = 15
 
 
@@ -1672,9 +1672,10 @@ while running:
                                                 if level.money - tower_costs[el.unit_inside] >= 0:
                                                     tower.kill()
                                                     Tower('sushnost_v_vide_gnomika' + str(i+2), unit_pos)
-                                                if not level.cheat:
-                                                    level.money -= tower_costs[el.unit_inside]
-                                                el.kd_time = el.default_kd_time
+                                                    if not level.cheat:
+                                                        level.money -= tower_costs[el.unit_inside]
+                                                    el.kd_time = el.default_kd_time
+                                                
                             if is_free(el):
                                 if level.money - tower_costs[el.unit_inside] >= 0:  # Это пиздец, но оно работает. Придумаете лучше -- переделаете
                                     Tower(el.unit_inside, unit_pos)
@@ -1682,9 +1683,7 @@ while running:
                                         level.money -= tower_costs[el.unit_inside]
                                     el.kd_time = el.default_kd_time
                             
-                                            
-
-
+                                
                         if el.path == "shovel":
                             for obj in [*towers_group, *nekusaemie_group]:                  # Сразу по 2 группам
                                 if obj.rect.collidepoint(el.rect.centerx, el.rect.centery):
