@@ -1,8 +1,8 @@
 # Примеры волн
 level_1_waves = {       # время волны : поинты спавна на волну
-    7200: 1,
-    5000: 1,
-    2000: 1
+    7200: 50,
+    5000: 50,
+    2000: 50
 }
 
 level_2_waves = {
@@ -50,7 +50,8 @@ tower_costs = {
     "tolkan": 30,
     "big_mechman": 15,
     "nuka_kusni": 15,
-    "sushnost_v_vide_gnomika1": 35
+    "sushnost_v_vide_gnomika1": 35,
+    "go_bleen1": 5
 
 }
 
@@ -73,5 +74,7 @@ towers_kd = {
     "tolkan": 300,
     "big_mechman": 150,
     "nuka_kusni": 150,
-    "sushnost_v_vide_gnomika1": 300
+    "sushnost_v_vide_gnomika1": 300,
+    "go_bleen1": 15
+    
 }
