@@ -67,7 +67,7 @@ class Level:
         self.state = "not_run"
         self.level_time = self.start_level_time = level_time
         self.start_time_to_spawn = self.time_to_spawn = time_to_spawn
-        self.cheat = False
+        self.cheat = True
         self.waves = waves
         self.allowed_enemies = allowed_enemies
         self.allowed_cords = allowed_cords
@@ -204,7 +204,7 @@ class Tower(sprite.Sprite):
 
         if self.name == 'fire_mag':  # циферки поменять
             self.hp = 200
-            self.atk = 2000
+            self.atk = 20
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
             self.basic_attack_cooldown = 55
@@ -339,16 +339,17 @@ class Tower(sprite.Sprite):
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
 
-        #asdfghjkl;'
+        for i in range(16):
+            if self.name == 'go_bleen' + str(i+1):
+                self.hp = 100 * (i+1)
+                self.atk = 10
+                self.bullet_speed_x = 4
+                self.bullet_speed_y = 0
+                self.basic_attack_cooldown = 100
+                self.attack_cooldown = self.basic_attack_cooldown
+                self.damage_type = ''
 
-        if self.name == 'sushnost_v_vide_gnomika1':
-            self.hp = 700
-            self.atk = 375
-            self.bullet_speed_x = 8
-            self.bullet_speed_y = 0
-            self.basic_attack_cooldown = 450
-            self.attack_cooldown = self.basic_attack_cooldown
-            self.damage_type = ''
+        #asdfghjkl;'
 
         if self.name == 'sushnost_v_vide_gnomika1':
             self.max_hp = 700
@@ -384,7 +385,7 @@ class Tower(sprite.Sprite):
             self.max_hp = 2800
             self.hp = 2800
             self.atk = 375
-            self.atk2 = 3
+            self.atk2 = 5
             self.kulak_time = 15
             self.bullet_speed_x = 8
             self.bullet_speed_y = 0
@@ -514,6 +515,11 @@ class Tower(sprite.Sprite):
                         self.explosion = Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk*5, 0, 0, 'explosion', self)
                     self.kill()
 
+            for i in range(16):
+                if self.name == 'go_bleen' + str(i+1):
+                    for enemy in enemies_group:
+                        if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x:
+                            self.is_shooting()
 
     def is_shooting(self):
 
@@ -543,17 +549,19 @@ class Tower(sprite.Sprite):
         if self.name == 'thunder':
             if self.attack_cooldown <= 0:
                 self.attack_cooldown = self.basic_attack_cooldown
-                Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
-                                     self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'hrom',
-                                     self)
+                if self.rect.centery+128 <= 832:
+                    Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
+                                        self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'hrom',
+                                        self)
 
                 Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
                                      self.damage_type, self.atk, self.bullet_speed_x, 0, 'hrom',
                                      self)
 
-                Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
-                                     self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y * -1, 'hrom',
-                                     self)
+                if self.rect.centery-128 >= 192:
+                    Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
+                                        self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y * -1, 'hrom',
+                                        self)
 
         if self.name == 'zeus':
             if self.attack_cooldown <= 0:
@@ -648,9 +656,15 @@ class Tower(sprite.Sprite):
                             self.image = image.load(f"images/towers/{self.name}_ogonb.png").convert_alpha()
                             for enemy in enemies_group:
                                 if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 192:
-                                    enemy.hp -= self.atk
+                                    enemy.hp -= self.atk2
                             self.kulak_time = 15
 
+        for i in range(16):
+            if self.name == 'go_bleen' + str(i+1):
+                if self.attack_cooldown <= 0:
+                    self.attack_cooldown = self.basic_attack_cooldown
+                    for j in range(i+1):
+                        Bullet("spear_ma", self.rect.centerx, self.rect.y+(j*8), self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
 
     def dayot(self):
         if self.name == 'davalka':
@@ -692,6 +706,11 @@ class Tower(sprite.Sprite):
 
             if self.attack_cooldown > 0:
                 self.attack_cooldown -= 1
+            
+        for i in range(16):
+            if self.name == 'go_bleen' + str(i+1):
+                if self.attack_cooldown > 0:
+                    self.attack_cooldown -= 1
 
         if self.name == 'pukish' or self.name == 'sushnost_v_vide_gnomika4':
             if self.attack_cooldown2 > 0:
@@ -715,7 +734,6 @@ class Bullet(sprite.Sprite):
         super().__init__(all_sprites_group, bullets_group)
         self.image = image.load(f"images/bullets/{bullet_sprite}.png").convert_alpha()
         self.rect = self.image.get_rect(center=(x, y))
-        self.is_dead = False
         self.damage_type = damage_type
         self.damage = damage
         self.speed_x = speed_x
@@ -743,29 +761,13 @@ class Bullet(sprite.Sprite):
             if (self.parent.rect.centery - self.rect.centery) >= 128 or (self.rect.centery - self.parent.rect.centery) >= 128:
                 self.speed_y = 0
         
-        if self.name == 'ls':
-            if self.off <= 0:
-                self.off = 75  # так потом же kill(), зачем возврашать 75? хпхпхппхпххп
-                self.kill()
-            else:
-                self.off -= 1
-
-        if self.name == 'explosion':
-            if self.off <= 0:
-                self.off = 20  # так потом же kill(), зачем возврашать 20? хпхпхппхпххп
-                self.kill()
-            else:
-                self.off -= 1
 
         if self.name == 'kopilka':
-            if self.parent not in all_sprites_group and self.speed_x == 0:
-                self.kill()
-
             for enemy in enemies_group:
                 if (enemy.rect.y - self.parent.rect.y <= 10 and self.parent.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.parent.rect.x:
                     self.speed_x = 7
                     self.add(bullets_group)
-                    self.parent.nakopleno = 0
+                    self.parent.nakopleno = 0 
                     self.parent.attack_cooldown = self.parent.basic_attack_cooldown
 
 
@@ -793,20 +795,10 @@ class Bullet(sprite.Sprite):
                 self.parent.attack_cooldown = self.parent.basic_attack_cooldown
                 self.sumon = 'ready'
 
-            if self.parent.is_dead == True:
-                self.kill()
-
-        if self.name == 'gas':
-            for enemy in enemies_group:
-                if sprite.collide_rect(enemy, self) and enemy.hp > 0:
-                    if enemy not in self.gazirovannie_group:
-                        enemy.hp -= self.damage
-                        enemy.add(self.gazirovannie_group)
-
-        if self.rect.x >= 1700:
+        if self.rect.x >= 1700 or self.rect.x <= -128:
             self.kill()
 
-    def check_colision(self):
+    def check_collision(self):
         if self.name == "igddue_bullet":
             for tower in towers_group:
                 if tower.name != "pukish":
@@ -820,13 +812,63 @@ class Bullet(sprite.Sprite):
                             tower.hp -= self.damage
                             self.kill()
 
-    def update(self):
-        self.bullet_movement()
-        self.check_colision()
+        if self.name == 'gas': 
+            for enemy in enemies_group:
+                if sprite.collide_rect(enemy, self) and enemy.hp > 0:
+                    if enemy not in self.gazirovannie_group:
+                        enemy.hp -= self.damage
+                        enemy.add(self.gazirovannie_group)
 
+        if self.name == 'ls' or self.name == 'explosion':
+            for enemy in enemies_group:
+                if sprite.collide_rect(enemy, self) and enemy.hp > 0:
+                    enemy.hp -= self.damage
+            self.remove(bullets_group)
+
+        for enemy in enemies_group:
+            if enemy.rect.collidepoint(self.rect.right, self.rect.centery):
+                if self.name == 'kopilka':
+                    enemy.hp -= self.damage
+                    self.kill()
+            if sprite.collide_rect(enemy, self) and enemy.hp > 0:
+                if self.name == 'default' or self.name == 'hrom':
+                    enemy.hp -= self.damage
+                    self.kill()
+                if self.name == 'yas':
+                    enemy.hp -= enemy.hp
+                    self.parent.self.remove(bullets_group)
+                if self.name == 'boom':
+                    enemy.hp -= self.damage
+                    self.explosion = Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.damage, 0, 0, 'explosion', self.parent)
+                    self.kill()
+
+    def check_parent(self):
+        if self.name == 'kopilka':
+            if self.parent not in all_sprites_group and self.speed_x == 0:
+                self.kill()
+        if self.name == 'yas':
+            if self.parent not in all_sprites_group:
+                self.kill()
+
+    def cooldowns(self):
         if self.name == 'yas' and self.sumon == 'wait':
             if self.parent.attack_cooldown > 0:
                 self.parent.attack_cooldown -= 1
+
+        if self.name == 'ls' or self.name == 'explosion':
+            if self.off <= 0:
+                self.kill()
+            else:
+                self.off -= 1
+
+
+    def update(self):
+        self.bullet_movement()
+        self.check_collision()
+        self.check_parent()
+        self.cooldowns()
+
+        
 
 
 class Parasite(sprite.Sprite):
@@ -922,6 +964,8 @@ class Buff(sprite.Sprite):
         self.buffed_towers = sprite.Group()
         if self.name == 'mat':
             self.mozhet_zhit = False
+            if self.rect.x <= 384 or self.rect.x >= 1536 or self.rect.y <= 192 or self.rect.y >= 832:
+                self.kill()
         for buff in buffs_group:
             if self.rect.collidepoint(buff.rect.centerx, buff.rect.centery) and self != buff:
                 self.kill()
@@ -949,6 +993,12 @@ class Buff(sprite.Sprite):
 
                         tower.basic_attack_cooldown //= 2
                         tower.add(self.buffed_towers)
+
+                    for i in range(16):
+                        if tower.name == 'go_bleen' + str(i+1):
+                            tower.basic_attack_cooldown //= 2
+                            tower.add(self.buffed_towers)
+
                     if tower.name == 'urag_anus':
                         tower.basic_uragan_cooldown //= 2
                         tower.add(self.buffed_towers)
@@ -985,8 +1035,18 @@ class Buff(sprite.Sprite):
                         or self.name == 'sushnost_v_vide_gnomika3'\
                         or self.name == 'sushnost_v_vide_gnomika4':
                     tower.basic_attack_cooldown *= 2
+
+                for i in range(16):
+                        if tower.name == 'go_bleen' + str(i+1):
+                            tower.basic_attack_cooldown *= 2
+
                 if tower.name == 'urag_anus':
                     tower.basic_uragan_cooldown *= 2
+
+            for nekusaemiy in self.buffed_towers:
+                if nekusaemiy.name == 'spike':
+                    nekusaemiy.basic_attack_cooldown *= 2
+
         self.mozhet_zhit = False
 
     def update(self):
@@ -999,7 +1059,6 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
         super().__init__(all_sprites_group, enemies_group)
         self.image = image.load(f"images/enemies/{name}.png").convert_alpha()
         self.rect = self.image.get_rect(topleft=(pos))
-        self.is_dead = False
         self.name = name
         self.stop = False
 
@@ -1052,7 +1111,7 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
             self.attack_cooldown -= 1
         else:
             self.attack_cooldown = self.basic_attack_cooldown
-            if self.stop1:
+            if self.stop:
                 if self.attack_range == 0:
                     self.melee_attack()
                 if self.attack_range > 0:
@@ -1080,42 +1139,39 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
                 self.target.hp -= self.atk
 
     def movement(self):
-        if not self.stop1:
+        if not self.stop:
             self.rect.x -= self.speed
+    # def delat_chtoto(self):
+    #     if self.stop != True:
+    #         self.rect.x -= self.speed
 
-    # def delat_chtoto(self):       # а так всё было раньше
-    #     if self.is_dead != True:
-    #         if self.stop != True:
-    #             self.rect.x -= self.speed
-    #
-    #         self.stop = False  # нужно чтобы в случае колизии останавливался, а если колизии не будет то шёл дальше. ОБЯЗАТЕЛЬНО ПОСЛЕ ПРОВЕРКИ СТОПА НО ПЕРЕД ПРОВЕРКОЙ КОЛИЗИИ
-    #         for tower in towers_group:
-    #             if tower.rect.collidepoint(self.rect.centerx, self.rect.centery):  # для ближников
-    #                 self.attack_cooldown -= 1
-    #                 self.stop = True
-    #                 if self.attack_cooldown <= 0:
-    #                     self.attack_cooldown = 75
-    #                     if tower.have_barrier == True:
-    #                         for barrier in parasites_group:
-    #                             if barrier.name == 'oh_shit_i_am_sorry__barrier_mag__sobstvenno_govorya_barrier' and barrier.owner == tower:
-    #                                 barrier.hp -= self.atk
-    #                                 break
-    #                     else:
-    #                         if tower.name == 'nuka_kusni':
-    #                             if self.atk_type == 'earth':
-    #                                 if tower.konb_sushestvuet == True:
-    #                                     tower.hpkonya -= self.atk
-    #                                 else:
-    #                                     tower.hpchela -= self.atk
-    #                             if self.atk_type == 'air':
+    #     self.stop = False  # нужно чтобы в случае колизии останавливался, а если колизии не будет то шёл дальше. ОБЯЗАТЕЛЬНО ПОСЛЕ ПРОВЕРКИ СТОПА НО ПЕРЕД ПРОВЕРКОЙ КОЛИЗИИ
+    #     for tower in towers_group:
+    #         if tower.rect.collidepoint(self.rect.centerx, self.rect.centery):
+    #             self.attack_cooldown -= 1
+    #             self.stop = True
+    #             if self.attack_cooldown <= 0:
+    #                 self.attack_cooldown = 75
+    #                 if tower.have_barrier == True:
+    #                     for barrier in parasites_group:
+    #                         if barrier.name == 'oh_shit_i_am_sorry__barrier_mag__sobstvenno_govorya_barrier' and barrier.owner == tower:
+    #                             barrier.hp -= self.atk
+    #                             break
+    #                 else:
+    #                     if tower.name == 'nuka_kusni':
+    #                         if self.atk_type == 'earth':
+    #                             if tower.konb_sushestvuet == True:
+    #                                 tower.hpkonya -= self.atk
+    #                             else:
     #                                 tower.hpchela -= self.atk
-    #                         else:
-    #                             tower.hp -= self.atk
-    #
-    #         if self.hp <= 0 or self.rect.x <= -256:
-    #             self.is_dead = True
-    #             self.kill()
+    #                         if self.atk_type == 'air':
+    #                             tower.hpchela -= self.atk
+    #                     else:
+    #                         tower.hp -= self.atk
 
+    #     if self.hp <= 0:
+    #         self.kill()
+        
     def back_to_line(self):
         if (self.rect.y-192) % 128 < 64:
             self.rect.y -= (self.rect.y-192) % 128
@@ -1123,13 +1179,13 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
             self.rect.y += 128 - ((self.rect.y-192) % 128)
 
     def update(self):
-        self.stop1, self.target = self.is_should_stop_to_attack()
+        self.stop, self.target = self.is_should_stop_to_attack()
         self.preparing_to_attack()
         self.movement()
         if self.hp <= 0:
             self.kill()
-        # else:
-        #     self.delat_chtoto()
+
+        # self.delat_chtoto()
 
 
 class UI(sprite.Sprite):
@@ -1297,7 +1353,10 @@ def towering_towers(obj):
     for tower in towers_group:
         for i in range(3):
             if tower.name == 'sushnost_v_vide_gnomika' + str(i+1) and obj.unit_inside == 'sushnost_v_vide_gnomika1':
-                return True
+                return 'gnom'
+        for i in range(16):
+            if tower.name == 'go_bleen' + str(i+1) and obj.unit_inside == 'go_bleen1':
+                return 'goblin'
 
 
 def add_to_slots_slots(i, *blocked_slots):              # instant_select будет потом
@@ -1624,7 +1683,7 @@ level_box_buttons = [level_box_button_creator(i) for i in range(1, 21)]  # со�
 
 tower_button_names = ["fire_mag", "davalka", "boomchick", "kopitel", "matricayshon", "parasitelniy", "pukish", "spike",
                       "terpila", "thunder", "yascerica", "zeus", "oh_shit_i_am_sorry__barrier_mag", "urag_anus", "drachun",
-                      "tolkan", "big_mechman", "nuka_kusni", "sushnost_v_vide_gnomika1"]                                                                               # просто добавить имя башни
+                      "tolkan", "big_mechman", "nuka_kusni", "sushnost_v_vide_gnomika1", "go_bleen1"]                                                                               # просто добавить имя башни
 tower_select_buttons = [tower_select_button_creator(tower_name) for tower_name in tower_button_names]    # создание кнопок выбора башен без киллометра кода
 
 levels = [Level(1, 7500, 300, 300, level_1_waves, ("popusk", "sigma", "josky", "igddue")),
@@ -1638,6 +1697,8 @@ level = levels[0]
 running = True
 while running:
 
+
+
     mouse_pos = mouse.get_pos()
     menu_positioning()
     alert_group.update()
@@ -1648,34 +1709,12 @@ while running:
     # print(f"now: {game_state}, last: {last_game_state}")      # не убирать!!!
     # print(level.state)
 
-    for bullet in bullets_group:
-        if bullet.name == 'ls' or bullet.name == 'explosion':
-            for enemy in enemies_group:
-                if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
-                    enemy.hp -= bullet.damage
-            bullet.remove(bullets_group)
-
     for enemy in enemies_group:
-        if enemy.rect.x <= 150:
-            if not level.cheat:
-                game_state = "death"
-            enemy.kill()
-        for bullet in bullets_group:
-            if enemy.rect.collidepoint(bullet.rect.right, bullet.rect.centery):
-                if bullet.name == 'kopilka':
-                    enemy.hp -= bullet.damage
-                    bullet.kill()
-            if sprite.collide_rect(enemy, bullet) and enemy.hp > 0:
-                if bullet.name == 'default' or bullet.name == 'hrom':
-                    enemy.hp -= bullet.damage
-                    bullet.kill()
-                if bullet.name == 'yas':
-                    enemy.hp -= enemy.hp
-                    bullet.parent.bullet.remove(bullets_group)
-                if bullet.name == 'boom':
-                    enemy.hp -= bullet.damage
-                    bullet.explosion = Bullet("explosion", bullet.rect.centerx, bullet.rect.centery, bullet.damage_type, bullet.damage, 0, 0, 'explosion', bullet.parent)
-                    bullet.kill()
+            if enemy.rect.x <= 150:
+                if not level.cheat:
+                    game_state = "death"
+                enemy.kill()
+    
     clock.tick(75)
     display.update()
     for e in event.get():
@@ -1711,7 +1750,7 @@ while running:
             if e.key == K_v:
                 Enemy("josky", (1508, 576))
             if e.key == K_b:
-                Enemy("igddue", (1700, 704))
+                Enemy("igddue", (1508, 704))
             if e.key == K_r:
                 game_state = "main_menu"
             if e.key == K_q:         
@@ -1738,7 +1777,7 @@ while running:
 
                     if 1536 > unit_pos[0] >= 384 and 832 > unit_pos[1] >= 192:
                         if el.path == "towers":
-                            if towering_towers(el):
+                            if towering_towers(el) == 'gnom':
                                 for tower in towers_group:
                                     for i in range(3):
                                         if tower.rect.collidepoint(el.rect.centerx, el.rect.centery):
@@ -1749,13 +1788,26 @@ while running:
                                                     if not level.cheat:
                                                         level.money -= tower_costs[el.unit_inside]
                                                     el.kd_time = el.default_kd_time
+                            if towering_towers(el) == 'goblin':
+                                for tower in towers_group:
+                                    for i in range(15):
+                                        if tower.rect.collidepoint(el.rect.centerx, el.rect.centery):
+                                            if tower.name == 'go_bleen' + str(i+1):
+                                                if level.money - tower_costs[el.unit_inside] >= 0:
+                                                    tower.kill()
+                                                    Tower('go_bleen' + str(i+2), unit_pos)
+                                                    if not level.cheat:
+                                                        level.money -= tower_costs[el.unit_inside]
+                                                    el.kd_time = el.default_kd_time
+                                                
                             if is_free(el):
                                 if level.money - tower_costs[el.unit_inside] >= 0:  # Это пиздец, но оно работает. Придумаете лучше -- переделаете
                                     Tower(el.unit_inside, unit_pos)
                                     if not level.cheat:
                                         level.money -= tower_costs[el.unit_inside]
                                     el.kd_time = el.default_kd_time
-
+                            
+                                
                         if el.path == "shovel":
                             for obj in [*towers_group, *nekusaemie_group]:                  # Сразу по 2 группам
                                 if obj.rect.collidepoint(el.rect.centerx, el.rect.centery):
