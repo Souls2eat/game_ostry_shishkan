@@ -809,15 +809,16 @@ class Bullet(sprite.Sprite):
     def check_colision(self):
         if self.name == "igddue_bullet":
             for tower in towers_group:
-                if self.rect.colliderect(tower.rect):
-                    if tower.have_barrier:
-                        for barrier in parasites_group:
-                            if barrier.name == 'oh_shit_i_am_sorry__barrier_mag__sobstvenno_govorya_barrier' and barrier.owner == tower:
-                                barrier.hp -= self.damage
-                                self.kill()
-                    else:
-                        tower.hp -= self.damage
-                        self.kill()
+                if tower.name != "pukish":
+                    if self.rect.colliderect(tower.rect):
+                        if tower.have_barrier:
+                            for barrier in parasites_group:
+                                if barrier.name == 'oh_shit_i_am_sorry__barrier_mag__sobstvenno_govorya_barrier' and barrier.owner == tower:
+                                    barrier.hp -= self.damage
+                                    self.kill()
+                        else:
+                            tower.hp -= self.damage
+                            self.kill()
 
     def update(self):
         self.bullet_movement()
@@ -1009,7 +1010,7 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
             self.atk = 100
             self.atk_type = 'earth'
             self.speed = 1
-            self.attack_cooldown = 75
+            self.attack_cooldown = self.basic_attack_cooldown = 75
             self.attack_range = 0
 
         if self.name == 'josky':
@@ -1017,7 +1018,7 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
             self.atk = 100
             self.atk_type = 'earth'
             self.speed = 1
-            self.attack_cooldown = 75
+            self.attack_cooldown = self.basic_attack_cooldown = 75
             self.attack_range = 0
 
         if self.name == 'sigma':
@@ -1025,22 +1026,24 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
             self.atk = 100
             self.atk_type = 'air'
             self.speed = 1
-            self.attack_cooldown = 75
+            self.attack_cooldown = self.basic_attack_cooldown = 75
             self.attack_range = 0
 
         if self.name == "igddue":
             self.hp = 300
             self.atk = 50
             self.atk_type = "air"
+            self.bullet_speed_x = -5
+            self.bullet_speed_y = 0
             self.speed = 1
-            self.attack_cooldown = 75
+            self.attack_cooldown = self.basic_attack_cooldown = 75
             self.attack_range = 700
 
         # СТАТЫ конец
 
     def is_should_stop_to_attack(self):
         for tower in towers_group:      # tower.rect.collidepoint(self.rect.centerx, self.rect.centery) or
-            if tower.rect.centery == self.rect.centery and -64 < self.rect.centerx - tower.rect.centerx < self.attack_range + 64:
+            if tower.rect.centery == self.rect.centery and -64 < self.rect.centerx - tower.rect.centerx < self.attack_range + 64 and self.rect.x < 1408:
                 return True, tower
         return False, None
 
@@ -1048,7 +1051,7 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
         if self.attack_cooldown > 0:
             self.attack_cooldown -= 1
         else:
-            self.attack_cooldown = 75
+            self.attack_cooldown = self.basic_attack_cooldown
             if self.stop1:
                 if self.attack_range == 0:
                     self.melee_attack()
@@ -1057,7 +1060,7 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
 
     def shoot(self):    # bullet_sprite, x, y, damage_type, damage, speed_x, speed_y, name, parent
         if self.name == "igddue":
-            Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, -2, 0, "igddue_bullet", self)
+            Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "igddue_bullet", self)
 
     def melee_attack(self):
         if self.target:
@@ -1708,7 +1711,7 @@ while running:
             if e.key == K_v:
                 Enemy("josky", (1508, 576))
             if e.key == K_b:
-                Enemy("igddue", (1508, 704))
+                Enemy("igddue", (1700, 704))
             if e.key == K_r:
                 game_state = "main_menu"
             if e.key == K_q:         
