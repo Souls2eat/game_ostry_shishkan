@@ -353,7 +353,7 @@ class Tower(sprite.Sprite):
                 self.attack_cooldown = self.basic_attack_cooldown
                 self.damage_type = ''
 
-        #asdfghjkl;'        имба, всё понял
+        # asdfghjkl;'        имба, всё понял
 
         if self.name == 'sushnost_v_vide_gnomika1':
             self.max_hp = 700
@@ -399,7 +399,7 @@ class Tower(sprite.Sprite):
             self.attack_cooldown2 = self.basic_attack_cooldown2
             self.damage_type = ''
 
-        #asdfghjkl;'        имба, всё понял
+        # asdfghjkl;'        имба, всё понял
 
         if self.name == 'terpila':  # циферки поменять
             self.hp = 6000
@@ -1733,7 +1733,7 @@ level_box_buttons = [level_box_button_creator(i) for i in range(1, 21)]  # со�
 
 # tower_button_names = ["fire_mag", "davalka", "boomchick", "kopitel", "matricayshon", "parasitelniy", "pukish", "spike",
 #                       "terpila", "thunder", "yascerica", "zeus", "oh_shit_i_am_sorry__barrier_mag", "urag_anus", "drachun",
-#                       "tolkan", "big_mechman", "nuka_kusni", "sushnost_v_vide_gnomika1", "go_bleen1"]                                                                          # просто добавить имя башни
+#                       "tolkan", "big_mechman", "nuka_kusni", "sushnost_v_vide_gnomika1", "go_bleen1"]                   # просто добавить имя башни
 tower_button_names = ["fire_mag", "boomchick", "davalka", "kopitel", "matricayshon", "parasitelniy", "spike",
                       "terpila", "thunder", "yascerica", "zeus", "oh_shit_i_am_sorry__barrier_mag", "urag_anus",
                       ]

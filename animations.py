@@ -15,9 +15,10 @@ towers_wait = {
     "urag_anus": [image.load(f"images/towers/urag_anus/wait/urag_anus{i}.png") for i in range(1, 3)],
     # "big_mechman": [image.load(f"images/towers/big_mechman/wait/big_mechman{i}.png") for i in range(1, 3)],
     "boomchick": [image.load(f"images/towers/boomchick/wait/boomchick{i}.png") for i in range(1, 3)],
+    # "pukish": [image.load(f"images/towers/pukish/wait/pukish{i}.png") for i in range(1, 3)],
+    # "drachun": [image.load(f"images/towers/drachun/wait/drachun{i}.png") for i in range(1, 3)],
+    # "tolkan": [image.load(f"images/towers/tolkan/wait/tolkan{i}.png") for i in range(1, 3)],
+    # "nuka_kusni": [image.load(f"images/towers/nuka_kusni/wait/nuka_kusni{i}.png") for i in range(1, 3)],
+    # "sushnost_v_vide_gnomika1": [image.load(f"images/towers/sushnost_v_vide_gnomika1/wait/sushnost_v_vide_gnomika1{i}.png") for i in range(1, 3)],
 
 }
-# for b in range(len(towers_wait)):
-#     print(towers_wait["fire_mag_wait"][b])
-# for i in range(2):
-#     image.load("images/towers/fire_mag%d.png" % i)
