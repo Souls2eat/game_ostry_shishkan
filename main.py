@@ -525,7 +525,6 @@ class Tower(sprite.Sprite):
                             self.is_shooting()
 
     def is_shooting(self):
-
         if self.name == "fire_mag":  # пока привет
             if self.attack_cooldown <= 0:
                 self.attack_cooldown = self.basic_attack_cooldown
@@ -718,11 +717,11 @@ class Tower(sprite.Sprite):
             if self.attack_cooldown2 > 0:
                 self.attack_cooldown2 -= 1
 
-        if hasattr(self, "barrier_cooldown"):
+        if hasattr(self, "barrier_cooldown") and hasattr(self, "barrier") and self.barrier not in all_sprites_group:
             if self.barrier_cooldown > 0:
                 self.barrier_cooldown -= 1
 
-        if hasattr(self, "uragan_cooldown"):
+        if hasattr(self, "uragan_cooldown") and self.uragan not in all_sprites_group:
             if self.uragan_cooldown > 0:
                 self.uragan_cooldown -= 1
 
@@ -866,7 +865,7 @@ class Bullet(sprite.Sprite):
                         enemy.hp -= self.damage
                         enemy.add(self.gazirovannie_group)
 
-        if self.name == 'ls' or self.name == 'explosion':
+        if self.name == 'ls' or self.name == 'explosion':       # наверно где то тут баг
             for enemy in enemies_group:
                 if sprite.collide_rect(enemy, self) and enemy.hp > 0:
                     enemy.hp -= self.damage
@@ -908,12 +907,11 @@ class Bullet(sprite.Sprite):
             else:
                 self.off -= 1
 
-
     def update(self):
         self.bullet_movement()
+        self.cooldowns()
         self.check_collision()
         self.check_parent()
-        self.cooldowns()
 
 
 class Parasite(sprite.Sprite):
@@ -1135,7 +1133,7 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
 
         if self.name == "igddue":
             self.hp = 300
-            self.atk = 50
+            self.atk = 25
             self.atk_type = "air"
             self.bullet_speed_x = -5
             self.bullet_speed_y = 0
@@ -1661,7 +1659,7 @@ def menu_positioning():
                 level.clear("ui_group")
                 level.state = "not_run"
             else:
-                Alert("Остались свободные слоты", (400, 760), 75)    
+                Alert("Остались свободные слоты", (400, 760), 75)
         if pause_button.click(screen, mouse_pos, (1550, 30)):
             last_game_state = game_state
             Alert("Пауза", (700, 200), 75)
@@ -1673,28 +1671,15 @@ def menu_positioning():
             screen.blit(main_menu, (0, 0))
             screen.blit(game_name, (416, 10))
         screen.blit(menu, (480, 250))
+
         if back_button.click(screen, mouse_pos, (709, 520)):
             game_state = last_game_state
 
-        Alert("Возможна проблема с галочкой", (300, 700), 25)
         if cheat_button.click(screen, mouse_pos, (736, 280)):
-            if cheat_button.ok:
+            if level.cheat:
                 cheat_button.ok = False
                 level.cheat = False
-                # ----
-                alert_list = [alert.text for alert in alert_group]
-                if "Спавн врагов выключен" in alert_list:
-                    Alert("Читы отключены", (562, 30), 150, after_sec=2)
-                else:
-                    Alert("Читы отключены", (562, 30), 150)
-                alert_list.clear()
-                # ----
             else:
-                Alert("Спавн врагов выключен", (442, 30), 150)
-                Alert("Время уровня бесконечно", (417, 110), 150)
-                Alert("Проиграть невозможно", (452, 190), 150)
-                Alert("Бесконечные деньги", (470, 270), 150)
-
                 cheat_button.ok = True
                 level.cheat = True
 
@@ -1807,6 +1792,10 @@ while running:
                     game_state = "main_menu"
                 elif last_game_state == "tower_select":
                     last_game_state = game_state
+                    game_state = "tower_select"
+                elif game_state == "paused" and level.state == "run":    # !!! ВОЗМОЖЕН БАГ
+                    game_state = "run"
+                elif game_state == "paused" and level.state == "not_run":
                     game_state = "tower_select"
             if e.key == K_z:
                 Enemy("popusk", (1508, 192))
