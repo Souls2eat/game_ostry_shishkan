@@ -193,16 +193,18 @@ class Tower(sprite.Sprite):
     def __init__(self, unit, pos):
         super().__init__(towers_group, all_sprites_group)
         self.image = image.load(f"images/towers/{unit}/wait/{unit}{str(1)}.png").convert_alpha()
-        self.is_dead = False
-        self.pos = pos
-        self.kd = 150
-        self.anim_count = 0
-        self.anim_duration = 30     # сколько кадров будет оставаться 1 спрайт
-        self.state = "wait"     # потом будет "attack", "death" и какие придумаете
-
-        self.name = unit
         self.rect = self.image.get_rect(topleft=pos)
+        self.pos = pos
+        self.name = unit
+        targets[id(self)] = None    # remove
+
+        self.is_dead = False
         self.have_barrier = False
+
+        self.anim_count = 0
+        self.anim_duration = 15     # сколько кадров будет оставаться 1 спрайт
+        self.state = "wait"         # потом будет "attack", "death" и какие придумаете
+        self.attack_time = -1       # так надо
 
         # СТАТЫ начало
 
@@ -211,7 +213,7 @@ class Tower(sprite.Sprite):
             self.atk = 20
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
-            self.basic_attack_cooldown = 55
+            self.basic_attack_cooldown = 60
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
 
@@ -427,9 +429,15 @@ class Tower(sprite.Sprite):
 
     def delat_chtoto(self):     # тут надо будет написать условие при котором башня стреляет
         if self.is_dead != True:
-            if self.name == 'zeus' or self.name == "fire_mag" or self.name == 'boomchick' or self.name == 'sushnost_v_vide_gnomika1' or self.name == 'sushnost_v_vide_gnomika2' or self.name == 'sushnost_v_vide_gnomika3' or self.name == 'sushnost_v_vide_gnomika4':
+            if self.name == 'zeus' or self.name == 'boomchick' or self.name == 'sushnost_v_vide_gnomika1' or self.name == 'sushnost_v_vide_gnomika2' or self.name == 'sushnost_v_vide_gnomika3' or self.name == 'sushnost_v_vide_gnomika4':     # тут был ещё fire_mag
                 for enemy in enemies_group:
                     if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x:
+                        self.is_shooting()
+
+            if self.name == "fire_mag":
+                for enemy in enemies_group:
+                    if enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10 and enemy.rect.x >= self.rect.x:
+                        self.state = "attack"
                         self.is_shooting()
 
             if self.name == 'pukish':
@@ -525,10 +533,13 @@ class Tower(sprite.Sprite):
                             self.is_shooting()
 
     def is_shooting(self):
-        if self.name == "fire_mag":  # пока привет
+        if self.name == "fire_mag":  # пока привет пока
             if self.attack_cooldown <= 0:
                 self.attack_cooldown = self.basic_attack_cooldown
-                Bullet("blue_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
+                # if not self.is_first_shoot:
+                Bullet("blue_bullet", self.rect.right - 10, self.rect.y + 45, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
+                # if self.is_first_shoot:
+                #     self.is_first_shoot = False
 
         if self.name == 'boomchick':  
             if self.attack_cooldown <= 0:
@@ -675,6 +686,32 @@ class Tower(sprite.Sprite):
                         enemy.hp -= self.atk2
                 self.attack_cooldown2 = self.basic_attack_cooldown2
 
+    def shoot_delay(self):
+        pass
+
+    def find_target(self):  # remove
+        if self.name == "fire_mag":
+            for enemy in enemies_group:
+                if enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
+                    return enemy
+            # self.state = "wait"
+            return None
+
+    def check_target_alive(self):     # remove
+        if targets[id(self)] is not None and targets[id(self)].alive:       # проверяем жива ли цель
+            self.attack_time = 4 * self.anim_duration                       # если да -> запускаем анимацию выстрела
+            self.anim_count = 0                                             # обнуляем общий счётчик анимации
+        else:                                                               # если нет ->
+            targets[id(self)] = self.find_target()                          # ищем цель
+            if targets[id(self)] is not None:                               # если цель найдена ->
+                self.attack_time = 4 * self.anim_duration                   # запускаем анимацию выстрела
+                self.anim_count = 0                                         # обнуляем общий счётчик анимации
+
+    def shoot(self):    # remove
+        if self.name == "fire_mag":
+            Bullet("firebol", self.rect.right - 10, self.rect.y + 45, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
+            return True
+
     def dayot(self):
         if self.name == 'davalka':
             if self.davanie_cooldown <= 0:
@@ -693,25 +730,35 @@ class Tower(sprite.Sprite):
                 self.barrier = Parasite('oh_shit_i_am_sorry__barrier_mag__sobstvenno_govorya_barrier', self.best_x.rect.centerx, self.best_x.rect.centery, '', 0, self.best_x, self)
 
     def animation(self):
-        if self.anim_count == 0 or self.anim_count == self.anim_duration:   # 0 -- 1 спрайт, 20 -- 2 спрайт
+        if self.anim_count == 0 or self.anim_count == self.anim_duration or self.anim_count == 2 * self.anim_duration or self.anim_count == 3 * self.anim_duration:   # 0 -- 1 спрайт, 20 -- 2 спрайт
             if self.state == "wait":
                 self.image = towers_wait[self.name][self.anim_count//self.anim_duration]
-            if self.state == "attack":  # я устал(
-                ...
+            if self.state == "attack":  # я устал(      очень-очень-очень-очень
+                self.image = towers_attack[self.name][self.anim_count//self.anim_duration]
             if self.state == "death":
                 ...
 
-        if self.anim_count > 2 * self.anim_duration:   # 2 -- так как в анимации 2 кадра
-            self.anim_count = 0
+        if self.anim_count >= 4 * self.anim_duration:   # 4 -- так как в анимации 4 кадра. Бл короче, тут был self.anim_count + 1, я убрал и ничего не поменялось
+            self.anim_count = 0                                                                           # можете вернуть
         else:
             self.anim_count += 1
 
-    def cooldown(self):     # дописать else, как разберётесь с кодом
+    def cooldown(self):                         # дописать else, как разберётесь с кодом
         if hasattr(self, "attack_cooldown"):
-            if self.attack_cooldown > 0:
+            if self.attack_cooldown >= 0:
                 self.attack_cooldown -= 1
-            # else:
-            #     self.attack_cooldown = self.basic_attack_cooldown
+            else:
+                self.attack_cooldown = self.basic_attack_cooldown
+                self.check_target_alive()       # когда башня перезарядилась -> чекаем врага
+
+        if self.attack_time > 0:                # пока время анимации выстрела больше 0
+            self.state = "attack"               # говорим, что нужно проигрывать анимацию атаки
+            self.attack_time -= 1               # уменьшаем счётчик с каждым тиком
+        elif self.attack_time == 0:             # если время закончилось(анимация прошла) ->
+            self.shoot()                        # стреляем
+            self.attack_time -= 1               # умеьшаем, чтобы не выстрелить ещё раз
+        else:
+            self.state = "wait"
 
         if hasattr(self, "attack_cooldown2"):
             if self.attack_cooldown2 > 0:
@@ -730,9 +777,15 @@ class Tower(sprite.Sprite):
                 self.davanie_cooldown -= 1
 
     def update(self):
+        # self.delat_chtoto()
         self.cooldown()
-        self.delat_chtoto()
         self.animation()
+        # print(self.state, self.anim_count, self.attack_anim)
+        # print(self.anim_count)
+
+        if self.hp <= 0:
+            self.kill()
+
         # if self.name == 'fire_mag'\
         #         or self.name == 'kopitel'\
         #         or self.name == 'thunder'\
@@ -1104,6 +1157,7 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
         self.rect = self.image.get_rect(topleft=(pos))
         self.name = name
         self.stop = False
+        self.alive = True
 
         # СТАТЫ начало
 
@@ -1223,9 +1277,12 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
 
     def update(self):
         self.stop, self.target = self.is_should_stop_to_attack()
+        if self.target is not None:
+            print(self.target.hp)
         self.preparing_to_attack()
         self.movement()
         if self.hp <= 0:
+            self.alive = False      # remove
             self.kill()
 
         # self.delat_chtoto()
@@ -1862,8 +1919,7 @@ while running:
                                     if not level.cheat:
                                         level.money -= tower_costs[el.unit_inside]
                                     el.kd_time = el.default_kd_time
-                            
-                                
+
                         if el.path == "shovel":
                             for obj in [*towers_group, *nekusaemie_group]:                  # Сразу по 2 группам
                                 if obj.rect.collidepoint(el.rect.centerx, el.rect.centery):
@@ -1878,3 +1934,4 @@ with open("save.txt", "w", encoding="utf-8") as file:
     file.write(just_text + "\n")
     file.write("new_game = " + str(new_game) + "\n")
     file.write("unlocked_levels = " + str(unlocked_levels))
+

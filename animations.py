@@ -1,7 +1,7 @@
 from pygame import *
 
 towers_wait = {
-    "fire_mag": [image.load(f"images/towers/fire_mag/wait/fire_mag{i}.png") for i in range(1, 3)],
+    "fire_mag": [image.load(f"images/towers/fire_mag/wait/fire_mag{i}.png") for i in range(1, 5)],
     "davalka": [image.load(f"images/towers/davalka/wait/davalka{i}.png") for i in range(1, 3)],
     "kopitel": [image.load(f"images/towers/kopitel/wait/kopitel{i}.png") for i in range(1, 3)],
     "matricayshon": [image.load(f"images/towers/matricayshon/wait/matricayshon{i}.png") for i in range(1, 3)],
@@ -20,5 +20,30 @@ towers_wait = {
     # "tolkan": [image.load(f"images/towers/tolkan/wait/tolkan{i}.png") for i in range(1, 3)],
     # "nuka_kusni": [image.load(f"images/towers/nuka_kusni/wait/nuka_kusni{i}.png") for i in range(1, 3)],
     # "sushnost_v_vide_gnomika1": [image.load(f"images/towers/sushnost_v_vide_gnomika1/wait/sushnost_v_vide_gnomika1{i}.png") for i in range(1, 3)],
+    # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
+
+}
+
+towers_attack = {
+    "fire_mag": [image.load(f"images/towers/fire_mag/attack/fire_mag{i}.png") for i in range(1, 5)],
+    # "davalka": [image.load(f"images/towers/davalka/attack/davalka{i}.png") for i in range(1, 3)],
+    # "kopitel": [image.load(f"images/towers/kopitel/attack/kopitel{i}.png") for i in range(1, 3)],
+    # "matricayshon": [image.load(f"images/towers/matricayshon/attack/matricayshon{i}.png") for i in range(1, 3)],
+    # "parasitelniy": [image.load(f"images/towers/parasitelniy/attack/parasitelniy{i}.png") for i in range(1, 3)],
+    # "spike": [image.load(f"images/towers/spike/attack/spike{i}.png") for i in range(1, 3)],
+    # "terpila": [image.load(f"images/towers/terpila/attack/terpila{i}.png") for i in range(1, 3)],
+    # "thunder": [image.load(f"images/towers/thunder/attack/thunder{i}.png") for i in range(1, 3)],
+    # "yascerica": [image.load(f"images/towers/yascerica/attack/yascerica{i}.png") for i in range(1, 3)],
+    # "zeus": [image.load(f"images/towers/zeus/attack/zeus{i}.png") for i in range(1, 3)],
+    # "oh_shit_i_am_sorry__barrier_mag": [image.load(f"images/towers/oh_shit_i_am_sorry__barrier_mag/attack/oh_shit_i_am_sorry__barrier_mag{i}.png") for i in range(1, 3)],
+    # "urag_anus": [image.load(f"images/towers/urag_anus/attack/urag_anus{i}.png") for i in range(1, 3)],
+    # # "big_mechman": [image.load(f"images/towers/big_mechman/attack/big_mechman{i}.png") for i in range(1, 3)],
+    # "boomchick": [image.load(f"images/towers/boomchick/attack/boomchick{i}.png") for i in range(1, 3)],
+    # "pukish": [image.load(f"images/towers/pukish/attack/pukish{i}.png") for i in range(1, 3)],
+    # "drachun": [image.load(f"images/towers/drachun/attack/drachun{i}.png") for i in range(1, 3)],
+    # "tolkan": [image.load(f"images/towers/tolkan/attack/tolkan{i}.png") for i in range(1, 3)],
+    # "nuka_kusni": [image.load(f"images/towers/nuka_kusni/attack/nuka_kusni{i}.png") for i in range(1, 3)],
+    # "sushnost_v_vide_gnomika1": [image.load(f"images/towers/sushnost_v_vide_gnomika1/attack/sushnost_v_vide_gnomika1{i}.png") for i in range(1, 3)],
+    # "go_bleen1": [image.load(f"images/towers/go_bleen1/attack/go_bleen1{i}.png") for i in range(1, 3)],
 
 }
