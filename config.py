@@ -51,7 +51,8 @@ tower_costs = {
     "big_mechman": 15,
     "nuka_kusni": 15,
     "sushnost_v_vide_gnomika1": 35,
-    "go_bleen1": 5
+    "go_bleen1": 5,
+    "knight_on_horse": 15
 
 }
 
@@ -75,7 +76,8 @@ towers_kd = {
     "big_mechman": 150,
     "nuka_kusni": 150,
     "sushnost_v_vide_gnomika1": 300,
-    "go_bleen1": 15
+    "go_bleen1": 15,
+    "knight_on_horse": 150
     
 }
 
