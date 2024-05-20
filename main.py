@@ -2,9 +2,10 @@ from math import *
 from random import randint, choice
 from config import *
 from animations import *
+from pygame import *
 
 init()
-# bugs = False # ура изи победа. программирование пройдено. было слишком легко gg wp ez
+bugs = False  # ура изи победа. программирование пройдено. было слишком легко gg wp ez
 clock = time.Clock()
 screen = display.set_mode((1600, 900))
 display.set_caption("game_ostry_shishkan")
@@ -22,7 +23,6 @@ amogus = image.load("images/other/amogus!!!.png").convert_alpha()
 cursor = image.load("images/other/cursor.png").convert_alpha()
 tower_window = image.load("images/other/tower_select_window.png").convert_alpha()
 
-font20 = font.Font("fonts/ofont.ru_Nunito.ttf", 20)
 font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
 font40 = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
 font50 = font.Font("fonts/ofont.ru_Nunito.ttf", 50)
@@ -201,9 +201,10 @@ class Tower(sprite.Sprite):
         self.is_dead = False
         self.have_barrier = False
         self.barrier = None
+        self.stack = False
+
         self.time_indicator = 1
         self.anim_tasks = []     # можно было и диктом, но я как то не захотел
-
         self.anim_count = 0
         self.anim_duration = 15     # сколько кадров будет оставаться 1 спрайт
         self.state = "wait"         # потом будет "attack", "death" и какие придумаете
@@ -224,8 +225,7 @@ class Tower(sprite.Sprite):
             self.atk = 20  # типа по кому попадёт получит 40 а остальные по 20
             self.bullet_speed_x = 4
             self.bullet_speed_y = 0
-            self.basic_attack_cooldown = 85
-            self.attack_cooldown = self.basic_attack_cooldown
+            self.attack_cooldown = self.basic_attack_cooldown = 85
             self.damage_type = ''
 
         if self.name == 'kopitel':
@@ -245,8 +245,7 @@ class Tower(sprite.Sprite):
             self.atk = 30
             self.bullet_speed_x = 7
             self.bullet_speed_y = 3
-            self.basic_attack_cooldown = 200
-            self.attack_cooldown = self.basic_attack_cooldown
+            self.attack_cooldown = self.basic_attack_cooldown = 200
             self.damage_type = ''
 
         if self.name == 'zeus':
@@ -264,25 +263,21 @@ class Tower(sprite.Sprite):
             self.basic_attack_cooldown = 150
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
-            self.blackik = Bullet("blackik", self.rect.centerx - 26, self.rect.centery,
-                                 self.damage_type, 0, self.bullet_speed_x, self.bullet_speed_y, 'yas',
-                                 self)
+            self.blackik = Bullet("blackik", self.rect.centerx - 26, self.rect.centery, self.damage_type, 0, self.bullet_speed_x, self.bullet_speed_y, 'yas', self)
             self.blackik.remove(bullets_group)
 
         if self.name == 'parasitelniy':
             self.hp = 2200
             self.max_hp = 2200
             self.atk = 10
-            self.basic_attack_cooldown = 150
-            self.attack_cooldown = self.basic_attack_cooldown
+            self.attack_cooldown = self.basic_attack_cooldown = 150
             self.damage_type = ''
             self.have_parasite = sprite.Group()
 
         if self.name == 'spike':  
             self.hp = 1
             self.atk = 20
-            self.basic_attack_cooldown = 75
-            self.attack_cooldown = self.basic_attack_cooldown
+            self.attack_cooldown = self.basic_attack_cooldown = 75
             self.damage_type = ''
             self.remove(towers_group)
             self.add(nekusaemie_group)
@@ -306,42 +301,23 @@ class Tower(sprite.Sprite):
             self.uragan_duration = 375
             self.basic_attack_cooldown = 1875
             self.attack_cooldown = 375
-            # self.uragan_cooldown = 375
             self.uragan = None
 
         if self.name == 'drachun':
             self.hp = 400
             self.atk = 25
-            # self.kulak_time = 15
             self.basic_attack_cooldown = 55
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
 
-        if self.name == 'nuka_kusni':    # нука кусни нет, потому что он подгружает картинки по кд
-            self.hpchela = 500           # nuka_kusni
-            self.hpkonya = 500
-            self.speed_x = 0
-            self.atk = 30
-            self.taran_atk = 500
-            self.kulak_time = 15
-            self.basic_attack_cooldown = 55
-            self.attack_cooldown = self.basic_attack_cooldown
-            self.damage_type = ''
-            self.toptop_group = sprite.Group()
-            self.konb_sushestvuet = True
-
-        if self.name == 'knight_on_horse':    # нука кусни нет, потому что он подгружает картинки по кд
-            self.knight_hp = 500           # nuka_kusni
+        if self.name == 'knight_on_horse':       # нука кусни нет, потому что он подгружает картинки по кд
+            self.knight_hp = 500                 # nuka_kusni
             self.horse_hp = 500
             self.hp = self.knight_hp + self.horse_hp
-            # self.speed_x = 0
             self.atk = 30
             self.taran_atk = 500
-            # self.kulak_time = 15
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.damage_type = ''
-            # self.toptop_group = sprite.Group()
-            # self.konb_sushestvuet = True
 
         if self.name == "knight":
             self.hp = 500
@@ -355,7 +331,6 @@ class Tower(sprite.Sprite):
             self.ottalkivanie_solo = self.push = 384
             self.ottalkivanie_ne_solo = 128
             self.za_towerom = False
-            # self.kulak_time = 15
             self.basic_attack_cooldown = 750
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
@@ -364,86 +339,74 @@ class Tower(sprite.Sprite):
             self.hp = 600
             self.atk = 75
             self.kulak_time = 15
-            self.basic_attack_cooldown = 250
-            self.attack_cooldown = self.basic_attack_cooldown
+            self.attack_cooldown = self.basic_attack_cooldown = 250
             self.damage_type = ''
 
-        for i in range(16):     # гоблина нет, потому что 16 папок это тупизм
-            if self.name == 'go_bleen' + str(i+1):
-                self.hp = 100 * (i+1)
-                self.atk = 10
-                self.bullet_speed_x = 4
-                self.bullet_speed_y = 0
-                self.basic_attack_cooldown = 100
-                self.attack_cooldown = self.basic_attack_cooldown
-                self.damage_type = ''
+        # for i in range(16):     # гоблина нет, потому что 16 папок это тупизм
+        #     if self.name == 'go_bleen' + str(i+1):
+        #         self.hp = 100 * (i+1)
+        #         self.atk = 10
+        #         self.bullet_speed_x = 4
+        #         self.bullet_speed_y = 0
+        #         self.basic_attack_cooldown = 100
+        #         self.attack_cooldown = self.basic_attack_cooldown
+        #         self.damage_type = ''
 
-        # asdfghjkl;'        имба, всё понял
-
-        if self.name == 'sushnost_v_vide_gnomika1':
+        if self.name == 'dwarf_cannon1':
             self.max_hp = 700
             self.hp = 700
             self.atk = 375
             self.bullet_speed_x = 8
             self.bullet_speed_y = 0
-            self.basic_attack_cooldown = 450
-            self.attack_cooldown = self.basic_attack_cooldown
+            self.attack_cooldown = self.basic_attack_cooldown = 450
             self.damage_type = ''
+            self.stack = "dwarf_cannon"
 
-        if self.name == 'sushnost_v_vide_gnomika2':
+        if self.name == 'dwarf_cannon2':
             self.max_hp = 2800
             self.hp = 2800
             self.atk = 375
             self.bullet_speed_x = 8
             self.bullet_speed_y = 0
-            self.basic_attack_cooldown = 450
-            self.attack_cooldown = self.basic_attack_cooldown
+            self.attack_cooldown = self.basic_attack_cooldown = 450
             self.damage_type = ''
+            self.stack = "dwarf_cannon"
 
-        if self.name == 'sushnost_v_vide_gnomika3':
+        if self.name == 'dwarf_cannon3':
             self.max_hp = 2800
             self.hp = 2800
-            self.atk = 375
+            self.atk = 0
             self.bullet_speed_x = 8
             self.bullet_speed_y = 0
-            self.basic_attack_cooldown = 225
-            self.attack_cooldown = self.basic_attack_cooldown
+            self.attack_cooldown = self.basic_attack_cooldown = 225
             self.damage_type = ''
+            self.stack = "dwarf_cannon"
 
-        if self.name == 'sushnost_v_vide_gnomika4':
-            self.max_hp = 2800
-            self.hp = 2800
-            self.atk = 375
-            self.atk2 = 5
-            self.kulak_time = 15
-            self.bullet_speed_x = 8
-            self.bullet_speed_y = 0
-            self.basic_attack_cooldown = 225
-            self.attack_cooldown = self.basic_attack_cooldown
-            self.basic_attack_cooldown2 = 6 # баффающая башня не баффает скорость атаки огнемета, если надо будет сделаю чтобы баффала
-            self.attack_cooldown2 = self.basic_attack_cooldown2
+        if self.name == 'dwarf_flamethrower':
+            self.max_hp = 1
+            self.hp = 1
+            self.atk = 0
+            self.atk2 = 5   # баффающая башня не баффает скорость атаки огнемета, если надо будет сделаю чтобы баффала
+            self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.attack_cooldown2 = self.basic_attack_cooldown2 = 6
             self.damage_type = ''
+            self.remove(towers_group)
+            self.add(nekusaemie_group)
 
-        # asdfghjkl;'        имба, всё понял
-
-        if self.name == 'terpila':  # циферки поменять
+        if self.name == 'terpila':
             self.hp = 6000
 
-        if self.name == 'oh_shit_i_am_sorry__barrier_mag':
+        if self.name == 'barrier_mag':
             self.hp = 1500
             self.barrier_hp = 3000
             self.best_x = self
-            # self.basic_barrier_cooldown = 750  # 3375
-            self.basic_spawn_something_cooldown = 750
+            self.basic_spawn_something_cooldown = 750  # 3375
             self.spawn_something_cooldown = 0
-            # self.barrier_cooldown = 0
 
         if self.name == 'davalka':
             self.hp = 200
             self.skolko_deneg_dast = 30
             self.basic_spawn_something_cooldown = self.spawn_something_cooldown = 750
-            # self.basic_davanie_cooldown = 900
-            # self.davanie_cooldown = self.basic_davanie_cooldown
 
         if self.name == 'matricayshon':
             self.hp = 500
@@ -454,265 +417,284 @@ class Tower(sprite.Sprite):
 
         # СТАТЫ конец   #
 
-    def delat_chtoto(self):     # тут надо будет написать условие при котором башня стреляет
-        if self.is_dead != True:
-            if self.name == 'zeus' or self.name == 'boomchick' or self.name == 'sushnost_v_vide_gnomika1' or self.name == 'sushnost_v_vide_gnomika2' or self.name == 'sushnost_v_vide_gnomika3' or self.name == 'sushnost_v_vide_gnomika4':     # тут был ещё fire_mag
-                for enemy in enemies_group:
-                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x:
-                        self.is_shooting()
+    # def delat_chtoto(self):     # тут надо будет написать условие при котором башня стреляет
+    #     if self.is_dead != True:
+    #         if self.name == 'zeus' or self.name == 'boomchick' or self.name == 'sushnost_v_vide_gnomika1' or self.name == 'sushnost_v_vide_gnomika2' or self.name == 'sushnost_v_vide_gnomika3' or self.name == 'sushnost_v_vide_gnomika4':     # тут был ещё fire_mag
+    #             for enemy in enemies_group:
+    #                 if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x:
+    #                     self.is_shooting()
+    #
+    #         if self.name == "fire_mag":
+    #             for enemy in enemies_group:
+    #                 if enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10 and enemy.rect.x >= self.rect.x:
+    #                     self.state = "attack"
+    #                     self.is_shooting()
+    #
+    #         if self.name == 'pukish':
+    #             if self in towers_group:
+    #                 for enemy in enemies_group:
+    #                     if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x:
+    #                         self.is_shooting()
+    #
+    #         if self.name == 'kopitel':
+    #                 self.is_shooting()
+    #
+    #         if self.name == 'thunder' or self.name == 'urag_anus':
+    #             for enemy in enemies_group:
+    #                 if ((enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) or (enemy.rect.y - (self.rect.y+128) <= 10 and (self.rect.y+128) - enemy.rect.y <= 10) or (enemy.rect.y - (self.rect.y-128) <= 10 and (self.rect.y-128) - enemy.rect.y <= 10)) and enemy.rect.x >= self.rect.x:
+    #                     self.is_shooting()
+    #
+    #         if self.name == 'parasitelniy':
+    #             for enemy in enemies_group:
+    #                 if enemy not in self.have_parasite:
+    #                     self.is_shooting()
+    #
+    #         if self.name == 'spike':
+    #             if self.attack_cooldown <= 0:
+    #                 for enemy in enemies_group:
+    #                     if sprite.collide_rect(self, enemy) and enemy.hp > 0:
+    #                         enemy.hp -= self.atk
+    #                 self.attack_cooldown = self.basic_attack_cooldown
+    #
+    #         if self.name == 'pukish':
+    #             self.remove(nekusaemie_group)
+    #             self.add(towers_group)
+    #             for enemy in enemies_group:
+    #                 if sprite.collide_rect(self, enemy):
+    #                     self.remove(towers_group)
+    #                     self.add(nekusaemie_group)
+    #             if self in towers_group:
+    #                 self.image = image.load(f"images/towers/{self.name}.png").convert_alpha()
+    #                 for enemy in enemies_group:
+    #                     if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x:
+    #                         self.is_shooting()
+    #             if self in nekusaemie_group:
+    #                 self.image = image.load(f"images/towers/{self.name}2.png").convert_alpha()
+    #                 if self.attack_cooldown2 <= 0:
+    #                     for enemy in enemies_group:
+    #                         if sprite.collide_rect(self, enemy) and enemy.hp > 0:
+    #                             enemy.hp -= self.atk2
+    #                     self.attack_cooldown2 = self.basic_attack_cooldown2
+    #
+    #         if self.name == 'drachun' or self.name == 'tolkan' or self.name == 'big_mechman' or self.name == 'nuka_kusni' or self.name == 'sushnost_v_vide_gnomika4':
+    #             if self.kulak_time > 0:
+    #                 self.kulak_time -= 1
+    #             if self.kulak_time <= 0:
+    #                 self.kulak_time = 15
+    #                 if hasattr(self, 'konb_sushestvuet'):
+    #                     if self.konb_sushestvuet:
+    #                         self.image = image.load(f"images/towers/{self.name}.png").convert_alpha()
+    #                     if not self.konb_sushestvuet:
+    #                         self.image = image.load(
+    #                             "images/towers/knight/wait/nuka_kusni_no_net_konya.png").convert_alpha()
+    #                 else:
+    #                     self.image = image.load(f"images/towers/{self.name}.png").convert_alpha()
+    #             for enemy in enemies_group:
+    #                 if self.name == 'drachun' or self.name == 'tolkan' or self.name == 'nuka_kusni':
+    #                     if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
+    #                         self.is_shooting()
+    #                 if self.name == 'big_mechman':
+    #                     if (enemy.rect.y - self.rect.y <= 128 and self.rect.y - enemy.rect.y <= 128) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
+    #                         self.is_shooting()
+    #
+    #         if self.name == 'davalka' or self.name == 'barrier_mag':
+    #             self.dayot()
+    #
+    #         if self.name == 'nuka_kusni':
+    #             if self.hpkonya <= 0 and self.konb_sushestvuet:
+    #                 self.konb_sushestvuet = False
+    #                 self.image = image.load("images/towers/knight/wait/nuka_kusni_no_net_konya.png").convert_alpha()
+    #
+    #             if self.hpchela <= 0:
+    #                 if self.konb_sushestvuet == True:
+    #                     self.konb = Bullet("kusni_ne_probuy", self.rect.centerx, self.rect.centery, '', self.taran_atk, 7, 0, 'gas', self)
+    #                 self.kill()
+    #
+    #         if self.name != 'nuka_kusni':
+    #             if self.hp <= 0:
+    #                 self.is_dead = True
+    #                 if self.name == 'boomchick':
+    #                     self.explosion = Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk*5, 0, 0, 'explosion', self)
+    #                 self.kill()
+    #
+    #         for i in range(16):
+    #             if self.name == 'go_bleen' + str(i+1):
+    #                 for enemy in enemies_group:
+    #                     if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x:
+    #                         self.is_shooting()
 
-            if self.name == "fire_mag":
-                for enemy in enemies_group:
-                    if enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10 and enemy.rect.x >= self.rect.x:
-                        self.state = "attack"
-                        self.is_shooting()
+    # def is_shooting(self):
+    #     if self.name == "fire_mag":  # пока привет пока
+    #         if self.attack_cooldown <= 0:
+    #             self.attack_cooldown = self.basic_attack_cooldown
+    #             # if not self.is_first_shoot:
+    #             Bullet("blue_bullet", self.rect.right - 10, self.rect.y + 45, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
+    #             # if self.is_first_shoot:
+    #             #     self.is_first_shoot = False
+    #
+    #     if self.name == 'boomchick':
+    #         if self.attack_cooldown <= 0:
+    #             self.attack_cooldown = self.basic_attack_cooldown
+    #             Bullet("yellow_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'boom', self)
+    #
+    #     if self.name == 'kopitel':
+    #         if self.attack_cooldown <= 0:
+    #             self.attack_cooldown = self.basic_attack_cooldown
+    #             if self.nakopleno < self.max_nakopit:
+    #                 self.joska_schitayu_y = 16 * (self.nakopleno) + 16
+    #                 self.spear_or_sword = randint(0, 1)
+    #                 if self.spear_or_sword == 0:
+    #                     self.pulya = Bullet("light_spear", self.rect.centerx-28, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+    #                 if self.spear_or_sword == 1:
+    #                     self.pulya = Bullet("light_sword", self.rect.centerx-28, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+    #                 self.pulya.remove(bullets_group)
+    #                 self.nakopleno += 1
+    #
+    #     if self.name == 'thunder':
+    #         if self.attack_cooldown <= 0:
+    #             self.attack_cooldown = self.basic_attack_cooldown
+    #             if self.rect.centery+128 <= 832:
+    #                 Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
+    #                                     self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'hrom',
+    #                                     self)
+    #
+    #             Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
+    #                                  self.damage_type, self.atk, self.bullet_speed_x, 0, 'hrom',
+    #                                  self)
+    #
+    #             if self.rect.centery-128 >= 192:
+    #                 Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
+    #                                     self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y * -1, 'hrom',
+    #                                     self)
+    #
+    #     if self.name == 'zeus':
+    #         if self.attack_cooldown <= 0:
+    #             self.attack_cooldown = self.basic_attack_cooldown
+    #             self.bullet = Bullet("Laser", self.rect.centerx + 640, self.rect.centery,
+    #                                 self.damage_type, self.atk, self.bullet_speed_x, 0,
+    #                                 'ls', self)
+    #
+    #     if self.name == 'parasitelniy':
+    #         if self.attack_cooldown <= 0:
+    #             self.attack_cooldown = self.basic_attack_cooldown
+    #             for enemy in enemies_group:
+    #                 if enemy not in self.have_parasite:
+    #                     self.parasix = randint(0, 32)
+    #                     self.parasiy = randint(-32, 32)
+    #                     self.parasite = Parasite('sosun', enemy.rect.centerx+self.parasix, enemy.rect.centery+self.parasiy, '', self.atk, enemy, self)
+    #                     enemy.add(self.have_parasite)
+    #                     break
+    #
+    #     if self.name == "pukish":
+    #         if self.attack_cooldown <= 0:
+    #             self.attack_cooldown = self.basic_attack_cooldown
+    #             Bullet("gas", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'gas', self)
+    #
+    #     # if self.name == 'urag_anus':
+    #     #     if self.uragan_cooldown <= 0:
+    #     #         self.uragan_cooldown = self.basic_uragan_cooldown
+    #     #         self.nearest_enemy = 0
+    #     #         for enemy in enemies_group:
+    #                         -138 <= enemy.rect.y - self.rect.y <= 138
+    #     #                 if ((enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) or (enemy.rect.y - (self.rect.y+128) <= 10 and (self.rect.y+128) - enemy.rect.y <= 10) or (enemy.rect.y - (self.rect.y-128) <= 10 and (self.rect.y-128) - enemy.rect.y <= 10)) and enemy.rect.x >= self.rect.x:
+    #     #                     if self.nearest_enemy == 0:
+    #     #                         self.nearest_enemy = enemy
+    #     #                     if self.nearest_enemy.rect.x > enemy.rect.x:
+    #     #                         self.nearest_enemy = enemy
+    #     #         if self.nearest_enemy.rect.centerx+128 < 1500:
+    #     #             self.uragan = Parasite('uragan', self.nearest_enemy.rect.centerx+128, self.rect.centery, '', self.atk, self, self)
+    #     #         else:
+    #     #             self.uragan = Parasite('uragan', 1472, self.rect.centery, '', self.atk, self, self)
+    #
+    #     if self.name == 'drachun':
+    #         if self.attack_cooldown <= 0:
+    #             self.attack_cooldown = self.basic_attack_cooldown
+    #             self.image = image.load(f"images/towers/{self.name}2.png").convert_alpha()
+    #             for enemy in enemies_group:
+    #                 if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
+    #                     enemy.hp -= self.atk
+    #             self.kulak_time = 15
+    #
+    #     if self.name == 'nuka_kusni':
+    #         if self.attack_cooldown <= 0:
+    #             self.attack_cooldown = self.basic_attack_cooldown
+    #             if self.konb_sushestvuet:
+    #                 self.image = image.load(f"images/towers/{self.name}2.png").convert_alpha()
+    #             if not self.konb_sushestvuet:
+    #                 self.image = image.load("images/towers/knight/attack/nuka_kusni_no_net_konya2.png").convert_alpha()
+    #             for enemy in enemies_group:
+    #                 if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
+    #                     enemy.hp -= self.atk
+    #             self.kulak_time = 15
+    #
+    #     if self.name == 'tolkan':
+    #         if self.attack_cooldown <= 0:
+    #             self.attack_cooldown = self.basic_attack_cooldown
+    #             self.image = image.load(f"images/towers/{self.name}2.png").convert_alpha()
+    #             self.za_towerom = False
+    #             for tower in towers_group:
+    #                 if tower.rect.y == self.rect.y and tower.rect.x > self.rect.x and tower.rect.x - self.rect.x <= 128 and tower.name != 'pukish' and tower != self:
+    #                     self.za_towerom = True
+    #             for enemy in enemies_group:
+    #                 if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
+    #                     enemy.hp -= self.atk
+    #                     if self.za_towerom == True:
+    #                         enemy.rect.x += self.ottalkivanie_ne_solo
+    #                     else:
+    #                         enemy.rect.x += self.ottalkivanie_solo
+    #             self.kulak_time = 15
+    #
+    #     if self.name == 'big_mechman':
+    #         if self.attack_cooldown <= 0:
+    #             self.attack_cooldown = self.basic_attack_cooldown
+    #             self.explosion = Bullet("big_mechman2", self.rect.right, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self)
+    #
+    #     if self.name == 'sushnost_v_vide_gnomika1' or self.name == 'sushnost_v_vide_gnomika2' or self.name == 'sushnost_v_vide_gnomika3' or self.name == 'sushnost_v_vide_gnomika4':
+    #         if self.attack_cooldown <= 0:
+    #             self.attack_cooldown = self.basic_attack_cooldown
+    #             Bullet("red_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
+    #         if self.name == 'sushnost_v_vide_gnomika4':
+    #             for enemy in enemies_group:
+    #                 if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 192:
+    #                     if self.attack_cooldown2 <= 0:
+    #                         self.attack_cooldown2 = self.basic_attack_cooldown2
+    #                         self.image = image.load(f"images/towers/{self.name}_ogonb.png").convert_alpha()
+    #                         for enemy in enemies_group:
+    #                             if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 192:
+    #                                 enemy.hp -= self.atk2
+    #                         self.kulak_time = 15
+    #
+    #     for i in range(16):
+    #         if self.name == 'go_bleen' + str(i+1):
+    #             if self.attack_cooldown <= 0:
+    #                 self.attack_cooldown = self.basic_attack_cooldown
+    #                 for j in range(i+1):
+    #                     Bullet("spear_ma", self.rect.centerx, self.rect.y+(j*8), self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
+    #
+    #     if self in nekusaemie_group:
+    #         if self.attack_cooldown2 <= 0:
+    #             for enemy in enemies_group:
+    #                 if sprite.collide_rect(self, enemy) and enemy.hp > 0:
+    #                     enemy.hp -= self.atk2
+    #             self.attack_cooldown2 = self.basic_attack_cooldown2
 
-            if self.name == 'pukish':
-                if self in towers_group:
-                    for enemy in enemies_group:
-                        if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x:
-                            self.is_shooting()
-
-            if self.name == 'kopitel':
-                    self.is_shooting()
-
-            if self.name == 'thunder' or self.name == 'urag_anus':
-                for enemy in enemies_group:
-                    if ((enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) or (enemy.rect.y - (self.rect.y+128) <= 10 and (self.rect.y+128) - enemy.rect.y <= 10) or (enemy.rect.y - (self.rect.y-128) <= 10 and (self.rect.y-128) - enemy.rect.y <= 10)) and enemy.rect.x >= self.rect.x:
-                        self.is_shooting()
-
-            if self.name == 'parasitelniy':
-                for enemy in enemies_group:
-                    if enemy not in self.have_parasite:
-                        self.is_shooting()
-
-            if self.name == 'spike':
-                if self.attack_cooldown <= 0:
-                    for enemy in enemies_group:
-                        if sprite.collide_rect(self, enemy) and enemy.hp > 0:
-                            enemy.hp -= self.atk
-                    self.attack_cooldown = self.basic_attack_cooldown
-
-            if self.name == 'pukish':
-                self.remove(nekusaemie_group)
-                self.add(towers_group)
-                for enemy in enemies_group:
-                    if sprite.collide_rect(self, enemy):
-                        self.remove(towers_group)
-                        self.add(nekusaemie_group)
-                if self in towers_group:
-                    self.image = image.load(f"images/towers/{self.name}.png").convert_alpha()
-                    for enemy in enemies_group:
-                        if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x:
-                            self.is_shooting()
-                if self in nekusaemie_group:
-                    self.image = image.load(f"images/towers/{self.name}2.png").convert_alpha()
-                    if self.attack_cooldown2 <= 0:
-                        for enemy in enemies_group:
-                            if sprite.collide_rect(self, enemy) and enemy.hp > 0:
-                                enemy.hp -= self.atk2
-                        self.attack_cooldown2 = self.basic_attack_cooldown2
-
-            if self.name == 'drachun' or self.name == 'tolkan' or self.name == 'big_mechman' or self.name == 'nuka_kusni' or self.name == 'sushnost_v_vide_gnomika4':
-                if self.kulak_time > 0:
-                    self.kulak_time -= 1
-                if self.kulak_time <= 0:
-                    self.kulak_time = 15
-                    if hasattr(self, 'konb_sushestvuet'):
-                        if self.konb_sushestvuet:
-                            self.image = image.load(f"images/towers/{self.name}.png").convert_alpha()
-                        if not self.konb_sushestvuet:
-                            self.image = image.load(
-                                "images/towers/knight/wait/nuka_kusni_no_net_konya.png").convert_alpha()
-                    else:
-                        self.image = image.load(f"images/towers/{self.name}.png").convert_alpha()
-                for enemy in enemies_group:
-                    if self.name == 'drachun' or self.name == 'tolkan' or self.name == 'nuka_kusni':
-                        if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
-                            self.is_shooting()
-                    if self.name == 'big_mechman':
-                        if (enemy.rect.y - self.rect.y <= 128 and self.rect.y - enemy.rect.y <= 128) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
-                            self.is_shooting()
-
-            if self.name == 'davalka' or self.name == 'oh_shit_i_am_sorry__barrier_mag':
-                self.dayot()
-            
-            if self.name == 'nuka_kusni':
-                if self.hpkonya <= 0 and self.konb_sushestvuet:
-                    self.konb_sushestvuet = False
-                    self.image = image.load("images/towers/knight/wait/nuka_kusni_no_net_konya.png").convert_alpha()
-
-                if self.hpchela <= 0:
-                    if self.konb_sushestvuet == True:
-                        self.konb = Bullet("kusni_ne_probuy", self.rect.centerx, self.rect.centery, '', self.taran_atk, 7, 0, 'gas', self)
-                    self.kill()
-
-            if self.name != 'nuka_kusni':
-                if self.hp <= 0:
-                    self.is_dead = True
-                    if self.name == 'boomchick':
-                        self.explosion = Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk*5, 0, 0, 'explosion', self)
-                    self.kill()
-
-            for i in range(16):
-                if self.name == 'go_bleen' + str(i+1):
-                    for enemy in enemies_group:
-                        if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x:
-                            self.is_shooting()
-
-    def is_shooting(self):
-        if self.name == "fire_mag":  # пока привет пока
-            if self.attack_cooldown <= 0:
-                self.attack_cooldown = self.basic_attack_cooldown
-                # if not self.is_first_shoot:
-                Bullet("blue_bullet", self.rect.right - 10, self.rect.y + 45, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
-                # if self.is_first_shoot:
-                #     self.is_first_shoot = False
-
-        if self.name == 'boomchick':  
-            if self.attack_cooldown <= 0:
-                self.attack_cooldown = self.basic_attack_cooldown
-                Bullet("yellow_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'boom', self)
-
-        if self.name == 'kopitel':
-            if self.attack_cooldown <= 0:
-                self.attack_cooldown = self.basic_attack_cooldown
-                if self.nakopleno < self.max_nakopit:
-                    self.joska_schitayu_y = 16 * (self.nakopleno) + 16
-                    self.spear_or_sword = randint(0, 1)
-                    if self.spear_or_sword == 0:
-                        self.pulya = Bullet("light_spear", self.rect.centerx-28, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
-                    if self.spear_or_sword == 1:
-                        self.pulya = Bullet("light_sword", self.rect.centerx-28, self.rect.y+self.joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
-                    self.pulya.remove(bullets_group)
-                    self.nakopleno += 1
-
-        if self.name == 'thunder':
-            if self.attack_cooldown <= 0:
-                self.attack_cooldown = self.basic_attack_cooldown
-                if self.rect.centery+128 <= 832:
-                    Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
-                                        self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'hrom',
-                                        self)
-
-                Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
-                                     self.damage_type, self.atk, self.bullet_speed_x, 0, 'hrom',
-                                     self)
-
-                if self.rect.centery-128 >= 192:
-                    Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,
-                                        self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y * -1, 'hrom',
-                                        self)
-
-        if self.name == 'zeus':
-            if self.attack_cooldown <= 0:
-                self.attack_cooldown = self.basic_attack_cooldown
-                self.bullet = Bullet("Laser", self.rect.centerx + 640, self.rect.centery,
-                                    self.damage_type, self.atk, self.bullet_speed_x, 0,
-                                    'ls', self)
-
-        if self.name == 'parasitelniy':
-            if self.attack_cooldown <= 0:
-                self.attack_cooldown = self.basic_attack_cooldown
-                for enemy in enemies_group:
-                    if enemy not in self.have_parasite:
-                        self.parasix = randint(0, 32)
-                        self.parasiy = randint(-32, 32)
-                        self.parasite = Parasite('sosun', enemy.rect.centerx+self.parasix, enemy.rect.centery+self.parasiy, '', self.atk, enemy, self)
-                        enemy.add(self.have_parasite)
-                        break
-
-        if self.name == "pukish":
-            if self.attack_cooldown <= 0:
-                self.attack_cooldown = self.basic_attack_cooldown
-                Bullet("gas", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'gas', self)
-
-        # if self.name == 'urag_anus':
-        #     if self.uragan_cooldown <= 0:
-        #         self.uragan_cooldown = self.basic_uragan_cooldown
-        #         self.nearest_enemy = 0
-        #         for enemy in enemies_group:
-        #                 if ((enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) or (enemy.rect.y - (self.rect.y+128) <= 10 and (self.rect.y+128) - enemy.rect.y <= 10) or (enemy.rect.y - (self.rect.y-128) <= 10 and (self.rect.y-128) - enemy.rect.y <= 10)) and enemy.rect.x >= self.rect.x:
-        #                     if self.nearest_enemy == 0:
-        #                         self.nearest_enemy = enemy
-        #                     if self.nearest_enemy.rect.x > enemy.rect.x:
-        #                         self.nearest_enemy = enemy
-        #         if self.nearest_enemy.rect.centerx+128 < 1500:
-        #             self.uragan = Parasite('uragan', self.nearest_enemy.rect.centerx+128, self.rect.centery, '', self.atk, self, self)
-        #         else:
-        #             self.uragan = Parasite('uragan', 1472, self.rect.centery, '', self.atk, self, self)
-
-        if self.name == 'drachun':
-            if self.attack_cooldown <= 0:
-                self.attack_cooldown = self.basic_attack_cooldown
-                self.image = image.load(f"images/towers/{self.name}2.png").convert_alpha()
-                for enemy in enemies_group:
-                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
-                        enemy.hp -= self.atk
-                self.kulak_time = 15
-
-        if self.name == 'nuka_kusni':
-            if self.attack_cooldown <= 0:
-                self.attack_cooldown = self.basic_attack_cooldown
-                if self.konb_sushestvuet:
-                    self.image = image.load(f"images/towers/{self.name}2.png").convert_alpha()
-                if not self.konb_sushestvuet:
-                    self.image = image.load("images/towers/knight/attack/nuka_kusni_no_net_konya2.png").convert_alpha()
-                for enemy in enemies_group:
-                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
-                        enemy.hp -= self.atk
-                self.kulak_time = 15
-
-        if self.name == 'tolkan':
-            if self.attack_cooldown <= 0:
-                self.attack_cooldown = self.basic_attack_cooldown
-                self.image = image.load(f"images/towers/{self.name}2.png").convert_alpha()
-                self.za_towerom = False
-                for tower in towers_group:
-                    if tower.rect.y == self.rect.y and tower.rect.x > self.rect.x and tower.rect.x - self.rect.x <= 128 and tower.name != 'pukish' and tower != self:
-                        self.za_towerom = True
-                for enemy in enemies_group:
-                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
-                        enemy.hp -= self.atk
-                        if self.za_towerom == True:
-                            enemy.rect.x += self.ottalkivanie_ne_solo
-                        else:
-                            enemy.rect.x += self.ottalkivanie_solo
-                self.kulak_time = 15
-
-        if self.name == 'big_mechman':
-            if self.attack_cooldown <= 0:
-                self.attack_cooldown = self.basic_attack_cooldown
-                self.explosion = Bullet("big_mechman2", self.rect.right, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self)
-                
-        if self.name == 'sushnost_v_vide_gnomika1' or self.name == 'sushnost_v_vide_gnomika2' or self.name == 'sushnost_v_vide_gnomika3' or self.name == 'sushnost_v_vide_gnomika4':
-            if self.attack_cooldown <= 0:
-                self.attack_cooldown = self.basic_attack_cooldown
-                Bullet("red_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
-            if self.name == 'sushnost_v_vide_gnomika4':
-                for enemy in enemies_group:
-                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 192:
-                        if self.attack_cooldown2 <= 0:
-                            self.attack_cooldown2 = self.basic_attack_cooldown2
-                            self.image = image.load(f"images/towers/{self.name}_ogonb.png").convert_alpha()
-                            for enemy in enemies_group:
-                                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 192:
-                                    enemy.hp -= self.atk2
-                            self.kulak_time = 15
-
-        for i in range(16):
-            if self.name == 'go_bleen' + str(i+1):
-                if self.attack_cooldown <= 0:
-                    self.attack_cooldown = self.basic_attack_cooldown
-                    for j in range(i+1):
-                        Bullet("spear_ma", self.rect.centerx, self.rect.y+(j*8), self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
-
-        if self in nekusaemie_group:
-            if self.attack_cooldown2 <= 0:
-                for enemy in enemies_group:
-                    if sprite.collide_rect(self, enemy) and enemy.hp > 0:
-                        enemy.hp -= self.atk2
-                self.attack_cooldown2 = self.basic_attack_cooldown2
+    # def dayot(self):
+    #     pass
+    #     if self.name == 'davalka':
+    #         if self.davanie_cooldown <= 0:
+    #             self.davanie_cooldown = self.basic_davanie_cooldown
+    #             level.money += self.skolko_deneg_dast
+    #             Alert("+30", (self.rect.centerx-15, self.rect.centery-55), 50, font30, (0, 70, 200))  # мне было больно смотреть на time_on_screen, когда есть алерты
+    #
+    #     if self.name == 'barrier_mag':
+    #         if self.barrier_cooldown <= 0:
+    #             self.barrier_cooldown = self.basic_barrier_cooldown
+    #             self.best_x = self
+    #             for tower in towers_group:
+    #                 if tower.rect.y == self.rect.y and tower.rect.x > self.best_x.rect.x and tower.name != 'pukish' and tower.have_barrier == False:
+    #                     self.best_x = tower
+    #             self.best_x.have_barrier = True
+    #             self.barrier = Parasite('oh_shit_i_am_sorry__barrier_mag__sobstvenno_govorya_barrier', self.best_x.rect.centerx, self.best_x.rect.centery, '', 0, self.best_x, self)
 
     def add_anim_task(self, anim, func):
         if len(self.anim_tasks) == 0:
@@ -728,15 +710,33 @@ class Tower(sprite.Sprite):
             self.anim_tasks.clear()
             self.add_anim_task(anim, func)
 
-    def attack2_allow(self):
+    def dead(self):
+        if self.name == "dwarf_cannon3":
+            for tower in nekusaemie_group:
+                if tower.rect.collidepoint(self.rect.centerx, self.rect.centery):
+                    tower.kill()
+
+        if self.name == "boomchick":
+            Bullet("yellow_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk * 5, self.bullet_speed_x, self.bullet_speed_y, 'boom', self)
+
+        self.kill()     # + потом анимация смерти
+
+    def is_additional_attack_allow(self):
         if self.name == "pukish":
             if self.hiding:
                 return True
-        if self.name == "пушка с гномами":
-            ...
+        if self.name == "dwarf_flamethrower":
+            if self.state == "attack":
+                return True
 
     def find_target(self):  # remove
-        if self.name == "fire_mag" or self.name == "boomchick" or self.name == 'kopitel' or self.name == "zeus":
+        if self.name == "fire_mag"\
+                or self.name == "boomchick"\
+                or self.name == 'kopitel'\
+                or self.name == "zeus"\
+                or self.name == 'dwarf_cannon1'\
+                or self.name == 'dwarf_cannon2'\
+                or self.name == 'dwarf_cannon3':
             for enemy in enemies_group:
                 if enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
                     return enemy
@@ -748,68 +748,96 @@ class Tower(sprite.Sprite):
 
         if self.name == "thunder":
             for enemy in enemies_group:
-                if enemy.rect.y - 128 <= self.rect.y <= enemy.rect.y + 128 and enemy.rect.x >= self.rect.x:
+                if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.x >= self.rect.x and enemy.alive:
                     return enemy
 
         if self.name == "urag_anus":
-            enemies = [enemy for enemy in enemies_group if enemy.rect.y - 128 <= self.rect.y <= enemy.rect.y + 128 and enemy.rect.x >= self.rect.x]
+            enemies = [enemy for enemy in enemies_group if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.x >= self.rect.x and enemy.alive]
             if enemies:     # проверка, что список не пустой
                 enemy_x_cords = [enemy.rect.x for enemy in enemies]
-                return enemies[enemy_x_cords.index(min(enemy_x_cords))]
+                return enemies[enemy_x_cords.index(min(enemy_x_cords))]         # не убирать
 
         if self.name == "yascerica":
             for enemy in enemies_group:
-                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and self.blackik.sumon == 'baza':
+                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and self.blackik.sumon == 'baza' and enemy.alive:
                     return enemy
 
         if self.name == "spike":            # ауе дамаг
-            enemies = []
             for enemy in enemies_group:
                 if enemy.rect.colliderect(self.rect):
-                    enemies.append(enemy)
-            if enemies:
-                return enemies
+                    return enemy
 
         if self.name == 'big_mechman':      # ауе дамаг
-            enemies = []
             for enemy in enemies_group:
-                if (enemy.rect.y - self.rect.y <= 128 and self.rect.y - enemy.rect.y <= 128) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
-                    enemies.append(enemy)
-            if enemies:
-                return enemies
+                if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.x >= self.rect.x and enemy.alive and enemy.rect.x - self.rect.x <= 256:
+                    return enemy
 
         if self.name == "drachun" or self.name == "tolkan" or self.name == "knight_on_horse" or self.name == "knight":
-            enemies = []
             for enemy in enemies_group:
-                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256:
-                    enemies.append(enemy)
-            if enemies:
-                return enemies
+                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256 and enemy.alive:
+                    return enemy
             else:
                 self.time_indicator = 1
 
         if self.name == "pukish":
             for enemy in enemies_group:
-                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x:
+                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.alive:
+                    return enemy
+
+        if self.name == "dwarf_flamethrower":
+            for enemy in enemies_group:
+                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 192 and enemy.alive:
                     return enemy
 
         return None
 
-    def check_target_alive(self):     # remove
-        if targets[id(self)] is not None:                                   # проверяем жива ли цель
-            if type(targets[id(self)]) == list:                             # если в таргете находится список врагов
-                if targets[id(self)][0].alive:                              # если жив первый
-                    self.add_anim_task("attack", self.multiple_attack)
-            else:
+    def check_target_alive(self, depth):     # remove
+        if targets[id(self)]:
+            if targets[id(self)].rect.x < self.rect.x:
+                targets[id(self)] = None
+        # if targets[id(self)] is not None:                                   # проверяем жива ли цель
+        #     if type(targets[id(self)]) == list:                             # если в таргете находится список врагов
+        #         if targets[id(self)][0].alive:                              # если жив первый
+        #             self.add_anim_task("attack", self.multiple_attack)
+        #     else:
+        #         if targets[id(self)].alive:
+        #             self.add_anim_task("attack", self.shoot)
+        #         else:
+        #             targets[id(self)] = self.find_target()
+        # else:                                                               # если нет ->
+        #     targets[id(self)] = self.find_target()                          # ищем цель
+        #     if targets[id(self)] is not None:                               # если цель найдена ->
+        #         if type(targets[id(self)]) == list:
+        #             self.add_anim_task("attack", self.multiple_attack)
+        #         else:
+        #             self.add_anim_task("attack", self.shoot)                # bug?
+        if targets[id(self)]:
+            if targets[id(self)].alive:
+                self.add_anim_task("attack", self.shoot)
+        else:
+            targets[id(self)] = self.find_target()
+            if targets[id(self)]:
                 if targets[id(self)].alive:
                     self.add_anim_task("attack", self.shoot)
-        else:                                                               # если нет ->
-            targets[id(self)] = self.find_target()                          # ищем цель
-            if targets[id(self)] is not None:                               # если цель найдена ->
-                if type(targets[id(self)]) == list:
-                    self.add_anim_task("attack", self.multiple_attack)
-                else:
-                    self.add_anim_task("attack", self.shoot)                # bug?
+
+        # if type(targets[id(self)]) == list:
+        #     if targets[id(self)][0].alive:
+        #         self.add_anim_task("attack", self.multiple_attack)
+        #     else:
+        #         targets[id(self)] = self.find_target()
+        #         if depth == 1:
+        #             return self.check_target_alive(2)
+        # if type(targets[id(self)]) != list and hasattr(targets[id(self)], "alive"):
+        #     if targets[id(self)].alive:
+        #         self.add_anim_task("attack", self.shoot)
+        #     else:
+        #         targets[id(self)] = self.find_target()
+        #         if depth == 1:
+        #             return self.check_target_alive(2)
+        # else:
+        #     targets[id(self)] = self.find_target()
+        #     if depth == 1:
+        #         return self.check_target_alive(2)
 
     def shoot(self):    # remove
         if self.name == "fire_mag":
@@ -834,9 +862,9 @@ class Tower(sprite.Sprite):
 
         if self.name == "thunder":
             Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8, self.damage_type, self.atk, self.bullet_speed_x, 0, 'hrom', self)
-            if self.rect.centery+128 <= 832:
+            if self.rect.centery+138 <= 832:
                 Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'hrom', self)
-            if self.rect.centery-128 >= 192:
+            if self.rect.centery-138 >= 192:
                 Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,  self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y * -1, 'hrom', self)
 
         if self.name == "urag_anus":
@@ -852,6 +880,42 @@ class Tower(sprite.Sprite):
             if self.blackik.sumon == "baza":
                 self.blackik.sumon = "ready"
                 targets[id(self)] = None
+
+        if self.name == "dwarf_cannon1" or self.name == "dwarf_cannon2" or self.name == "dwarf_cannon3":
+            Bullet("red_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
+
+        if self.name == "pukish":       # почему? А потому что
+            Bullet("gas", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'gas', self)
+
+        if self.name == 'spike':    # fix?
+            for enemy in enemies_group:
+                enemy.hp -= self.atk
+            targets[id(self)] = None
+
+        if self.name == "big_mechman":
+            Bullet("mech_vzux", self.rect.right, self.rect.centery, self.damage_type, self.atk, 0, 0, 'mech', self)
+
+        if self.name == "drachun":
+            self.time_indicator = 2
+            Bullet("drachun_gulag", self.rect.right + 64, self.rect.centery, self.damage_type, self.atk, 0, 0, 'drachun_gulag', self)
+
+        if self.name == 'tolkan':
+            self.za_towerom = False
+            Bullet("tolkan_bux", self.rect.right + 64, self.rect.centery, self.damage_type, self.atk, 0, 0, 'tolkan_bux', self)
+            for tower in towers_group:
+                if tower.rect.y == self.rect.y and tower.rect.x > self.rect.x and tower.rect.x - self.rect.x <= 128 and tower.name != 'pukish' and tower != self:
+                    self.za_towerom = True
+            if self.za_towerom:
+                self.push = self.ottalkivanie_ne_solo
+            else:
+                self.push = self.ottalkivanie_solo
+
+        if self.name == "knight_on_horse" or self.name == "knight":
+            Bullet("pike", self.rect.centerx + 128, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self)
+
+        if self.name == "dwarf_flamethrower":
+            self.fire = Bullet("fire", self.rect.right + 64, self.rect.centery, self.damage_type, self.atk, 0, 0, "fire", self)
+
 
     def multiple_attack(self):
         if self.name == 'spike':    # fix?
@@ -877,17 +941,23 @@ class Tower(sprite.Sprite):
             else:
                 self.push = self.ottalkivanie_solo
 
-        if self.name == "pukish":
-            Bullet("gas", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'gas', self)
-
         if self.name == "knight_on_horse" or self.name == "knight":
             Bullet("pike", self.rect.centerx + 128, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self)
+
+        if self.name == "dwarf_flamethrower":
+            self.fire = Bullet("fire", self.rect.right + 64, self.rect.centery, self.damage_type, self.atk, 0, 0, "fire", self)
 
     def additional_attack(self):
         if self.name == "pukish":
             for enemy in enemies_group:
                 if enemy.rect.colliderect(self.rect):
                     enemy.hp -= self.atk2
+
+        if self.name == "dwarf_flamethrower":
+            if hasattr(self, "fire"):
+                for enemy in enemies_group:
+                    if enemy.rect.colliderect(self.fire.rect):
+                        enemy.hp -= self.atk2
 
     def spawn_something(self):
         if self.name == 'kopitel':
@@ -899,7 +969,7 @@ class Tower(sprite.Sprite):
                 self.spawned_things.append(pulya)
                 self.nakopleno += 1
 
-        if self.name == 'oh_shit_i_am_sorry__barrier_mag':
+        if self.name == 'barrier_mag':
             if self.best_x.barrier not in all_sprites_group:
                 best_x = self
                 for tower in towers_group:
@@ -915,37 +985,19 @@ class Tower(sprite.Sprite):
     def stop_hiding(self):
         self.hiding = True
 
-    def dayot(self):
-        pass
-        # if self.name == 'davalka':
-        #     if self.davanie_cooldown <= 0:
-        #         self.davanie_cooldown = self.basic_davanie_cooldown
-        #         level.money += self.skolko_deneg_dast
-        #         Alert("+30", (self.rect.centerx-15, self.rect.centery-55), 50, font30, (0, 70, 200))  # мне было больно смотреть на time_on_screen, когда есть алерты
-
-        # if self.name == 'oh_shit_i_am_sorry__barrier_mag':
-        #     if self.barrier_cooldown <= 0:
-        #         self.barrier_cooldown = self.basic_barrier_cooldown
-        #         self.best_x = self
-        #         for tower in towers_group:
-        #             if tower.rect.y == self.rect.y and tower.rect.x > self.best_x.rect.x and tower.name != 'pukish' and tower.have_barrier == False:
-        #                 self.best_x = tower
-        #         self.best_x.have_barrier = True
-        #         self.barrier = Parasite('oh_shit_i_am_sorry__barrier_mag__sobstvenno_govorya_barrier', self.best_x.rect.centerx, self.best_x.rect.centery, '', 0, self.best_x, self)
-
     def animation(self):
         if 0 <= self.anim_count < self.anim_duration\
                 or self.anim_duration <= self.anim_count < 2 * self.anim_duration\
                 or self.anim_duration * 2 <= self.anim_count < 3 * self.anim_duration\
                 or self.anim_duration * 3 <= self.anim_count < 4 * self.anim_duration:
             if self.state == "wait":
-                self.image = towers_wait[self.name][self.anim_count//self.anim_duration]
+                self.image = towers_wait[self.name][int(self.anim_count//self.anim_duration)]
             if self.state == "attack":  # я устал(      очень-очень-очень-очень
-                self.image = towers_attack[self.name][self.anim_count//self.anim_duration]
+                self.image = towers_attack[self.name][int(self.anim_count//self.anim_duration)]
             if self.state == "give":
-                self.image = towers_give[self.name][self.anim_count//self.anim_duration]
+                self.image = towers_give[self.name][int(self.anim_count//self.anim_duration)]
             if self.state == "hide":
-                self.image = towers_hide[self.name][self.anim_count//self.anim_duration]
+                self.image = towers_hide[self.name][int(self.anim_count//self.anim_duration)]
             if self.state == "death":
                 ...
 
@@ -960,7 +1012,7 @@ class Tower(sprite.Sprite):
                 self.attack_cooldown -= 1         # если я вам не скажу, вы и не заметите
             else:
                 self.attack_cooldown = self.basic_attack_cooldown
-                self.check_target_alive()         # когда башня перезарядилась -> чекаем врага
+                self.check_target_alive(1)         # когда башня перезарядилась -> чекаем врага
 
         # if self.attack_time > 0:                # пока время анимации выстрела больше 0
         #     self.state = "attack"               # говорим, что нужно проигрывать анимацию атаки
@@ -994,7 +1046,7 @@ class Tower(sprite.Sprite):
         #     self.state = "wait"
 
         if hasattr(self, "attack_cooldown2"):
-            if self.attack2_allow():
+            if self.is_additional_attack_allow():
                 if self.attack_cooldown2 > 0:
                     self.attack_cooldown2 -= 1
                 else:
@@ -1015,13 +1067,15 @@ class Tower(sprite.Sprite):
         #     if self.barrier_cooldown > 0:
         #         self.barrier_cooldown -= 1
 
-        if hasattr(self, "uragan_cooldown") and self.uragan not in all_sprites_group:
-            if self.uragan_cooldown > 0:
-                self.uragan_cooldown -= 1
+        # if hasattr(self, "uragan_cooldown") and self.uragan not in all_sprites_group:
+        #     if self.uragan_cooldown > 0:
+        #         self.uragan_cooldown -= 1
 
-        if hasattr(self, "davanie_cooldown"):
-            if self.davanie_cooldown > 0:
-                self.davanie_cooldown -= 1
+        # if hasattr(self, "davanie_cooldown"):
+        #     if self.davanie_cooldown > 0:
+        #         self.davanie_cooldown -= 1
+
+    # def chech_target_position
 
     def update(self):
         # self.delat_chtoto()
@@ -1032,15 +1086,21 @@ class Tower(sprite.Sprite):
         # if self.anim_tasks:
         #     print(self.anim_tasks)
         # print(self.anim_count)
+        # print(targets[id(self)])
 
         if self.hp <= 0:
-            self.kill()
+            self.dead()
 
         if hasattr(self, "horse_hp"):
             if self.horse_hp <= 0:
-                hp = self.knight_hp
+                hp = self.knight_hp + 500
                 knight = Tower("knight", self.pos)
                 knight.hp = hp
+                # Bullet("horse", self.rect.centerx, self.rect.centery, self.damage_type, self.taran_atk, 7, 0, 'gas', self)
+                self.kill()
+
+        if hasattr(self, "knight_hp"):
+            if self.knight_hp <= 0:
                 Bullet("horse", self.rect.centerx, self.rect.centery, self.damage_type, self.taran_atk, 7, 0, 'gas', self)
                 self.kill()
 
@@ -1052,6 +1112,9 @@ class Tower(sprite.Sprite):
                     targets[id(self)] = None                        # цель прошла дальше -- значит уже не цель
                     self.hiding = False                             # уже не прячится
 
+        # if self.name == "thunder":
+        #     if targets[id(self)]:
+        #         if
         # if self.name == 'fire_mag'\
         #         or self.name == 'kopitel'\
         #         or self.name == 'thunder'\
@@ -1081,7 +1144,7 @@ class Tower(sprite.Sprite):
         #     if self.attack_cooldown2 > 0:
         #         self.attack_cooldown2 -= 1
         #
-        # if self.name == 'oh_shit_i_am_sorry__barrier_mag' and self.barrier not in all_sprites_group:
+        # if self.name == 'barrier_mag' and self.barrier not in all_sprites_group:
         #     if self.barrier_cooldown > 0:
         #         self.barrier_cooldown -= 1
         #
@@ -1112,6 +1175,8 @@ class Bullet(sprite.Sprite):
             self.off = 20
         if self.name == "drachun_gulag" or self.name == "tolkan_bux":
             self.off = 15
+        if self.name == "fire":
+            self.off = 61
 
         if self.name == 'yas':
             self.sumon = 'baza'     # ready
@@ -1181,7 +1246,7 @@ class Bullet(sprite.Sprite):
             self.kill()
 
     def check_collision(self):
-        if self.name == "igddue_bullet":
+        if self.name == "zeleniy_strelok_bullet":
             for tower in towers_group:
                 if tower.name != "pukish":
                     if self.rect.colliderect(tower.rect):
@@ -1191,7 +1256,7 @@ class Bullet(sprite.Sprite):
                                     barrier.hp -= self.damage
                                     self.kill()
                         elif tower.name == "knight_on_horse":
-                            tower.horse_hp -= self.damage
+                            tower.knight_hp -= self.damage
                             self.kill()
                         else:
                             tower.hp -= self.damage
@@ -1218,17 +1283,15 @@ class Bullet(sprite.Sprite):
                     enemy.only_one_hit_bullets.add(self)
 
         if self.name == "mech" or self.name == "drachun_gulag":         # более продвинутый вариант -- наносим урон сразу целям, а не чекаем колизится враг или нет
-            if targets[id(self.parent)]:
-                for enemy in targets[id(self.parent)]:
-                    enemy.hp -= self.parent.atk
-                targets[id(self.parent)] = None
+            for enemy in enemies_group:
+                enemy.hp -= self.parent.atk
+            targets[id(self.parent)] = None
 
         if self.name == "tolkan_bux":         # более продвинутый вариант -- наносим урон сразу целям, а не чекаем колизится враг или нет
-            if targets[id(self.parent)]:
-                for enemy in targets[id(self.parent)]:
-                    enemy.hp -= self.parent.atk
-                    enemy.rect.x += self.parent.push
-                targets[id(self.parent)] = None
+            for enemy in enemies_group:
+                enemy.hp -= self.parent.atk
+                enemy.rect.x += self.parent.push
+            targets[id(self.parent)] = None
 
         for enemy in enemies_group:
             if enemy.rect.collidepoint(self.rect.right, self.rect.centery):
@@ -1260,7 +1323,7 @@ class Bullet(sprite.Sprite):
             if self.parent.attack_cooldown > 0:
                 self.parent.attack_cooldown -= 1
 
-        if self.name == 'ls' or self.name == 'explosion' or self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux":
+        if self.name == 'ls' or self.name == 'explosion' or self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux" or self.name == "fire":
             if self.off <= 0:
                 self.kill()
             else:
@@ -1284,7 +1347,6 @@ class Parasite(sprite.Sprite):
         self.name = name
         self.owner = owner # это враг к которому привязан паразит
         self.parent = parent
-
 
         if self.name == 'sosun':
             self.parasix = self.parent.parasix
@@ -1387,11 +1449,12 @@ class Buff(sprite.Sprite):
                             or tower.name == 'drachun'\
                             or tower.name == 'tolkan'\
                             or tower.name == 'big_mechman'\
-                            or tower.name == 'nuka_kusni'\
-                            or self.name == 'sushnost_v_vide_gnomika1'\
-                            or self.name == 'sushnost_v_vide_gnomika2'\
-                            or self.name == 'sushnost_v_vide_gnomika3'\
-                            or self.name == 'sushnost_v_vide_gnomika4':
+                            or tower.name == 'knight_on_horse'\
+                            or tower.name == "knight"\
+                            or tower.name == "urag_anus"\
+                            or tower.name == "dwarf_cannon1"\
+                            or tower.name == "dwarf_cannon2"\
+                            or tower.name == "dwarf_cannon3":
 
                         tower.basic_attack_cooldown //= 2
                         tower.time_indicator *= 2
@@ -1403,10 +1466,10 @@ class Buff(sprite.Sprite):
                             tower.time_indicator *= 2
                             tower.add(self.buffed_towers)
 
-                    if tower.name == 'urag_anus':
-                        tower.basic_uragan_cooldown //= 2
-                        tower.time_indicator *= 2
-                        tower.add(self.buffed_towers)
+                    # if tower.name == 'urag_anus':
+                    #     tower.basic_uragan_cooldown //= 2
+                    #     tower.time_indicator *= 2
+                    #     tower.add(self.buffed_towers)
 
         for nekusaemiy in nekusaemie_group:
             if nekusaemiy not in self.buffed_towers:
@@ -1480,7 +1543,6 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
         if self.name == 'popusk':  # циферки поменять
             self.hp = 300
             self.atk = 100
-            self.atk_type = 'earth'
             self.speed = 1
             self.attack_cooldown = self.basic_attack_cooldown = 75
             self.attack_range = 0
@@ -1488,7 +1550,6 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
         if self.name == 'josky':
             self.hp = 600
             self.atk = 100
-            self.atk_type = 'earth'
             self.speed = 1
             self.attack_cooldown = self.basic_attack_cooldown = 75
             self.attack_range = 0
@@ -1496,15 +1557,13 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
         if self.name == 'sigma':
             self.hp = 1200
             self.atk = 100
-            self.attack_type = 'air'
             self.speed = 1
             self.attack_cooldown = self.basic_attack_cooldown = 75
             self.attack_range = 0
 
-        if self.name == "igddue":
+        if self.name == "zeleniy_strelok":
             self.hp = 300
             self.atk = 100
-            self.atk_type = "air"
             self.bullet_speed_x = -5
             self.bullet_speed_y = 0
             self.speed = 1
@@ -1531,8 +1590,8 @@ class Enemy(sprite.Sprite):  # враг, он же "зомби"
                     self.shoot()
 
     def shoot(self):    # bullet_sprite, x, y, damage_type, damage, speed_x, speed_y, name, parent
-        if self.name == "igddue":
-            Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "igddue_bullet", self)
+        if self.name == "zeleniy_strelok":
+            Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
 
     def melee_attack(self):
         if self.target:
@@ -1754,26 +1813,58 @@ class Alert(sprite.Sprite):
                 self.alert_time -= 1
 
 
-def is_free(obj):
+def is_free(new_tower):
     is_free_list = []  # Проверка свободна ли клетка
     for tower in towers_group:
-        is_free_list.append(tower.rect.collidepoint(obj.rect.centerx, obj.rect.centery) is False)
+        is_free_list.append(tower.rect.collidepoint(new_tower.rect.centerx, new_tower.rect.centery) is False)
     for nekusaemiy in nekusaemie_group:
-        is_free_list.append(nekusaemiy.rect.collidepoint(obj.rect.centerx, obj.rect.centery) is False)
+        is_free_list.append(nekusaemiy.rect.collidepoint(new_tower.rect.centerx, new_tower.rect.centery) is False)
     if all(is_free_list):
         is_free_list.clear()
         return True
     is_free_list.clear()
 
 
-def towering_towers(obj):
-    for tower in towers_group:
-        for i in range(3):
-            if tower.name == 'sushnost_v_vide_gnomika' + str(i+1) and obj.unit_inside == 'sushnost_v_vide_gnomika1':
-                return 'gnom'
-        for i in range(16):
-            if tower.name == 'go_bleen' + str(i+1) and obj.unit_inside == 'go_bleen1':
-                return 'goblin'
+def uniq_is_free(new_tower):
+    if new_tower.unit_inside == "dwarf_cannon1":
+        for tower in towers_group:
+            if tower.rect.collidepoint(new_tower.rect.centerx, new_tower.rect.centery) and tower.stack == "dwarf_cannon":
+                if tower.name == "dwarf_cannon3":
+                    tower.stack = None
+                    return True, "dwarf_flamethrower"
+                if tower.name != "dwarf_cannon3":
+                    tower.kill()
+                    num = int(tower.name[-1]) + 1
+                    return True, tower.name[:-1] + str(num)
+        return None, None
+
+
+# def towering_towers(obj):
+#     for tower in towers_group:
+#         for i in range(3):
+#             if tower.name == 'sushnost_v_vide_gnomika' + str(i+1) and obj.unit_inside == 'sushnost_v_vide_gnomika1':
+#                 return 'gnom'
+#         for i in range(16):
+#             if tower.name == 'go_bleen' + str(i+1) and obj.unit_inside == 'go_bleen1':
+#                 return 'goblin'
+
+
+def tower_placement(new_tower):
+    if is_free(new_tower):
+        if level.money - tower_costs[new_tower.unit_inside] >= 0:
+            Tower(new_tower.unit_inside, unit_pos)
+            if not level.cheat:
+                level.money -= tower_costs[new_tower.unit_inside]
+            new_tower.kd_time = new_tower.default_kd_time
+
+    elif new_tower.unit_inside == "dwarf_cannon1" or new_tower.unit_inside == "go_bleen1":
+        ok, tower_name = uniq_is_free(new_tower)
+        if ok:
+            if level.money - tower_costs[new_tower.unit_inside] >= 0:
+                Tower(tower_name, unit_pos)
+                if not level.cheat:
+                    level.money -= tower_costs[new_tower.unit_inside]
+                new_tower.kd_time = new_tower.default_kd_time
 
 
 def add_to_slots(i, *blocked_slots):              # instant_select будет потом
@@ -2106,14 +2197,14 @@ random_choice_button = Button("text", font50, "Случайно")
 level_box_buttons = [level_box_button_creator(i) for i in range(1, 21)]  # создание кнопок уровней без киллометра кода. 20 -- кол-во уровней в игре
 
 # tower_button_names = ["fire_mag", "davalka", "boomchick", "kopitel", "matricayshon", "parasitelniy", "pukish", "spike",
-#                       "terpila", "thunder", "yascerica", "zeus", "oh_shit_i_am_sorry__barrier_mag", "urag_anus", "drachun",
+#                       "terpila", "thunder", "yascerica", "zeus", "barrier_mag", "urag_anus", "drachun",
 #                       "tolkan", "big_mechman", "nuka_kusni", "sushnost_v_vide_gnomika1", "go_bleen1"]                   # просто добавить имя башни
 tower_button_names = ["fire_mag", "boomchick", "davalka", "kopitel", "matricayshon", "parasitelniy", "spike",
-                      "terpila", "thunder", "yascerica", "zeus", "oh_shit_i_am_sorry__barrier_mag", "urag_anus",
-                      "big_mechman", "drachun", "tolkan", "pukish", "knight_on_horse"]
+                      "terpila", "thunder", "yascerica", "zeus", "barrier_mag", "urag_anus",
+                      "big_mechman", "drachun", "tolkan", "pukish", "knight_on_horse", "dwarf_cannon1"]
 tower_select_buttons = [tower_select_button_creator(tower_name) for tower_name in tower_button_names]    # создание кнопок выбора башен без киллометра кода
 
-levels = [Level(1, 7500, 300, 300, level_1_waves, ("popusk", "sigma", "josky", "igddue")),
+levels = [Level(1, 7500, 300, 300, level_1_waves, ("popusk", "sigma", "josky", "zeleniy_strelok")),
           Level(2, 3000, 150, 300, level_2_waves, ("popusk", "sigma")),             # типо можно выбрать, каких врагов спавнить можно, а каких нет
           Level(3, 6000, 225, 300, level_3_waves, ("josky", "sigma")),              # это из конфига
           Level(4, 4000, 75, 300, level_4_waves, ("josky", "popusk")),              # !!! МИНИМУМ 2 ВРАГА, иначе не работает
@@ -2184,7 +2275,7 @@ while running:
             if e.key == K_v:
                 Enemy("josky", (1508, 576))
             if e.key == K_b:
-                Enemy("igddue", (1508, 704))
+                Enemy("zeleniy_strelok", (1508, 704))
             if e.key == K_r:
                 game_state = "main_menu"
             if e.key == K_q:         
@@ -2211,35 +2302,36 @@ while running:
 
                     if 1536 > unit_pos[0] >= 384 and 832 > unit_pos[1] >= 192:
                         if el.path == "towers":
-                            if towering_towers(el) == 'gnom':
-                                for tower in towers_group:
-                                    for i in range(3):
-                                        if tower.rect.collidepoint(el.rect.centerx, el.rect.centery):
-                                            if tower.name == 'sushnost_v_vide_gnomika' + str(i+1):
-                                                if level.money - tower_costs[el.unit_inside] >= 0:
-                                                    tower.kill()
-                                                    Tower('sushnost_v_vide_gnomika' + str(i+2), unit_pos)
-                                                    if not level.cheat:
-                                                        level.money -= tower_costs[el.unit_inside]
-                                                    el.kd_time = el.default_kd_time
-                            if towering_towers(el) == 'goblin':
-                                for tower in towers_group:
-                                    for i in range(15):
-                                        if tower.rect.collidepoint(el.rect.centerx, el.rect.centery):
-                                            if tower.name == 'go_bleen' + str(i+1):
-                                                if level.money - tower_costs[el.unit_inside] >= 0:
-                                                    tower.kill()
-                                                    Tower('go_bleen' + str(i+2), unit_pos)
-                                                    if not level.cheat:
-                                                        level.money -= tower_costs[el.unit_inside]
-                                                    el.kd_time = el.default_kd_time
-                                                
-                            if is_free(el):
-                                if level.money - tower_costs[el.unit_inside] >= 0:  # Это пиздец, но оно работает. Придумаете лучше -- переделаете
-                                    Tower(el.unit_inside, unit_pos)
-                                    if not level.cheat:
-                                        level.money -= tower_costs[el.unit_inside]
-                                    el.kd_time = el.default_kd_time
+                            tower_placement(el)
+                            # if towering_towers(el) == 'gnom':
+                            #     for tower in towers_group:
+                            #         if tower.rect.collidepoint(el.rect.centerx, el.rect.centery):
+                            #             for i in range(3):
+                            #                 if tower.name == 'sushnost_v_vide_gnomika' + str(i+1):
+                            #                     if level.money - tower_costs[el.unit_inside] >= 0:
+                            #                         tower.kill()
+                            #                         Tower('sushnost_v_vide_gnomika' + str(i+2), unit_pos)
+                            #                         if not level.cheat:
+                            #                             level.money -= tower_costs[el.unit_inside]
+                            #                         el.kd_time = el.default_kd_time
+                            # if towering_towers(el) == 'goblin':
+                            #     for tower in towers_group:
+                            #         for i in range(15):
+                            #             if tower.rect.collidepoint(el.rect.centerx, el.rect.centery):
+                            #                 if tower.name == 'go_bleen' + str(i+1):
+                            #                     if level.money - tower_costs[el.unit_inside] >= 0:
+                            #                         tower.kill()
+                            #                         Tower('go_bleen' + str(i+2), unit_pos)
+                            #                         if not level.cheat:
+                            #                             level.money -= tower_costs[el.unit_inside]
+                            #                         el.kd_time = el.default_kd_time
+                            #
+                            # if is_free(el):
+                            #     if level.money - tower_costs[el.unit_inside] >= 0:  # Это пиздец, но оно работает. Придумаете лучше -- переделаете
+                            #         Tower(el.unit_inside, unit_pos)
+                            #         if not level.cheat:
+                            #             level.money -= tower_costs[el.unit_inside]
+                            #         el.kd_time = el.default_kd_time
 
                         if el.path == "shovel":
                             for obj in [*towers_group, *nekusaemie_group]:                  # Сразу по 2 группам
