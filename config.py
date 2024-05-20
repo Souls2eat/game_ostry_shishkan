@@ -27,7 +27,7 @@ level_4_waves = {
 enemy_costs = {"josky": 2,
                "popusk": 1,
                "sigma": 4,
-               "igddue": 4}
+               "zeleniy_strelok": 4}
 
 
 # Цены башен
@@ -38,7 +38,7 @@ tower_costs = {
     "fire_mag": 10,
     "kopitel": 20,
     "matricayshon": 30,
-    "oh_shit_i_am_sorry__barrier_mag": 20,
+    "barrier_mag": 20,
     "parasitelniy": 20,
     "pukish": 25,
     "spike": 10,
@@ -52,7 +52,8 @@ tower_costs = {
     "nuka_kusni": 15,
     "sushnost_v_vide_gnomika1": 35,
     "go_bleen1": 5,
-    "knight_on_horse": 15
+    "knight_on_horse": 15,
+    "dwarf_cannon1": 30
 
 }
 
@@ -63,7 +64,7 @@ towers_kd = {
     "fire_mag": 100,
     "kopitel": 200,
     "matricayshon": 300,
-    "oh_shit_i_am_sorry__barrier_mag": 200,
+    "barrier_mag": 200,
     "parasitelniy": 200,
     "pukish": 250,
     "spike": 100,
@@ -77,7 +78,8 @@ towers_kd = {
     "nuka_kusni": 150,
     "sushnost_v_vide_gnomika1": 300,
     "go_bleen1": 15,
-    "knight_on_horse": 150
+    "knight_on_horse": 150,
+    "dwarf_cannon1": 300
     
 }
 

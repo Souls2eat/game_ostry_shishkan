@@ -1,4 +1,4 @@
-from pygame import *
+from pygame import image
 
 towers_wait = {
     "fire_mag": [image.load(f"images/towers/fire_mag/wait/fire_mag{i}.png") for i in range(1, 5)],
@@ -11,7 +11,7 @@ towers_wait = {
     "thunder": [image.load(f"images/towers/thunder/wait/thunder{i}.png") for i in range(1, 5)],
     "yascerica": [image.load(f"images/towers/yascerica/wait/yascerica{i}.png") for i in range(1, 5)],
     "zeus": [image.load(f"images/towers/zeus/wait/zeus{i}.png") for i in range(1, 5)],
-    "oh_shit_i_am_sorry__barrier_mag": [image.load(f"images/towers/oh_shit_i_am_sorry__barrier_mag/wait/oh_shit_i_am_sorry__barrier_mag{i}.png") for i in range(1, 5)],
+    "barrier_mag": [image.load(f"images/towers/barrier_mag/wait/barrier_mag{i}.png") for i in range(1, 5)],
     "urag_anus": [image.load(f"images/towers/urag_anus/wait/urag_anus{i}.png") for i in range(1, 5)],
     "big_mechman": [image.load(f"images/towers/big_mechman/wait/big_mechman{i}.png") for i in range(1, 5)],
     "boomchick": [image.load(f"images/towers/boomchick/wait/boomchick{i}.png") for i in range(1, 5)],
@@ -20,8 +20,10 @@ towers_wait = {
     "tolkan": [image.load(f"images/towers/tolkan/wait/tolkan{i}.png") for i in range(1, 5)],
     "knight_on_horse": [image.load(f"images/towers/knight_on_horse/wait/knight_on_horse{i}.png") for i in range(1, 5)],
     "knight": [image.load(f"images/towers/knight/wait/knight{i}.png") for i in range(1, 5)],
-    # "nuka_kusni": [image.load(f"images/towers/nuka_kusni/wait/nuka_kusni{i}.png") for i in range(1, 3)],
-    # "sushnost_v_vide_gnomika1": [image.load(f"images/towers/sushnost_v_vide_gnomika1/wait/sushnost_v_vide_gnomika1{i}.png") for i in range(1, 3)],
+    "dwarf_cannon1": [image.load(f"images/towers/dwarf_cannon1/wait/dwarf_cannon1{i}.png") for i in range(1, 5)],
+    "dwarf_cannon2": [image.load(f"images/towers/dwarf_cannon2/wait/dwarf_cannon2{i}.png") for i in range(1, 5)],
+    "dwarf_cannon3": [image.load(f"images/towers/dwarf_cannon3/wait/dwarf_cannon3{i}.png") for i in range(1, 5)],
+    "dwarf_flamethrower": [image.load(f"images/towers/dwarf_flamethrower/wait/dwarf_flamethrower{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
 
 }
@@ -42,19 +44,20 @@ towers_attack = {
     "tolkan": [image.load(f"images/towers/tolkan/attack/tolkan{i}.png") for i in range(1, 5)],
     "knight_on_horse": [image.load(f"images/towers/knight_on_horse/attack/knight_on_horse{i}.png") for i in range(1, 5)],
     "knight": [image.load(f"images/towers/knight/attack/knight{i}.png") for i in range(1, 5)],
-    # "nuka_kusni": [image.load(f"images/towers/nuka_kusni/attack/nuka_kusni{i}.png") for i in range(1, 3)],
-    # "sushnost_v_vide_gnomika1": [image.load(f"images/towers/sushnost_v_vide_gnomika1/attack/sushnost_v_vide_gnomika1{i}.png") for i in range(1, 3)],
+    "dwarf_cannon1": [image.load(f"images/towers/dwarf_cannon1/attack/dwarf_cannon1{i}.png") for i in range(1, 5)],
+    "dwarf_cannon2": [image.load(f"images/towers/dwarf_cannon2/attack/dwarf_cannon2{i}.png") for i in range(1, 5)],
+    "dwarf_cannon3": [image.load(f"images/towers/dwarf_cannon3/attack/dwarf_cannon3{i}.png") for i in range(1, 5)],
+    "dwarf_flamethrower": [image.load(f"images/towers/dwarf_flamethrower/attack/dwarf_flamethrower{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/attack/go_bleen1{i}.png") for i in range(1, 3)],
 
 }
 
 towers_give = {
-    "oh_shit_i_am_sorry__barrier_mag": [image.load(f"images/towers/oh_shit_i_am_sorry__barrier_mag/give/oh_shit_i_am_sorry__barrier_mag{i}.png") for i in range(1, 5)],
+    "barrier_mag": [image.load(f"images/towers/barrier_mag/give/barrier_mag{i}.png") for i in range(1, 5)],
     "kopitel": [image.load(f"images/towers/kopitel/give/kopitel{i}.png") for i in range(1, 5)],
     "davalka": [image.load(f"images/towers/davalka/give/davalka{i}.png") for i in range(1, 5)],
 }
 
 towers_hide = {
     "pukish": [image.load(f"images/towers/pukish/hide/pukish{i}.png") for i in range(1, 5)],
-
 }
