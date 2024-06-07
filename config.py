@@ -53,7 +53,7 @@ tower_costs = {
     "sushnost_v_vide_gnomika1": 35,
     "go_bleen1": 5,
     "knight_on_horse": 15,
-    "dwarf_cannon1": 30
+    "gnome_cannon1": 30
 
 }
 
@@ -79,7 +79,7 @@ towers_kd = {
     "sushnost_v_vide_gnomika1": 300,
     "go_bleen1": 15,
     "knight_on_horse": 150,
-    "dwarf_cannon1": 300
+    "gnome_cannon1": 300
     
 }
 

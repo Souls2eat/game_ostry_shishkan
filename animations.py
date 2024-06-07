@@ -20,10 +20,10 @@ towers_wait = {
     "tolkan": [image.load(f"images/towers/tolkan/wait/tolkan{i}.png") for i in range(1, 5)],
     "knight_on_horse": [image.load(f"images/towers/knight_on_horse/wait/knight_on_horse{i}.png") for i in range(1, 5)],
     "knight": [image.load(f"images/towers/knight/wait/knight{i}.png") for i in range(1, 5)],
-    "dwarf_cannon1": [image.load(f"images/towers/dwarf_cannon1/wait/dwarf_cannon1{i}.png") for i in range(1, 5)],
-    "dwarf_cannon2": [image.load(f"images/towers/dwarf_cannon2/wait/dwarf_cannon2{i}.png") for i in range(1, 5)],
-    "dwarf_cannon3": [image.load(f"images/towers/dwarf_cannon3/wait/dwarf_cannon3{i}.png") for i in range(1, 5)],
-    "dwarf_flamethrower": [image.load(f"images/towers/dwarf_flamethrower/wait/dwarf_flamethrower{i}.png") for i in range(1, 5)],
+    "gnome_cannon1": [image.load(f"images/towers/gnome_cannon1/wait/gnome_cannon1{i}.png") for i in range(1, 5)],
+    "gnome_cannon2": [image.load(f"images/towers/gnome_cannon2/wait/gnome_cannon2{i}.png") for i in range(1, 5)],
+    "gnome_cannon3": [image.load(f"images/towers/gnome_cannon3/wait/gnome_cannon3{i}.png") for i in range(1, 5)],
+    "gnome_flamethrower": [image.load(f"images/towers/gnome_flamethrower/wait/gnome_flamethrower{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
 
 }
@@ -44,10 +44,10 @@ towers_attack = {
     "tolkan": [image.load(f"images/towers/tolkan/attack/tolkan{i}.png") for i in range(1, 5)],
     "knight_on_horse": [image.load(f"images/towers/knight_on_horse/attack/knight_on_horse{i}.png") for i in range(1, 5)],
     "knight": [image.load(f"images/towers/knight/attack/knight{i}.png") for i in range(1, 5)],
-    "dwarf_cannon1": [image.load(f"images/towers/dwarf_cannon1/attack/dwarf_cannon1{i}.png") for i in range(1, 5)],
-    "dwarf_cannon2": [image.load(f"images/towers/dwarf_cannon2/attack/dwarf_cannon2{i}.png") for i in range(1, 5)],
-    "dwarf_cannon3": [image.load(f"images/towers/dwarf_cannon3/attack/dwarf_cannon3{i}.png") for i in range(1, 5)],
-    "dwarf_flamethrower": [image.load(f"images/towers/dwarf_flamethrower/attack/dwarf_flamethrower{i}.png") for i in range(1, 5)],
+    "gnome_cannon1": [image.load(f"images/towers/gnome_cannon1/attack/gnome_cannon1{i}.png") for i in range(1, 5)],
+    "gnome_cannon2": [image.load(f"images/towers/gnome_cannon2/attack/gnome_cannon2{i}.png") for i in range(1, 5)],
+    "gnome_cannon3": [image.load(f"images/towers/gnome_cannon3/attack/gnome_cannon3{i}.png") for i in range(1, 5)],
+    "gnome_flamethrower": [image.load(f"images/towers/gnome_flamethrower/attack/gnome_flamethrower{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/attack/go_bleen1{i}.png") for i in range(1, 3)],
 
 }
