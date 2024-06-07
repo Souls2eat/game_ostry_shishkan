@@ -213,7 +213,7 @@ class Tower(sprite.Sprite):
 
         if self.name == 'fire_mag':  # циферки поменять
             self.hp = 200
-            self.atk = 20
+            self.atk = 200
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
             self.basic_attack_cooldown = 60
@@ -352,7 +352,7 @@ class Tower(sprite.Sprite):
         #         self.attack_cooldown = self.basic_attack_cooldown
         #         self.damage_type = ''
 
-        if self.name == 'dwarf_cannon1':
+        if self.name == 'gnome_cannon1':
             self.max_hp = 700
             self.hp = 700
             self.atk = 375
@@ -362,7 +362,7 @@ class Tower(sprite.Sprite):
             self.damage_type = ''
             self.stack = "dwarf_cannon"
 
-        if self.name == 'dwarf_cannon2':
+        if self.name == 'gnome_cannon2':
             self.max_hp = 2800
             self.hp = 2800
             self.atk = 375
@@ -372,17 +372,17 @@ class Tower(sprite.Sprite):
             self.damage_type = ''
             self.stack = "dwarf_cannon"
 
-        if self.name == 'dwarf_cannon3':
+        if self.name == 'gnome_cannon3':
             self.max_hp = 2800
             self.hp = 2800
-            self.atk = 0
+            self.atk = 375
             self.bullet_speed_x = 8
             self.bullet_speed_y = 0
             self.attack_cooldown = self.basic_attack_cooldown = 225
             self.damage_type = ''
             self.stack = "dwarf_cannon"
 
-        if self.name == 'dwarf_flamethrower':
+        if self.name == 'gnome_flamethrower':
             self.max_hp = 1
             self.hp = 1
             self.atk = 0
@@ -432,7 +432,7 @@ class Tower(sprite.Sprite):
             self.add_anim_task(anim, func)
 
     def dead(self):
-        if self.name == "dwarf_cannon3":
+        if self.name == "gnome_cannon3":
             for tower in nekusaemie_group:
                 if tower.rect.collidepoint(self.rect.centerx, self.rect.centery):
                     tower.kill()
@@ -446,7 +446,7 @@ class Tower(sprite.Sprite):
         if self.name == "pukish":
             if self.hiding:
                 return True
-        if self.name == "dwarf_flamethrower":
+        if self.name == "gnome_flamethrower":
             if self.state == "attack":
                 return True
 
@@ -455,9 +455,9 @@ class Tower(sprite.Sprite):
                 or self.name == "boomchick"\
                 or self.name == 'kopitel'\
                 or self.name == "zeus"\
-                or self.name == 'dwarf_cannon1'\
-                or self.name == 'dwarf_cannon2'\
-                or self.name == 'dwarf_cannon3':
+                or self.name == 'gnome_cannon1'\
+                or self.name == 'gnome_cannon2'\
+                or self.name == 'gnome_cannon3':
             for enemy in enemies_group:
                 if enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
                     return enemy
@@ -505,7 +505,7 @@ class Tower(sprite.Sprite):
                 if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.alive:
                     return enemy
 
-        if self.name == "dwarf_flamethrower":
+        if self.name == "gnome_flamethrower":
             for enemy in enemies_group:
                 if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 192 and enemy.alive:
                     return enemy
@@ -520,6 +520,11 @@ class Tower(sprite.Sprite):
         if targets[id(self)]:
             if targets[id(self)].alive:
                 self.add_anim_task("attack", self.shoot)
+            else:
+                targets[id(self)] = self.find_target()
+                if targets[id(self)]:
+                    if targets[id(self)].alive:
+                        self.add_anim_task("attack", self.shoot)
         else:
             targets[id(self)] = self.find_target()
             if targets[id(self)]:
@@ -568,7 +573,7 @@ class Tower(sprite.Sprite):
                 self.blackik.sumon = "ready"
                 targets[id(self)] = None
 
-        if self.name == "dwarf_cannon1" or self.name == "dwarf_cannon2" or self.name == "dwarf_cannon3":
+        if self.name == "gnome_cannon1" or self.name == "gnome_cannon2" or self.name == "gnome_cannon3":
             Bullet("red_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
 
         if self.name == "pukish":
@@ -576,7 +581,8 @@ class Tower(sprite.Sprite):
 
         if self.name == 'spike':    # fix?
             for enemy in enemies_group:
-                enemy.hp -= self.atk
+                if enemy.rect.colliderect:
+                    enemy.hp -= self.atk
             targets[id(self)] = None
 
         if self.name == "big_mechman":
@@ -600,7 +606,7 @@ class Tower(sprite.Sprite):
         if self.name == "knight_on_horse" or self.name == "knight":
             Bullet("pike", self.rect.centerx + 128, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self)
 
-        if self.name == "dwarf_flamethrower":
+        if self.name == "gnome_flamethrower":
             self.fire = Bullet("fire", self.rect.right + 64, self.rect.centery, self.damage_type, self.atk, 0, 0, "fire", self)
 
         # for i in range(16):                           # пока оставил
@@ -616,7 +622,7 @@ class Tower(sprite.Sprite):
                 if enemy.rect.colliderect(self.rect):
                     enemy.hp -= self.atk2
 
-        if self.name == "dwarf_flamethrower":
+        if self.name == "gnome_flamethrower":
             if hasattr(self, "fire"):
                 for enemy in enemies_group:
                     if enemy.rect.colliderect(self.fire.rect):
@@ -671,7 +677,7 @@ class Tower(sprite.Sprite):
 
     def cooldown(self):                           # есть баг с перезарядкой, но там много всего должно сойтись и я пока забью
         if hasattr(self, "attack_cooldown"):      # там буквально 3 тика раз в 100 тиков голимые
-            if self.attack_cooldown >= 0:         # на определённой башне
+            if self.attack_cooldown > 0:          # на определённой башне    !!!=
                 self.attack_cooldown -= 1         # если я вам не скажу, вы и не заметите
             else:
                 self.attack_cooldown = self.basic_attack_cooldown
@@ -816,21 +822,26 @@ class Bullet(sprite.Sprite):
                         enemy.hp -= self.damage
                         enemy.add(self.gazirovannie_group)
 
-        if self.name == 'ls' or self.name == 'explosion':
+        if self.name == 'ls' or self.name == 'explosion' or self.name == "mech" or self.name == "drachun_gulag":
             for enemy in enemies_group:
                 if sprite.collide_rect(enemy, self) and enemy.hp > 0 and self not in enemy.only_one_hit_bullets:
                     enemy.hp -= self.damage
                     enemy.only_one_hit_bullets.add(self)
+            if self.name == "mech" or self.name == "drachun_gulag":
+                targets[id(self.parent)] = None
 
-        if self.name == "mech" or self.name == "drachun_gulag":
-            for enemy in enemies_group:
-                enemy.hp -= self.parent.atk
-            targets[id(self.parent)] = None
+        # if self.name == "mech" or self.name == "drachun_gulag":
+        #     for enemy in enemies_group:
+        #         if enemy.rect.colliderect(self.rect):
+        #             enemy.hp -= self.parent.atk
+        #             enemy.only_one_hit_bullets.add(self)
+        #     targets[id(self.parent)] = None
 
         if self.name == "tolkan_bux":
             for enemy in enemies_group:
-                enemy.hp -= self.parent.atk
-                enemy.rect.x += self.parent.push
+                if enemy.rect.colliderect(self.rect):
+                    enemy.hp -= self.parent.atk
+                    enemy.rect.x += self.parent.push
             targets[id(self.parent)] = None
 
         for enemy in enemies_group:
@@ -989,9 +1000,9 @@ class Buff(sprite.Sprite):
                             or tower.name == 'knight_on_horse'\
                             or tower.name == "knight"\
                             or tower.name == "urag_anus"\
-                            or tower.name == "dwarf_cannon1"\
-                            or tower.name == "dwarf_cannon2"\
-                            or tower.name == "dwarf_cannon3":
+                            or tower.name == "gnome_cannon1"\
+                            or tower.name == "gnome_cannon2"\
+                            or tower.name == "gnome_cannon3":
 
                         tower.basic_attack_cooldown //= 2
                         tower.time_indicator *= 2
@@ -1315,13 +1326,13 @@ def is_free(new_tower):
 
 
 def uniq_is_free(new_tower):
-    if new_tower.unit_inside == "dwarf_cannon1":
+    if new_tower.unit_inside == "gnome_cannon1":
         for tower in towers_group:
             if tower.rect.collidepoint(new_tower.rect.centerx, new_tower.rect.centery) and tower.stack == "dwarf_cannon":
-                if tower.name == "dwarf_cannon3":
+                if tower.name == "gnome_cannon3":
                     tower.stack = None
-                    return True, "dwarf_flamethrower"
-                if tower.name != "dwarf_cannon3":
+                    return True, "gnome_flamethrower"
+                if tower.name != "gnome_cannon3":
                     tower.kill()
                     num = int(tower.name[-1]) + 1
                     return True, tower.name[:-1] + str(num)
@@ -1336,7 +1347,7 @@ def tower_placement(new_tower):
                 level.money -= tower_costs[new_tower.unit_inside]
             new_tower.kd_time = new_tower.default_kd_time
 
-    elif new_tower.unit_inside == "dwarf_cannon1" or new_tower.unit_inside == "go_bleen1":
+    elif new_tower.unit_inside == "gnome_cannon1" or new_tower.unit_inside == "go_bleen1":
         ok, tower_name = uniq_is_free(new_tower)
         if ok:
             if level.money - tower_costs[new_tower.unit_inside] >= 0:
@@ -1677,7 +1688,7 @@ level_box_buttons = [level_box_button_creator(i) for i in range(1, 21)]  # со�
 
 tower_button_names = ["fire_mag", "boomchick", "davalka", "kopitel", "matricayshon", "parasitelniy", "spike",
                       "terpila", "thunder", "yascerica", "zeus", "barrier_mag", "urag_anus",
-                      "big_mechman", "drachun", "tolkan", "pukish", "knight_on_horse", "dwarf_cannon1"]     # просто добавить имя башни
+                      "big_mechman", "drachun", "tolkan", "pukish", "knight_on_horse", "gnome_cannon1"]     # просто добавить имя башни
 
 tower_select_buttons = [tower_select_button_creator(tower_name) for tower_name in tower_button_names]    # создание кнопок выбора башен без киллометра кода
 
@@ -1751,7 +1762,7 @@ while running:
                 Enemy("zeleniy_strelok", (1508, 704))
             if e.key == K_r:
                 game_state = "main_menu"
-            if e.key == K_q:         
+            if e.key == K_q:
                 running = False
         if e.type == QUIT:
             running = False
