@@ -940,6 +940,7 @@ class Parasite(sprite.Sprite):
         if self.name == 'uragan':
             self.duration = self.parent.uragan_duration
             self.attack_cooldown = 15
+            self.render_layer = 3
 
     def prisasivanie(self):
         if self.parent not in all_sprites_group or self.owner not in all_sprites_group:
