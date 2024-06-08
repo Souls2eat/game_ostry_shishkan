@@ -52,12 +52,36 @@ class ModGroup(sprite.Group):
     def __init__(self):
         super().__init__()
 
+    def custom_draw(self, surf):
+        for sprite_ in sorted(self.sprites(), key=self.sort_by_layer):
+            if hasattr(sprite_, "active_game_state"):
+                if game_state in sprite_.active_game_states:
+                    surf.blit(sprite_.image, sprite_.rect)
+            else:
+                surf.blit(sprite_.image, sprite_.rect)
+
+    @staticmethod
+    def sort_by_layer(obj_):
+        return obj_.render_layer
+
     def draw_other(self, surf):
-        for obj in self.sprites():
-            if hasattr(obj, "image2"):
-                obj.draw2(surf)
-            if hasattr(obj, "image3"):
-                obj.draw3(surf)
+        for obj_ in self.sprites():
+            if hasattr(obj_, "image2"):
+                obj_.draw2(surf)
+            if hasattr(obj_, "image3"):
+                obj_.draw3(surf)
+
+
+class TextSprite(sprite.Sprite):
+    def __init__(self, sprite_, pos, *active_game_states):
+        super().__init__(all_sprites_group)
+        self.image = sprite_
+        self.rect = self.image.get_rect(topleft=pos)
+        self.render_layer = 2
+        self.active_game_states = list(active_game_states)
+
+    def update_text(self, sprite_):
+        self.image = sprite_
 
 
 class Level:
@@ -196,6 +220,10 @@ class Tower(sprite.Sprite):
         self.rect = self.image.get_rect(topleft=pos)
         self.pos = pos
         self.name = unit
+        if self.name == "shovel":
+            self.render_layer = 9
+        else:
+            self.render_layer = 4
         targets[id(self)] = None    # remove
 
         self.is_dead = False
@@ -744,6 +772,7 @@ class Bullet(sprite.Sprite):
         super().__init__(all_sprites_group, bullets_group)
         self.image = image.load(f"images/bullets/{bullet_sprite}.png").convert_alpha()
         self.rect = self.image.get_rect(center=(x, y))
+        self.render_layer = 7
         self.damage_type = damage_type
         self.damage = damage
         self.speed_x = speed_x
@@ -892,6 +921,7 @@ class Parasite(sprite.Sprite):
         super().__init__(all_sprites_group, parasites_group)
         self.image = image.load(f"images/buffs/{name}.png").convert_alpha()
         self.rect = self.image.get_rect(center=(x, y))
+        self.render_layer = 6
         self.is_dead = False
         self.damage_type = damage_type
         self.damage = damage
@@ -969,6 +999,7 @@ class Buff(sprite.Sprite):
         super().__init__(all_sprites_group, buffs_group)
         self.image = image.load(f"images/buffs/{name}.png").convert_alpha()
         self.rect = self.image.get_rect(topleft=(x, y))
+        self.render_layer = 3
         self.rect.x = x
         self.rect.y = y
         self.rect2 = Rect(self.rect.x-128, self.rect.y-128, 384, 384) 
@@ -1075,6 +1106,7 @@ class Enemy(sprite.Sprite):
         super().__init__(all_sprites_group, enemies_group)
         self.image = image.load(f"images/enemies/{name}.png").convert_alpha()
         self.rect = self.image.get_rect(topleft=pos)
+        self.render_layer = 5
         self.name = name
         self.stop = False
         self.alive = True
@@ -1180,6 +1212,7 @@ class UI(sprite.Sprite):
         self.kd_time = 0
         self.default_kd_time = kd_time
         self.loaded_p = False
+        self.render_layer = 3
 
         if self.path == "towers":
             self.cost = tower_costs[unit_inside]
@@ -1189,11 +1222,13 @@ class UI(sprite.Sprite):
     def move(self):
         self.pos = mouse.get_pos()
         self.rect = self.image.get_rect(center=self.pos)
+        self.render_layer = 9
 
     def back_to_default(self):
         self.image = image.load(f"images/{self.path}/images_inside/{self.unit_inside}_inside.png").convert_alpha()
         self.rect = self.image.get_rect(topleft=self.default_pos)
         self.pos = self.default_pos
+        self.render_layer =3
 
     def draw2(self, surf):
         surf.blit(self.image2, self.rect2)
@@ -1279,6 +1314,7 @@ class Cloud(sprite.Sprite):
             self.x = 1600
             self.y = randint(0, 100)
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
+        self.render_layer = 1
 
     def update(self):
         self.x -= 1
@@ -1443,7 +1479,9 @@ def menu_positioning():
     if game_state == "main_menu":
 
         screen.blit(main_menu, (0, 0))
+        # dirty_group.add(main_menu, (0, 0), 0)
         screen.blit(game_name, (416, 10))
+        # dirty_group.add(game_name, (416, 10), 0)
 
         if new_game_button.click(screen, mouse_pos, (30, 460)):                         # 1 кнопка
             last_game_state = game_state
@@ -1474,8 +1512,11 @@ def menu_positioning():
 
     if game_state == "level_select":
         screen.blit(main_menu, (0, 0))
+        # dirty_group.add(main_menu, (0, 0), 0)
         screen.blit(additional_menu, (1120, 150))
-        screen.blit(select_menu, (160, 150))      # (320, 150) и будет offset_pos
+        # dirty_group.add(additional_menu, (1120, 150), 0)
+        screen.blit(select_menu, (160, 150))      # (160, 150) и будет offset_pos
+        # dirty_group.add(additional_menu, (160, 150), 0)
         select_menu.blit(select_menu_copy, (0, 0))
         scroll_offset_min_max(-550, 0)
 
@@ -1511,14 +1552,17 @@ def menu_positioning():
     if game_state != "main_menu" and game_state != "main_settings_menu" and game_state != "level_select":
         screen.blit(level.image, (0, 0))
         if level.cheat:
-            screen.blit(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110))
+            # screen.blit(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110))
+            pass
         else:
             level.draw_level_time()
             # screen.blit(font40.render(str(level.level_time) + " осталось", True, (255, 255, 255)), (853, 110))    # циферки
-        screen.blit(font40.render(str(level.current_level) + " уровень", True, (255, 255, 255)), (893, 30))
-        screen.blit(font40.render(str(level.money), True, (0, 0, 0)), (88, 53))
+        # screen.blit(font40.render(str(level.current_level) + " уровень", True, (255, 255, 255)), (893, 30))
+        level_number.update_text(font40.render(str(level.current_level) + " уровень", True, (255, 255, 255)))
+        # screen.blit(font40.render(str(level.money), True, (0, 0, 0)), (88, 53))
+        level_money.update_text(font40.render(str(level.money), True, (0, 0, 0)))
 
-        all_sprites_group.draw(screen)
+        all_sprites_group.custom_draw(screen)
         all_sprites_group.draw_other(screen)
 
     if game_state == "run":
@@ -1668,7 +1712,6 @@ clouds_group = sprite.Group()
 alert_group = sprite.Group()
 level_group = sprite.Group()
 
-
 pause_button = Button("text", font40, "||",)
 restart_button = Button("text", font60, "Перезапустить")
 resume_button = Button("text", font60, "Продолжить")
@@ -1682,6 +1725,14 @@ next_level_button = Button("text", font60, "Следующий уровень")
 cheat_button = Button("img", "menu", "cheat")
 start_level_button = Button("text", font60, "Начать")
 random_choice_button = Button("text", font50, "Случайно")
+
+TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death"))
+level_number = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death"))
+level_money = TextSprite(font40.render("300", True, (0, 0, 0)), (88, 53))
+# TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), "paused")
+# TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), "level_complited")
+# TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), "tower_select")
+# TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), "death")
 
 
 level_box_buttons = [level_box_button_creator(i) for i in range(1, 21)]  # создание кнопок уровней без киллометра кода. 20 -- кол-во уровней в игре
