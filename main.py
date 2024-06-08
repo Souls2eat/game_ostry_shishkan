@@ -502,7 +502,7 @@ class Tower(sprite.Sprite):
 
         if self.name == "pukish":
             for enemy in enemies_group:
-                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.alive:
+                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.centerx >= self.rect.x-10 and enemy.alive:
                     return enemy
 
         if self.name == "gnome_flamethrower":
@@ -1118,7 +1118,7 @@ class Enemy(sprite.Sprite):
 
     def is_should_stop_to_attack(self):
         for tower in towers_group:
-            if tower.rect.centery == self.rect.centery and -64 < self.rect.centerx - tower.rect.centerx < self.attack_range + 64 and self.rect.x < 1408:
+            if tower.rect.centery == self.rect.centery and -64 < self.rect.centerx - tower.rect.centerx < self.attack_range + 64 and self.rect.x < 1472:
                 return True, tower
         return False, None
 
@@ -1588,7 +1588,7 @@ def menu_positioning():
         if level.current_level == 2:
             blocked_slots = []
 
-        for i in range(1, len(tower_select_buttons) + 1):
+        for i in range(1, len(tower_select_buttons) + 1):       
             line = int((i - 1) / 6)
             column = (i - 1) % 6
             if tower_select_buttons[i-1].click(select_menu, mouse_pos, (20 + 154 * column, 30 + (line * 154) + scroll_offset), offset_pos=(250, 150)):
