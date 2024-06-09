@@ -667,17 +667,23 @@ class Tower(sprite.Sprite):
                 self.nakopleno += 1
 
         if self.name == 'barrier_mag':
+            if self.best_x.barrier:
+                self.best_x.barrier.owner.have_barrier = False
+                self.best_x.barrier.kill()
             if self.best_x.barrier not in all_sprites_group:
-                best_x = self
-                for tower in towers_group:
-                    if tower.rect.y == self.rect.y and tower.rect.x > best_x.rect.x and tower.name != 'pukish' and not tower.have_barrier:
-                        self.best_x = tower
+                self.best_x = self
+                self.best_x = sorted(towers_group, key=self.sort_by_x)[-1]
                 self.best_x.have_barrier = True
                 self.best_x.barrier = Parasite('barrier', self.best_x.rect.centerx, self.best_x.rect.centery, '', 0, self.best_x, self)
 
         if self.name == 'davalka':
             level.money += self.skolko_deneg_dast
             Alert("+30", (self.rect.centerx-15, self.rect.centery-55), 50, font30, (0, 70, 200))
+
+    def sort_by_x(self, t):
+        if t.rect.y == self.rect.y and t.have_barrier is False:
+            return t.rect.x
+        return 0
 
     def stop_hiding(self):
         self.hiding = True
@@ -882,13 +888,14 @@ class Bullet(sprite.Sprite):
                 if self.name == 'default' or self.name == 'hrom':
                     enemy.hp -= self.damage
                     self.kill()
-                if self.name == 'yas':
+                if self.name == 'yas' and self in bullets_group:
                     enemy.hp -= enemy.hp
                     self.remove(bullets_group)
                 if self.name == 'boom':
                     enemy.hp -= self.damage
                     Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.damage, 0, 0, 'explosion', self.parent)
                     self.kill()
+            break
 
     def check_parent(self):
         if self.name == 'kopilka':
@@ -936,6 +943,7 @@ class Parasite(sprite.Sprite):
         
         if self.name == 'barrier':
             self.hp = self.parent.barrier_hp
+            # self.life_time = self.parent.basic_spawn_something_cooldown
 
         if self.name == 'uragan':
             self.duration = self.parent.uragan_duration
