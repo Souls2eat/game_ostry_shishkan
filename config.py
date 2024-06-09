@@ -29,7 +29,8 @@ enemy_costs = {"josky": 2,
                "sigma": 4,
                "sportik": 3,
                "rojatel": 4,
-               "zeleniy_strelok": 4}
+               "zeleniy_strelok": 4,
+               "mega_strelok": 20}
 
 
 # Цены башен

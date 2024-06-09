@@ -1115,6 +1115,8 @@ class Enemy(sprite.Sprite):
         super().__init__(all_sprites_group, enemies_group)
         self.image = image.load(f"images/enemies/{name}.png").convert_alpha()
         self.rect = self.image.get_rect(topleft=pos)
+        self.real_x = float(self.rect.x)
+        self.real_y = float(self.rect.y)
         self.render_layer = 5
         self.name = name
         self.stop = False
@@ -1177,6 +1179,17 @@ class Enemy(sprite.Sprite):
             self.speed = 1
             self.attack_cooldown = self.basic_attack_cooldown = 75
             self.attack_range = 700
+        
+        if self.name == 'mega_strelok':
+            self.hp = 800
+            self.atk = 100
+            self.bullet_speed_x = -5
+            self.bullet_speed_y = 0
+            self.speed = 0.5
+            self.attack_cooldown = self.basic_attack_cooldown = 5
+            self.attack_cooldown2 = self.basic_attack_cooldown2 = 750
+            self.ammos = 30
+            self.attack_range = 640
 
         # СТАТЫ конец
 
@@ -1200,7 +1213,14 @@ class Enemy(sprite.Sprite):
     def shoot(self):
         if self.name == "zeleniy_strelok":
             Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
-
+        
+        if self.name == 'mega_strelok':
+            if self.ammos > 0:
+                Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery+randint(-16, 16), None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
+                self.ammos -= 1
+            else:
+                self.ammos = 30
+                self.attack_cooldown2 = self.basic_attack_cooldown2
     def melee_attack(self):
         if self.target:
             if self.target.have_barrier:                     # проверка барьера
@@ -1212,8 +1232,8 @@ class Enemy(sprite.Sprite):
 
     def movement(self):
         if not self.stop:
-            self.rect.x -= self.speed
-
+            self.real_x -= self.speed
+            self.rect.x = int(self.real_x)
     def back_to_line(self):
         if (self.rect.y-192) % 128 < 64:
             self.rect.y -= (self.rect.y-192) % 128
@@ -1226,8 +1246,18 @@ class Enemy(sprite.Sprite):
 
     def update(self):
         self.stop, self.target = self.is_should_stop_to_attack()
-        self.preparing_to_attack()
+
+        if self.name == 'mega_strelok':
+            if self.attack_cooldown2 > 0:
+                self.attack_cooldown2 -= 1
+            else:
+                self.preparing_to_attack()
+        else:
+            self.preparing_to_attack()
         self.movement()
+        
+        
+        
         if self.hp <= 0:
             if self.name == 'rojatel':
                 self.slabiy1 = Enemy('slabiy', (self.rect.x, self.rect.y+128))
@@ -1782,8 +1812,8 @@ tower_button_names = ["fire_mag", "boomchick", "davalka", "kopitel", "matricaysh
 
 tower_select_buttons = [tower_select_button_creator(tower_name) for tower_name in tower_button_names]    # создание кнопок выбора башен без киллометра кода
 
-levels = [Level(1, 7500, 300, 300, level_1_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel")),
-          Level(2, 3000, 150, 300, level_2_waves, ("popusk", "sigma")),             # типо можно выбрать, каких врагов спавнить можно, а каких нет
+levels = [Level(1, 7500, 300, 300, level_1_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok")),
+          Level(2, 3000, 150, 300, level_2_waves, ("popusk", "sigma", "mega_strelok")),             # типо можно выбрать, каких врагов спавнить можно, а каких нет
           Level(3, 6000, 225, 300, level_3_waves, ("josky", "sigma", "sportik")),              # это из конфига
           Level(4, 4000, 75, 300, level_4_waves, ("josky", "popusk", "rojatel")),              # !!! МИНИМУМ 2 ВРАГА, иначе не работает
           Level(5, 4000, 75, 300, level_4_waves, ("sigma", "josky"))]
@@ -1851,6 +1881,8 @@ while running:
             if e.key == K_b:
                 Enemy("zeleniy_strelok", (1508, 704))
 
+            if e.key == K_KP_7:
+                Enemy("mega_strelok", (1508, 192))
             if e.key == K_KP_4:
                 Enemy("rojatel", (1508, 448))
             if e.key == K_KP_1:
