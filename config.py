@@ -8,7 +8,7 @@ level_1_waves = {       # время волны : поинты спавна на
 level_2_waves = {
     2600: 40,
     2000: 40,
-    1000: 1500  # не ну а чё?
+    1000: 1500  # не ну а чё? 
 }
 
 level_3_waves = {
@@ -27,6 +27,8 @@ level_4_waves = {
 enemy_costs = {"josky": 2,
                "popusk": 1,
                "sigma": 4,
+               "sportik": 3,
+               "rojatel": 4,
                "zeleniy_strelok": 4}
 
 

@@ -241,7 +241,7 @@ class Tower(sprite.Sprite):
 
         if self.name == 'fire_mag':  # циферки поменять
             self.hp = 200
-            self.atk = 200
+            self.atk = 20
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
             self.basic_attack_cooldown = 60
@@ -388,7 +388,7 @@ class Tower(sprite.Sprite):
             self.bullet_speed_y = 0
             self.attack_cooldown = self.basic_attack_cooldown = 450
             self.damage_type = ''
-            self.stack = "dwarf_cannon"
+            self.stack = "gnome_cannon"
 
         if self.name == 'gnome_cannon2':
             self.max_hp = 2800
@@ -398,7 +398,7 @@ class Tower(sprite.Sprite):
             self.bullet_speed_y = 0
             self.attack_cooldown = self.basic_attack_cooldown = 450
             self.damage_type = ''
-            self.stack = "dwarf_cannon"
+            self.stack = "gnome_cannon"
 
         if self.name == 'gnome_cannon3':
             self.max_hp = 2800
@@ -408,7 +408,7 @@ class Tower(sprite.Sprite):
             self.bullet_speed_y = 0
             self.attack_cooldown = self.basic_attack_cooldown = 225
             self.damage_type = ''
-            self.stack = "dwarf_cannon"
+            self.stack = "gnome_cannon"
 
         if self.name == 'gnome_flamethrower':
             self.max_hp = 1
@@ -1114,6 +1114,8 @@ class Enemy(sprite.Sprite):
         self.target = None
         self.parasite_parents = set()
         self.only_one_hit_bullets = set()
+        if self.name == 'slabiy':
+            self.back_to_line()
 
         # СТАТЫ начало
 
@@ -1136,6 +1138,27 @@ class Enemy(sprite.Sprite):
             self.atk = 100
             self.speed = 1
             self.attack_cooldown = self.basic_attack_cooldown = 75
+            self.attack_range = 0
+
+        if self.name == 'slabiy':
+            self.hp = 100
+            self.atk = 50
+            self.speed = 1
+            self.attack_cooldown = self.basic_attack_cooldown = 75
+            self.attack_range = 0
+        
+        if self.name == 'rojatel':
+            self.hp = 600
+            self.atk = 50
+            self.speed = 1
+            self.attack_cooldown = self.basic_attack_cooldown = 75
+            self.attack_range = 0
+
+        if self.name == 'sportik':
+            self.hp = 300
+            self.atk = 100
+            self.speed = 2
+            self.attack_cooldown = self.basic_attack_cooldown = 50
             self.attack_range = 0
 
         if self.name == "zeleniy_strelok":
@@ -1188,12 +1211,19 @@ class Enemy(sprite.Sprite):
             self.rect.y -= (self.rect.y-192) % 128
         else:
             self.rect.y += 128 - ((self.rect.y-192) % 128)
+        if self.rect.y > 704:
+            self.rect.y -= 128
+        elif self.rect.y < 192:
+            self.rect.y += 128
 
     def update(self):
         self.stop, self.target = self.is_should_stop_to_attack()
         self.preparing_to_attack()
         self.movement()
         if self.hp <= 0:
+            if self.name == 'rojatel':
+                self.slabiy1 = Enemy('slabiy', (self.rect.x, self.rect.y+128))
+                self.slabiy2 = Enemy('slabiy', (self.rect.x, self.rect.y-128))
             self.alive = False
             self.kill()
 
@@ -1365,7 +1395,7 @@ def is_free(new_tower):
 def uniq_is_free(new_tower):
     if new_tower.unit_inside == "gnome_cannon1":
         for tower in towers_group:
-            if tower.rect.collidepoint(new_tower.rect.centerx, new_tower.rect.centery) and tower.stack == "dwarf_cannon":
+            if tower.rect.collidepoint(new_tower.rect.centerx, new_tower.rect.centery) and tower.stack == "gnome_cannon":
                 if tower.name == "gnome_cannon3":
                     tower.stack = None
                     return True, "gnome_flamethrower"
@@ -1744,10 +1774,10 @@ tower_button_names = ["fire_mag", "boomchick", "davalka", "kopitel", "matricaysh
 
 tower_select_buttons = [tower_select_button_creator(tower_name) for tower_name in tower_button_names]    # создание кнопок выбора башен без киллометра кода
 
-levels = [Level(1, 7500, 300, 300, level_1_waves, ("popusk", "sigma", "josky", "zeleniy_strelok")),
+levels = [Level(1, 7500, 300, 300, level_1_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel")),
           Level(2, 3000, 150, 300, level_2_waves, ("popusk", "sigma")),             # типо можно выбрать, каких врагов спавнить можно, а каких нет
-          Level(3, 6000, 225, 300, level_3_waves, ("josky", "sigma")),              # это из конфига
-          Level(4, 4000, 75, 300, level_4_waves, ("josky", "popusk")),              # !!! МИНИМУМ 2 ВРАГА, иначе не работает
+          Level(3, 6000, 225, 300, level_3_waves, ("josky", "sigma", "sportik")),              # это из конфига
+          Level(4, 4000, 75, 300, level_4_waves, ("josky", "popusk", "rojatel")),              # !!! МИНИМУМ 2 ВРАГА, иначе не работает
           Level(5, 4000, 75, 300, level_4_waves, ("sigma", "josky"))]
 level = levels[0]
 
@@ -1809,9 +1839,15 @@ while running:
             if e.key == K_c:
                 Enemy("sigma", (1508, 448))
             if e.key == K_v:
-                Enemy("josky", (1508, 576))
+                Enemy("sportik", (1508, 576))
             if e.key == K_b:
                 Enemy("zeleniy_strelok", (1508, 704))
+
+            if e.key == K_KP_4:
+                Enemy("rojatel", (1508, 448))
+            if e.key == K_KP_1:
+                Enemy("rojatel", (1508, 704))
+
             if e.key == K_r:
                 game_state = "main_menu"
             if e.key == K_q:
