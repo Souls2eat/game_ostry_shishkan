@@ -269,12 +269,16 @@ class Tower(sprite.Sprite):
             self.max_nakopit = 7
 
         if self.name == 'thunder':
-            self.hp = 100
+            self.hp = 200
             self.atk = 30
             self.bullet_speed_x = 7
             self.bullet_speed_y = 3
             self.attack_cooldown = self.basic_attack_cooldown = 200
+            self.target_phase = None
             self.damage_type = ''
+        
+        if self.name == 'thunder_kamen':
+            self.hp = 2000
 
         if self.name == 'zeus':
             self.hp = 100
@@ -468,6 +472,9 @@ class Tower(sprite.Sprite):
         if self.name == "boomchick":
             Bullet("yellow_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk * 5, self.bullet_speed_x, self.bullet_speed_y, 'boom', self)
 
+        if self.name == "thunder":
+            self.kamen = Tower('thunder_kamen', self.pos)
+
         self.kill()     # + потом анимация смерти
 
     def is_additional_attack_allow(self):
@@ -497,7 +504,12 @@ class Tower(sprite.Sprite):
 
         if self.name == "thunder":
             for enemy in enemies_group:
-                if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.x >= self.rect.x and enemy.alive:
+                if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.x >= self.rect.x and enemy.alive and (-10 > enemy.rect.y - self.rect.y or enemy.rect.y - self.rect.y > 10):
+                    self.target_phase = 'side'
+                    return enemy
+            for enemy in enemies_group:
+                if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
+                    self.target_phase = 'center'
                     return enemy
 
         if self.name == "urag_anus":
@@ -544,6 +556,8 @@ class Tower(sprite.Sprite):
         if targets[id(self)]:
             if targets[id(self)].rect.x < self.rect.x:
                 targets[id(self)] = None
+            if self.name == 'thunder' and self.target_phase == 'center':
+                targets[id(self)] = None
 
         if targets[id(self)]:
             if targets[id(self)].alive:
@@ -581,11 +595,14 @@ class Tower(sprite.Sprite):
             targets[id(self)] = None
 
         if self.name == "thunder":
-            Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8, self.damage_type, self.atk, self.bullet_speed_x, 0, 'hrom', self)
-            if self.rect.centery+138 <= 832:
-                Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'hrom', self)
-            if self.rect.centery-138 >= 192:
-                Bullet("Frigl_bul", self.rect.centerx - 8, self.rect.centery - 8,  self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y * -1, 'hrom', self)
+            if self.target_phase == 'side':
+                Bullet("mini_kamen", self.rect.centerx - 8, self.rect.centery - 8, self.damage_type, self.atk, self.bullet_speed_x, 0, 'hrom', self)
+                if self.rect.centery+138 <= 832:
+                    Bullet("mini_kamen", self.rect.centerx - 8, self.rect.centery - 8, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'hrom', self)
+                if self.rect.centery-138 >= 192:
+                    Bullet("mini_kamen", self.rect.centerx - 8, self.rect.centery - 8,  self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y * -1, 'hrom', self)
+            elif self.target_phase == 'center': # я мог бы просто написать else, но пусть лучше так
+                Bullet("big_kamen", self.rect.centerx - 8, self.rect.centery - 8, self.damage_type, self.atk*3, self.bullet_speed_x, 0, 'hrom', self)
 
         if self.name == "urag_anus":
             if targets[id(self)].rect.centerx+128 < 1500:
@@ -712,7 +729,7 @@ class Tower(sprite.Sprite):
     def cooldown(self):                           # есть баг с перезарядкой, но там много всего должно сойтись и я пока забью
         if hasattr(self, "attack_cooldown"):      # там буквально 3 тика раз в 100 тиков голимые
             if self.attack_cooldown > 0:          # на определённой башне    !!!=
-                self.attack_cooldown -= 1         # если я вам не скажу, вы и не заметите
+                self.attack_cooldown -= 1         # если я вам не скажу, вы и не заметите    ЗАМЕТИМ(наверн)
             else:
                 self.attack_cooldown = self.basic_attack_cooldown
                 self.check_target_alive()         # когда башня перезарядилась -> чекаем врага
@@ -750,7 +767,7 @@ class Tower(sprite.Sprite):
         self.animation()
 
         if self.hp <= 0:
-            self.dead()
+             self.dead()
 
         if hasattr(self, "horse_hp"):
             if self.horse_hp <= 0:
@@ -884,6 +901,7 @@ class Bullet(sprite.Sprite):
                 if self.name == 'kopilka':
                     enemy.hp -= self.damage
                     self.kill()
+                    break
             if sprite.collide_rect(enemy, self) and enemy.hp > 0:
                 if self.name == 'default' or self.name == 'hrom':
                     enemy.hp -= self.damage
@@ -895,7 +913,7 @@ class Bullet(sprite.Sprite):
                     enemy.hp -= self.damage
                     Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.damage, 0, 0, 'explosion', self.parent)
                     self.kill()
-            break
+                break
 
     def check_parent(self):
         if self.name == 'kopilka':
@@ -1164,7 +1182,7 @@ class Enemy(sprite.Sprite):
             self.attack_cooldown = self.basic_attack_cooldown = 75
             self.attack_range = 0
 
-        if self.name == 'sportik':
+        if self.name == 'sportik': #надо пофиксить таргеты у пукиша
             self.hp = 300
             self.atk = 100
             self.speed = 2

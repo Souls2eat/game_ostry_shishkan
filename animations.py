@@ -9,6 +9,7 @@ towers_wait = {
     "spike": [image.load(f"images/towers/spike/wait/spike{i}.png") for i in range(1, 5)],
     "terpila": [image.load(f"images/towers/terpila/wait/terpila{i}.png") for i in range(1, 5)],
     "thunder": [image.load(f"images/towers/thunder/wait/thunder{i}.png") for i in range(1, 5)],
+    "thunder_kamen": [image.load(f"images/towers/thunder_kamen/wait/thunder_kamen{i}.png") for i in range(1, 5)],
     "yascerica": [image.load(f"images/towers/yascerica/wait/yascerica{i}.png") for i in range(1, 5)],
     "zeus": [image.load(f"images/towers/zeus/wait/zeus{i}.png") for i in range(1, 5)],
     "barrier_mag": [image.load(f"images/towers/barrier_mag/wait/barrier_mag{i}.png") for i in range(1, 5)],
