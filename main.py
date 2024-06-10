@@ -893,7 +893,8 @@ class Bullet(sprite.Sprite):
             for enemy in enemies_group:
                 if enemy.rect.colliderect(self.rect):
                     enemy.hp -= self.parent.atk
-                    enemy.rect.x += self.parent.push
+                    #enemy.rect.x += self.parent.push
+                    enemy.real_x += self.parent.push
             targets[id(self.parent)] = None
 
         for enemy in enemies_group:
@@ -998,8 +999,10 @@ class Parasite(sprite.Sprite):
                     enemy.angle = atan2(self.rect.centery - enemy.rect.centery, self.rect.centerx - enemy.rect.centerx)
                     enemy.x_vel = cos(enemy.angle) * enemy.speed * 6
                     enemy.y_vel = sin(enemy.angle) * enemy.speed * 6
-                    enemy.rect.x += enemy.x_vel
-                    enemy.rect.y += enemy.y_vel
+                    # enemy.rect.x += enemy.x_vel
+                    # enemy.rect.y += enemy.y_vel
+                    enemy.real_x += enemy.x_vel
+                    enemy.real_y += enemy.y_vel
 
                     if self.attack_cooldown <= 0:
                         self.attack_cooldown = 15
@@ -1251,16 +1254,20 @@ class Enemy(sprite.Sprite):
     def movement(self):
         if not self.stop:
             self.real_x -= self.speed
-            self.rect.x = int(self.real_x)
+        self.rect.x = int(self.real_x)
+        self.rect.y = int(self.real_y)
+
     def back_to_line(self):
         if (self.rect.y-192) % 128 < 64:
-            self.rect.y -= (self.rect.y-192) % 128
+            #self.rect.y -= (self.rect.y-192) % 128
+            self.real_y -= (self.rect.y-192) % 128
         else:
-            self.rect.y += 128 - ((self.rect.y-192) % 128)
+            #self.rect.y += 128 - ((self.rect.y-192) % 128)
+            self.real_y += 128 - ((self.rect.y-192) % 128)
         if self.rect.y > 704:
-            self.rect.y -= 128
+            self.real_y -= 128
         elif self.rect.y < 192:
-            self.rect.y += 128
+            self.real_y += 128
 
     def update(self):
         self.stop, self.target = self.is_should_stop_to_attack()
