@@ -28,8 +28,11 @@ enemy_costs = {"josky": 2,
                "popusk": 1,
                "sigma": 4,
                "sportik": 3,
+               "armorik": 5,
                "rojatel": 4,
                "zeleniy_strelok": 4,
+               "drobik": 4,
+               "telezhnik": 5,
                "mega_strelok": 20}
 
 

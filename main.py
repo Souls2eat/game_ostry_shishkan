@@ -561,7 +561,7 @@ class Tower(sprite.Sprite):
                     tower.kill()
 
         if self.name == "boomchick":
-            Bullet("yellow_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk * 5, self.bullet_speed_x, self.bullet_speed_y, 'boom', self)
+            Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk * 5, 0, 0, 'explosion', self)
 
         if self.name == "thunder":
             self.kamen = Tower('thunder_kamen', self.pos)
@@ -927,6 +927,17 @@ class Enemy(sprite.Sprite):
             self.attack_cooldown = self.basic_attack_cooldown = 75
             self.attack_range = 0
 
+        if self.name == 'armorik':
+            self.hp = 450
+            self.armor = 450
+            self.atk = 100
+            self.atk2 = 120
+            self.speed = 1
+            self.speed2 = 2
+            self.attack_cooldown = self.basic_attack_cooldown = 75
+            self.attack_cooldown2 = self.basic_attack_cooldown2 = 50
+            self.attack_range = 0
+
         if self.name == 'slabiy':
             self.hp = 100
             self.atk = 50
@@ -957,6 +968,27 @@ class Enemy(sprite.Sprite):
             self.speed = 1
             self.attack_cooldown = self.basic_attack_cooldown = 75
             self.attack_range = 700
+
+        if self.name == "telezhnik":
+            self.hp = 550
+            self.armor = 50
+            self.atk = 100
+            self.bullet_speed_x = -5
+            self.bullet_speed_y = 0
+            self.speed = 1
+            self.speed2 = 1.5
+            self.attack_cooldown = self.basic_attack_cooldown = 75
+            self.attack_range = 768
+            self.attack_range2 = 0
+
+        if self.name == "drobik":
+            self.hp = 400
+            self.atk = 50
+            self.bullet_speed_x = -5
+            self.bullet_speed_y = 3
+            self.speed = 1
+            self.attack_cooldown = self.basic_attack_cooldown = 100
+            self.attack_range = 128
 
         if self.name == 'mega_strelok':
             self.hp = 800
@@ -989,9 +1021,16 @@ class Enemy(sprite.Sprite):
                     self.shoot()
 
     def shoot(self):
-        if self.name == "zeleniy_strelok":
+        if self.name == "zeleniy_strelok" or self.name == 'telezhnik':
             Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
 
+        if self.name == 'drobik':
+            Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, 0, "anti_hrom", self)
+            if self.rect.centery-138 >= 192:
+                Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y*-1, "anti_hrom", self)
+            if self.rect.centery+138 <= 832:
+                Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "anti_hrom", self)
+    
         if self.name == 'mega_strelok':
             if self.ammos > 0:
                 Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery+randint(-16, 16), None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
@@ -1030,9 +1069,24 @@ class Enemy(sprite.Sprite):
     def animation(self):
         pass    # не убирать, а то сломается справочник
 
-    def move(self, change_pos):
+    def move(self, change_pos): # я хз зачем это существует
         self.pos = self.pos[0], self.pos[1] + change_pos
         self.rect = self.image.get_rect(topleft=self.pos)
+
+    def armor_check(self):
+        if hasattr(self, "armor"):
+            if self.armor <= 0:
+                if self.name == 'armorik':
+                    self.atk = self.atk2
+                    self.basic_attack_cooldown = self.basic_attack_cooldown2
+                    self.speed = self.speed2
+                    self.image = image.load(f"images/enemies/{self.name}_zloy.png").convert_alpha()
+
+                elif self.name == 'telezhnik':
+                    self.speed = self.speed2
+                    self.attack_range = self.attack_range2
+                    self.image = image.load(f"images/enemies/{self.name}_zloy.png").convert_alpha()
+
 
     def update(self):
         self.stop, self.target = self.is_should_stop_to_attack()
@@ -1045,6 +1099,7 @@ class Enemy(sprite.Sprite):
         else:
             self.preparing_to_attack()
         self.movement()
+        self.armor_check()
 
 
 
@@ -1090,7 +1145,7 @@ class Bullet(sprite.Sprite):
         self.rect.x += self.speed_x
         self.rect.y += self.speed_y
 
-        if self.name == 'hrom':
+        if self.name == 'hrom' or self.name == 'anti_hrom':
             if (self.parent.rect.centery - self.rect.centery) >= 128 or (self.rect.centery - self.parent.rect.centery) >= 128:
                 self.speed_y = 0
 
@@ -1111,8 +1166,18 @@ class Bullet(sprite.Sprite):
         if self.rect.x >= 1700 or self.rect.x <= -128:
             self.kill()
 
+    def dealing_damage(self, enemy):
+        if hasattr(enemy, 'armor') and enemy.armor > 0:
+            if self.damage <= enemy.armor:
+                enemy.armor -= self.damage
+            else:
+                enemy.hp -= (self.damage - enemy.armor)
+                enemy.armor = 0
+        else:
+            enemy.hp -= self.damage
+
     def check_collision(self):
-        if self.name == "zeleniy_strelok_bullet":
+        if self.name == "zeleniy_strelok_bullet" or self.name == 'anti_hrom':
             for tower in towers_group:
                 if tower.name != "pukish":
                     if self.rect.colliderect(tower.rect):
@@ -1137,15 +1202,18 @@ class Bullet(sprite.Sprite):
             for enemy in enemies_group:
                 if sprite.collide_rect(enemy, self) and enemy.hp > 0:
                     if enemy not in self.gazirovannie_group:
-                        enemy.hp -= self.damage
+                        self.dealing_damage(enemy)
                         enemy.add(self.gazirovannie_group)
 
-        if self.name == 'ls' or self.name == 'explosion' or self.name == "mech" or self.name == "drachun_gulag":
+        if self.name == 'ls' or self.name == 'explosion' or self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux":
             for enemy in enemies_group:
                 if sprite.collide_rect(enemy, self) and enemy.hp > 0 and self not in enemy.only_one_hit_bullets:
-                    enemy.hp -= self.damage
+                    self.dealing_damage(enemy)
+                    if self.name == "tolkan_bux":
+                        #enemy.rect.x += self.parent.push
+                        enemy.real_x += self.parent.push
                     enemy.only_one_hit_bullets.add(self)
-            if self.name == "mech" or self.name == "drachun_gulag":
+            if self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux":
                 targets[id(self.parent)] = None
 
         # if self.name == "mech" or self.name == "drachun_gulag":
@@ -1155,31 +1223,30 @@ class Bullet(sprite.Sprite):
         #             enemy.only_one_hit_bullets.add(self)
         #     targets[id(self.parent)] = None
 
-        if self.name == "tolkan_bux":
-            for enemy in enemies_group:
-                if enemy.rect.colliderect(self.rect):
-                    enemy.hp -= self.parent.atk
-                    #enemy.rect.x += self.parent.push
-                    enemy.real_x += self.parent.push
-            targets[id(self.parent)] = None
+        # if self.name == "tolkan_bux":
+        #     for enemy in enemies_group:
+        #         if enemy.rect.colliderect(self.rect):
+        #             self.dealing_damage(enemy)
+        #             #enemy.rect.x += self.parent.push
+        #             enemy.real_x += self.parent.push
+        #     targets[id(self.parent)] = None
 
         for enemy in enemies_group:
             if enemy.rect.collidepoint(self.rect.right, self.rect.centery):
                 if self.name == 'kopilka':
-                    enemy.hp -= self.damage
+                    self.dealing_damage(enemy)
                     self.kill()
                     break
             if sprite.collide_rect(enemy, self) and enemy.hp > 0:
-                if self.name == 'default' or self.name == 'hrom':
-                    enemy.hp -= self.damage
+                if self.name == 'default' or self.name == 'hrom' or self.name == 'boom':
+                    self.dealing_damage(enemy)
+                    if self.name == 'boom':
+                        Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.damage, 0, 0, 'explosion', self.parent)
                     self.kill()
                 if self.name == 'yas' and self in bullets_group:
                     enemy.hp -= enemy.hp
                     self.remove(bullets_group)
-                if self.name == 'boom':
-                    enemy.hp -= self.damage
-                    Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.damage, 0, 0, 'explosion', self.parent)
-                    self.kill()
+                
                 break
 
     def check_parent(self):
@@ -1778,7 +1845,7 @@ def menu_positioning():
         offset = (50, 100)
 
         screen.blit(font60.render("Справочник", True, (255, 255, 255)), (621, 10))
-        scroll_offset_min_max(-300, 0)
+        scroll_offset_min_max(-400, 0)
 
         # for i in range(1, len(tower_select_buttons) + 1):
         #     line = int((i - 1) / 3)
@@ -2023,7 +2090,7 @@ enemy_button_names = ["popusk", "sigma", "josky", "zeleniy_strelok", "sportik", 
 
 enemy_select_buttons = [enemy_select_button_creator(enemy_name) for enemy_name in enemy_button_names]
 
-levels = [Level(1, 7500, 300, 300, level_1_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok")),
+levels = [Level(1, 7500, 300, 300, level_1_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik")),
           Level(2, 3000, 150, 300, level_2_waves, ("popusk", "sigma", "mega_strelok")),             # типо можно выбрать, каких врагов спавнить можно, а каких нет
           Level(3, 6000, 225, 300, level_3_waves, ("josky", "sigma", "sportik")),              # это из конфига
           Level(4, 4000, 75, 300, level_4_waves, ("josky", "popusk", "rojatel")),              # !!! МИНИМУМ 2 ВРАГА, иначе не работает
@@ -2099,10 +2166,18 @@ while running:
 
             if e.key == K_KP_7:
                 Enemy("mega_strelok", (1508, 192))
+            if e.key == K_KP_8:
+                Enemy("telezhnik", (1508, 192))
             if e.key == K_KP_4:
                 Enemy("rojatel", (1508, 448))
+            if e.key == K_KP_5:
+                Enemy("armorik", (1508, 448))
+            if e.key == K_KP_6:
+                Enemy("drobik", (1508, 448))
             if e.key == K_KP_1:
                 Enemy("rojatel", (1508, 704))
+            if e.key == K_KP_2:
+                Enemy("drobik", (1508, 704))
 
             if e.key == K_r:
                 game_state = "main_menu"
