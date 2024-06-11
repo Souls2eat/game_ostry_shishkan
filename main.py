@@ -170,7 +170,7 @@ class GuideGroup(sprite.Group):
 
     def get_max_hp(self):
         return sorted(self.guide_entity, key=lambda en: en.hp)[-1].hp
-
+    
     def get_max_speed(self):
         return sorted(self.guide_entity, key=self.get_speed)[-1].speed
 
@@ -592,6 +592,26 @@ class Tower(sprite.Sprite):
                 self.buff = Buff("mat", self.rect.x + self.buff_x, self.rect.y + self.buff_y)
             self.rarity = "legendary"
 
+        # я решил спеллы внизу писать
+
+        if self.name == 'bomb':
+            self.hp = 0
+            self.atk = 1000
+            self.attack_cooldown = self.basic_attack_cooldown = 7500
+            self.damage_type = ''
+            self.rarity = "spell"
+
+        if self.name == 'perec':
+            self.hp = 0
+            self.atk = 1000
+            self.attack_cooldown = self.basic_attack_cooldown = 7500
+            self.damage_type = ''
+            self.rarity = "spell"
+
+        if self.name == 'vodka':
+            self.hp = 0
+            self.rarity = "spell"
+
         # СТАТЫ конец
 
     def add_anim_task(self, anim, func):
@@ -616,8 +636,23 @@ class Tower(sprite.Sprite):
 
         if self.name == "boomchick":
             Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk * 5, 0, 0, 'explosion', self)
+
         if self.name == "thunder":
             Tower('thunder_kamen', self.pos)
+
+        # спеллы
+
+        if self.name == "bomb":
+            Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self)
+        
+        if self.name == "perec":
+            Bullet("perec_bullet", 960, self.rect.bottom-8, self.damage_type, self.atk, 0, 0, 'explosion', self)
+
+        if self.name == "vodka":
+            for i in range(9):
+                self.buff_x = 1 + (i % 3) * 128 - 128
+                self.buff_y = 1 + (i // 3) * 128 - 128
+                self.buff = Buff("vodkamat", self.rect.x + self.buff_x, self.rect.y + self.buff_y)
 
         self.kill()     # + потом анимация смерти
 
@@ -1038,7 +1073,7 @@ class Enemy(sprite.Sprite):
             self.hp = 400
             self.atk = 50
             self.bullet_speed_x = -5
-            self.bullet_speed_y = 3
+            self.bullet_speed_y = 4
             self.speed = 1
             self.attack_cooldown = self.basic_attack_cooldown = 100
             self.attack_range = 128
@@ -1419,13 +1454,22 @@ class Buff(sprite.Sprite):
         self.rect2 = Rect(self.rect.x-128, self.rect.y-128, 384, 384) 
         self.name = name
         self.buffed_towers = sprite.Group()
-        if self.name == 'mat':
-            self.mozhet_zhit = False
+        if self.name == 'mat' or self.name == 'vodkamat':
+            if self.name == 'mat':
+                self.mozhet_zhit = False
+            else:
+                self.mozhet_zhit = True
             if self.rect.x <= 384 or self.rect.x >= 1536 or self.rect.y <= 192 or self.rect.y >= 832:
                 self.kill()
         for buff in buffs_group:
             if self.rect.collidepoint(buff.rect.centerx, buff.rect.centery) and self != buff:
-                self.kill()
+                if self.name == 'vodkamat':
+                    buff.kill()
+                else:
+                    self.kill()
+
+        if self.name == 'vodkamat':
+            self.lifetime = 750
 
     def delat_buff(self):
         for tower in towers_group:
@@ -1453,11 +1497,11 @@ class Buff(sprite.Sprite):
                         tower.time_indicator *= 2
                         tower.add(self.buffed_towers)
 
-                    for i in range(16):
-                        if tower.name == 'go_bleen' + str(i+1):
-                            tower.basic_attack_cooldown //= 2
-                            tower.time_indicator *= 2
-                            tower.add(self.buffed_towers)
+                    # for i in range(16):
+                    #     if tower.name == 'go_bleen' + str(i+1):
+                    #         tower.basic_attack_cooldown //= 2
+                    #         tower.time_indicator *= 2
+                    #         tower.add(self.buffed_towers)
 
         for nekusaemiy in nekusaemie_group:
             if nekusaemiy not in self.buffed_towers:
@@ -1468,51 +1512,63 @@ class Buff(sprite.Sprite):
                         nekusaemiy.add(self.buffed_towers)
 
     def check_tower(self):
-        for tower in towers_group:
-            if tower.name == 'matricayshon':
-                if self.rect2.collidepoint(tower.rect.centerx, tower.rect.centery):
-                    self.mozhet_zhit = True
+        if self.name == 'mat':
+            for tower in towers_group:
+                if tower.name == 'matricayshon':
+                    if self.rect2.collidepoint(tower.rect.centerx, tower.rect.centery):
+                        self.mozhet_zhit = True
         if self.mozhet_zhit == False:
             self.kill()
             for tower in self.buffed_towers:
                 if tower.name == 'fire_mag'\
                         or tower.name == 'kopitel'\
-                        or tower.name == 'thunder'\
-                        or tower.name == 'yascerica'\
-                        or tower.name == 'zeus'\
-                        or tower.name == 'boomchick'\
-                        or tower.name == 'parasitelniy'\
-                        or tower.name == 'pukish'\
-                        or tower.name == 'drachun'\
-                        or tower.name == 'tolkan'\
-                        or tower.name == 'big_mechman'\
-                        or tower.name == 'nuka_kusni'\
-                        or self.name == 'sushnost_v_vide_gnomika1'\
-                        or self.name == 'sushnost_v_vide_gnomika2'\
-                        or self.name == 'sushnost_v_vide_gnomika3'\
-                        or self.name == 'sushnost_v_vide_gnomika4':
+                            or tower.name == 'thunder'\
+                            or tower.name == 'yascerica'\
+                            or tower.name == 'zeus'\
+                            or tower.name == 'boomchick'\
+                            or tower.name == 'parasitelniy'\
+                            or tower.name == 'pukish'\
+                            or tower.name == 'drachun'\
+                            or tower.name == 'tolkan'\
+                            or tower.name == 'big_mechman'\
+                            or tower.name == 'knight_on_horse'\
+                            or tower.name == "knight"\
+                            or tower.name == "urag_anus"\
+                            or tower.name == "gnome_cannon1"\
+                            or tower.name == "gnome_cannon2"\
+                            or tower.name == "gnome_cannon3":
                     tower.basic_attack_cooldown *= 2
                     tower.time_indicator //= 2
 
-                for i in range(16):
-                    if tower.name == 'go_bleen' + str(i+1):
-                        tower.basic_attack_cooldown *= 2
-                        tower.time_indicator //= 2
+                # for i in range(16):
+                #     if tower.name == 'go_bleen' + str(i+1):
+                #         tower.basic_attack_cooldown *= 2
+                #         tower.time_indicator //= 2
 
-                if tower.name == 'urag_anus':
-                    tower.basic_uragan_cooldown *= 2
-                    tower.time_indicator //= 2
+                # if tower.name == 'urag_anus':
+                #     tower.basic_uragan_cooldown *= 2
+                #     tower.time_indicator //= 2
 
             for nekusaemiy in self.buffed_towers:
-                if nekusaemiy.name == 'spike':
+                if nekusaemiy.name == 'spike' or nekusaemiy.name == 'pukish':
                     nekusaemiy.basic_attack_cooldown *= 2
                     nekusaemiy.time_indicator //= 2
 
-        self.mozhet_zhit = False
+            if self.name == 'vodkamat':
+                Buff('mat', self.rect.x, self.rect.y)
+
+        if self.name == 'mat':
+            self.mozhet_zhit = False
 
     def update(self):
         self.delat_buff()
         self.check_tower()
+
+        if self.name == 'vodkamat':
+            if self.lifetime > 0:
+                self.lifetime -= 1
+            else:
+                self.mozhet_zhit = False
 
 
 class UI(sprite.Sprite):
@@ -2177,7 +2233,7 @@ level_box_buttons = [level_box_button_creator(i) for i in range(1, 21)]  # со�
 
 tower_button_names = ["fire_mag", "pukish", "boomchick", "davalka", "kopitel", "matricayshon", "parasitelniy", "spike",
                       "terpila", "thunder", "yascerica", "zeus", "barrier_mag", "urag_anus",
-                      "big_mechman", "drachun", "tolkan", "knight_on_horse", "gnome_cannon1"]     # просто добавить имя башни
+                      "big_mechman", "drachun", "tolkan", "knight_on_horse", "gnome_cannon1", "bomb", "perec", "vodka"]     # просто добавить имя башни
 
 tower_select_buttons = [tower_select_button_creator(tower_name) for tower_name in tower_button_names]    # создание кнопок выбора башен без киллометра кода
 
