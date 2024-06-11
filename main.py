@@ -87,10 +87,14 @@ class GuideGroup(sprite.Group):
         self.scroll_pos = 0
         self.hovered_entity = None
         self.pushed_entity = None
+        self.turn = "towers"
 
     def add(self, *entity):
         for en in entity:
             self.guide_entity.append(en)
+            self.pushed_entity = self.guide_entity[0]
+            towers_group.remove(en)
+            enemies_group.remove(en)
             all_sprites_group.remove(en)
 
     def remove(self, *entity):
@@ -99,7 +103,7 @@ class GuideGroup(sprite.Group):
                 self.guide_entity.remove(en)
 
     def custom_draw(self, surf, offset_pos=(0, 0)):
-        for en in self.guide_entity:
+        for en in filter(self.filter_by_turn, self.guide_entity):
             en.rect = en.image.get_rect(topleft=(en.pos[0] + offset_pos[0], en.pos[1] + offset_pos[1]))
             # draw.rect(screen, "GREEN", en.rect, 5)
             surf.blit(en.image, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
@@ -130,7 +134,7 @@ class GuideGroup(sprite.Group):
         surf_width = surf.get_width()
         surf_height = surf.get_height()
         on_surf = surf_width + offset_pos[0] > mouse_pos[0] > offset_pos[0] and surf_height + offset_pos[1] > mouse_pos[1] > offset_pos[1]
-        for en in self.guide_entity:
+        for en in filter(self.filter_by_turn, self.guide_entity):
             en.rect = en.image.get_rect(topleft=(en.pos[0] + offset_pos[0], en.pos[1] + offset_pos[1]))
             if en.rect.collidepoint(mouse_pos) and on_surf:
                 self.hovered_entity = en
@@ -142,7 +146,7 @@ class GuideGroup(sprite.Group):
         surf_width = surf.get_width()
         surf_height = surf.get_height()
         on_surf = surf_width + offset_pos[0] > mouse_pos[0] > offset_pos[0] and surf_height + offset_pos[1] > mouse_pos[1] > offset_pos[1]
-        for en in self.guide_entity:
+        for en in filter(self.filter_by_turn, self.guide_entity):
             en.rect = en.image.get_rect(topleft=(en.pos[0] + offset_pos[0], en.pos[1] + offset_pos[1]))
             if not en.rect.collidepoint(mouse_pos):
                 en.pushed = False
@@ -166,6 +170,21 @@ class GuideGroup(sprite.Group):
 
     def get_max_hp(self):
         return sorted(self.guide_entity, key=lambda en: en.hp)[-1].hp
+
+    def get_max_speed(self):
+        return sorted(self.guide_entity, key=self.get_speed)[-1].speed
+
+    @staticmethod
+    def get_speed(en):
+        if hasattr(en, "speed"):
+            return en.speed
+        return 0
+
+    def filter_by_turn(self, en):
+        if self.turn == "towers":
+            return isinstance(en, Tower)
+        if self.turn == "enemies":
+            return isinstance(en, Enemy)
 
     def __len__(self):
         return len(self.guide_entity)
@@ -1755,13 +1774,16 @@ def guide_entity_create():
         line_ = int(i / 3)
         column_ = (i % 3)
         entity_ = Tower(tower_name, (30 + 154 * column_, 30 + (line_ * 154)))  # 50, 100
+        if hasattr(entity_, "blackik"):
+            entity_.blackik.kill()
+        buffs_group.empty()
         guide_group.add(entity_)
 
-    # for i, enemy_name in enumerate(enemy_button_names):
-    #     line_ = int((i / 3))
-    #     column_ = (i % 3)
-    #     entity_ = Enemy(enemy_name, (1000 + 154 * column_, 100 + (line_ * 154)))
-    #     guide_group.add(entity_)
+    for i, enemy_name in enumerate(enemy_button_names):
+        line_ = int((i / 3))
+        column_ = (i % 3)
+        entity_ = Enemy(enemy_name, (30 + 154 * column_, 30 + (line_ * 154)))
+        guide_group.add(entity_)
 
 
 def scroll_offset_min_max(min_offset, max_offset):
@@ -1922,36 +1944,49 @@ def menu_positioning():
             else:
                 draw_info((196, 360), 0, 0)
 
-            modification_guide_menu.blit(font40.render("Кд", True, (0, 0, 0)), (30, 400))
-            if guide_group.pushed_entity.name in towers_kd:
-                draw_info((196, 410), towers_kd[guide_group.pushed_entity.name], max(towers_kd.values()), reversed_=True)
-            else:
-                draw_info((196, 410), 0, 0)
+            if guide_group.turn == "towers":
+                modification_guide_menu.blit(font40.render("Кд", True, (0, 0, 0)), (30, 400))
+                if guide_group.pushed_entity.name in towers_kd:
+                    draw_info((196, 410), towers_kd[guide_group.pushed_entity.name], max(towers_kd.values()), reversed_=True)
+                else:
+                    draw_info((196, 410), 0, 0)
 
-            modification_guide_menu.blit(font40.render("Цена", True, (0, 0, 0)), (30, 450))
-            if guide_group.pushed_entity.name in tower_costs:
-                modification_guide_menu.blit(font40.render(str(tower_costs[guide_group.pushed_entity.name]), True, (0, 0, 0)), (450, 450))
-                # draw_info((196, 460), tower_costs[guide_group.pushed_entity.name], max(tower_costs.values()), reversed_=True)
-            else:
-                draw_info((196, 460), 0, 0)
+                modification_guide_menu.blit(font40.render("Цена", True, (0, 0, 0)), (30, 450))
+                if guide_group.pushed_entity.name in tower_costs:
+                    modification_guide_menu.blit(font40.render(str(tower_costs[guide_group.pushed_entity.name]), True, (0, 0, 0)), (450, 450))
+                    # draw_info((196, 460), tower_costs[guide_group.pushed_entity.name], max(tower_costs.values()), reversed_=True)
+                else:
+                    draw_info((196, 460), 0, 0)
 
-            modification_guide_menu.blit(font40.render("Редкость", True, (0, 0, 0)), (30, 500))
-            if hasattr(guide_group.pushed_entity, "rarity"):    # просто слева автоматически не рисовалось
-                if guide_group.pushed_entity.rarity == "legendary":
-                    modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (255, 210, 0)), (310, 500))
-                if guide_group.pushed_entity.rarity == "common":
-                    modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (0, 200, 0)), (340, 500))
-                if guide_group.pushed_entity.rarity == "spell":
-                    modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (0, 0, 200)), (400, 500))
+                modification_guide_menu.blit(font40.render("Редкость", True, (0, 0, 0)), (30, 500))
+                if hasattr(guide_group.pushed_entity, "rarity"):    # просто слева автоматически не рисовалось
+                    if guide_group.pushed_entity.rarity == "legendary":
+                        modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (255, 210, 0)), (310, 500))
+                    if guide_group.pushed_entity.rarity == "common":
+                        modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (0, 200, 0)), (340, 500))
+                    if guide_group.pushed_entity.rarity == "spell":
+                        modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (0, 0, 200)), (400, 500))
+                else:
+                    draw_info((196, 510), 0, 0)
 
-            else:
-                draw_info((196, 510), 0, 0)
-
+            if guide_group.turn == "enemies":
+                modification_guide_menu.blit(font40.render("Скорость", True, (0, 0, 0)), (30, 400))
+                if hasattr(guide_group.pushed_entity, "speed"):
+                    draw_info((196, 410), guide_group.pushed_entity.speed, guide_group.get_max_speed())
 
         guide_group.custom_draw(entity_guide_menu, offset_pos=offset)
 
         if back_button.click(screen, mouse_pos, (1000, 750)):
             game_state, last_game_state = last_game_state, game_state
+
+        if change_guide_turn_button.click(screen, mouse_pos, (1280, 90)):
+            if guide_group.turn == "enemies":
+                guide_group.turn = "towers"
+                change_guide_turn_button.image = image.load("images/other/city_coin.png").convert_alpha()
+            else:
+                guide_group.turn = "enemies"
+                change_guide_turn_button.image = image.load("images/other/evil_coin.png").convert_alpha()
+            guide_group.pushed_entity = list(filter(guide_group.filter_by_turn, guide_group.guide_entity))[0]
 
     if game_state != "main_menu" and game_state != "main_settings_menu" and game_state != "level_select" and game_state != "guide_menu":
         screen.blit(level.image, (0, 0))
@@ -2131,6 +2166,7 @@ cheat_button = Button("img", "menu", "cheat")
 start_level_button = Button("text", font60, "Начать")
 random_choice_button = Button("text", font50, "Случайно")
 guide_button = Button("text", font60, "Для чайников")
+change_guide_turn_button = Button("img", "other", "evil_coin")
 
 TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death"))
 level_number = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death"))
