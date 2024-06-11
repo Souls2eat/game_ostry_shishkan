@@ -87,14 +87,10 @@ class GuideGroup(sprite.Group):
         self.scroll_pos = 0
         self.hovered_entity = None
         self.pushed_entity = None
-        self.turn = "towers"
 
     def add(self, *entity):
         for en in entity:
             self.guide_entity.append(en)
-            self.pushed_entity = self.guide_entity[0]
-            towers_group.remove(en)
-            enemies_group.remove(en)
             all_sprites_group.remove(en)
 
     def remove(self, *entity):
@@ -103,7 +99,7 @@ class GuideGroup(sprite.Group):
                 self.guide_entity.remove(en)
 
     def custom_draw(self, surf, offset_pos=(0, 0)):
-        for en in filter(self.filter_by_turn, self.guide_entity):
+        for en in self.guide_entity:
             en.rect = en.image.get_rect(topleft=(en.pos[0] + offset_pos[0], en.pos[1] + offset_pos[1]))
             # draw.rect(screen, "GREEN", en.rect, 5)
             surf.blit(en.image, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
@@ -134,7 +130,7 @@ class GuideGroup(sprite.Group):
         surf_width = surf.get_width()
         surf_height = surf.get_height()
         on_surf = surf_width + offset_pos[0] > mouse_pos[0] > offset_pos[0] and surf_height + offset_pos[1] > mouse_pos[1] > offset_pos[1]
-        for en in filter(self.filter_by_turn, self.guide_entity):
+        for en in self.guide_entity:
             en.rect = en.image.get_rect(topleft=(en.pos[0] + offset_pos[0], en.pos[1] + offset_pos[1]))
             if en.rect.collidepoint(mouse_pos) and on_surf:
                 self.hovered_entity = en
@@ -146,7 +142,7 @@ class GuideGroup(sprite.Group):
         surf_width = surf.get_width()
         surf_height = surf.get_height()
         on_surf = surf_width + offset_pos[0] > mouse_pos[0] > offset_pos[0] and surf_height + offset_pos[1] > mouse_pos[1] > offset_pos[1]
-        for en in filter(self.filter_by_turn, self.guide_entity):
+        for en in self.guide_entity:
             en.rect = en.image.get_rect(topleft=(en.pos[0] + offset_pos[0], en.pos[1] + offset_pos[1]))
             if not en.rect.collidepoint(mouse_pos):
                 en.pushed = False
@@ -170,21 +166,6 @@ class GuideGroup(sprite.Group):
 
     def get_max_hp(self):
         return sorted(self.guide_entity, key=lambda en: en.hp)[-1].hp
-
-    def get_max_speed(self):
-        return sorted(self.guide_entity, key=self.get_speed)[-1].speed
-
-    @staticmethod
-    def get_speed(en):
-        if hasattr(en, "speed"):
-            return en.speed
-        return 0
-
-    def filter_by_turn(self, en):
-        if self.turn == "towers":
-            return isinstance(en, Tower)
-        if self.turn == "enemies":
-            return isinstance(en, Enemy)
 
     def __len__(self):
         return len(self.guide_entity)
@@ -592,6 +573,24 @@ class Tower(sprite.Sprite):
                 self.buff = Buff("mat", self.rect.x + self.buff_x, self.rect.y + self.buff_y)
             self.rarity = "legendary"
 
+        # я решил спеллы внизу писать
+
+        if self.name == 'bomb':
+            self.hp = 0
+            self.atk = 1000
+            self.damage_type = ''
+            self.rarity = "spell"
+
+        if self.name == 'perec':
+            self.hp = 0
+            self.atk = 1000
+            self.damage_type = ''
+            self.rarity = "spell"
+
+        if self.name == 'vodka':
+            self.hp = 0
+            self.rarity = "spell"
+
         # СТАТЫ конец
 
     def add_anim_task(self, anim, func):
@@ -616,8 +615,23 @@ class Tower(sprite.Sprite):
 
         if self.name == "boomchick":
             Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk * 5, 0, 0, 'explosion', self)
+
         if self.name == "thunder":
             Tower('thunder_kamen', self.pos)
+
+        # спеллы
+
+        if self.name == "bomb":
+            Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self)
+        
+        if self.name == "perec":
+            Bullet("perec_bullet", 960, self.rect.bottom-8, self.damage_type, self.atk, 0, 0, 'explosion', self)
+
+        if self.name == "vodka":
+            for i in range(9):
+                self.buff_x = 1 + (i % 3) * 128 - 128
+                self.buff_y = 1 + (i // 3) * 128 - 128
+                self.buff = Buff("vodkamat", self.rect.x + self.buff_x, self.rect.y + self.buff_y)
 
         self.kill()     # + потом анимация смерти
 
@@ -1038,7 +1052,7 @@ class Enemy(sprite.Sprite):
             self.hp = 400
             self.atk = 50
             self.bullet_speed_x = -5
-            self.bullet_speed_y = 3
+            self.bullet_speed_y = 4
             self.speed = 1
             self.attack_cooldown = self.basic_attack_cooldown = 100
             self.attack_range = 128
@@ -1419,13 +1433,22 @@ class Buff(sprite.Sprite):
         self.rect2 = Rect(self.rect.x-128, self.rect.y-128, 384, 384) 
         self.name = name
         self.buffed_towers = sprite.Group()
-        if self.name == 'mat':
-            self.mozhet_zhit = False
+        if self.name == 'mat' or self.name == 'vodkamat':
+            if self.name == 'mat':
+                self.mozhet_zhit = False
+            else:
+                self.mozhet_zhit = True
             if self.rect.x <= 384 or self.rect.x >= 1536 or self.rect.y <= 192 or self.rect.y >= 832:
                 self.kill()
         for buff in buffs_group:
             if self.rect.collidepoint(buff.rect.centerx, buff.rect.centery) and self != buff:
-                self.kill()
+                if self.name == 'vodkamat':
+                    buff.kill()
+                else:
+                    self.kill()
+
+        if self.name == 'vodkamat':
+            self.lifetime = 750
 
     def delat_buff(self):
         for tower in towers_group:
@@ -1453,11 +1476,11 @@ class Buff(sprite.Sprite):
                         tower.time_indicator *= 2
                         tower.add(self.buffed_towers)
 
-                    for i in range(16):
-                        if tower.name == 'go_bleen' + str(i+1):
-                            tower.basic_attack_cooldown //= 2
-                            tower.time_indicator *= 2
-                            tower.add(self.buffed_towers)
+                    # for i in range(16):
+                    #     if tower.name == 'go_bleen' + str(i+1):
+                    #         tower.basic_attack_cooldown //= 2
+                    #         tower.time_indicator *= 2
+                    #         tower.add(self.buffed_towers)
 
         for nekusaemiy in nekusaemie_group:
             if nekusaemiy not in self.buffed_towers:
@@ -1468,51 +1491,63 @@ class Buff(sprite.Sprite):
                         nekusaemiy.add(self.buffed_towers)
 
     def check_tower(self):
-        for tower in towers_group:
-            if tower.name == 'matricayshon':
-                if self.rect2.collidepoint(tower.rect.centerx, tower.rect.centery):
-                    self.mozhet_zhit = True
+        if self.name == 'mat':
+            for tower in towers_group:
+                if tower.name == 'matricayshon':
+                    if self.rect2.collidepoint(tower.rect.centerx, tower.rect.centery):
+                        self.mozhet_zhit = True
         if self.mozhet_zhit == False:
             self.kill()
             for tower in self.buffed_towers:
                 if tower.name == 'fire_mag'\
                         or tower.name == 'kopitel'\
-                        or tower.name == 'thunder'\
-                        or tower.name == 'yascerica'\
-                        or tower.name == 'zeus'\
-                        or tower.name == 'boomchick'\
-                        or tower.name == 'parasitelniy'\
-                        or tower.name == 'pukish'\
-                        or tower.name == 'drachun'\
-                        or tower.name == 'tolkan'\
-                        or tower.name == 'big_mechman'\
-                        or tower.name == 'nuka_kusni'\
-                        or self.name == 'sushnost_v_vide_gnomika1'\
-                        or self.name == 'sushnost_v_vide_gnomika2'\
-                        or self.name == 'sushnost_v_vide_gnomika3'\
-                        or self.name == 'sushnost_v_vide_gnomika4':
+                            or tower.name == 'thunder'\
+                            or tower.name == 'yascerica'\
+                            or tower.name == 'zeus'\
+                            or tower.name == 'boomchick'\
+                            or tower.name == 'parasitelniy'\
+                            or tower.name == 'pukish'\
+                            or tower.name == 'drachun'\
+                            or tower.name == 'tolkan'\
+                            or tower.name == 'big_mechman'\
+                            or tower.name == 'knight_on_horse'\
+                            or tower.name == "knight"\
+                            or tower.name == "urag_anus"\
+                            or tower.name == "gnome_cannon1"\
+                            or tower.name == "gnome_cannon2"\
+                            or tower.name == "gnome_cannon3":
                     tower.basic_attack_cooldown *= 2
                     tower.time_indicator //= 2
 
-                for i in range(16):
-                    if tower.name == 'go_bleen' + str(i+1):
-                        tower.basic_attack_cooldown *= 2
-                        tower.time_indicator //= 2
+                # for i in range(16):
+                #     if tower.name == 'go_bleen' + str(i+1):
+                #         tower.basic_attack_cooldown *= 2
+                #         tower.time_indicator //= 2
 
-                if tower.name == 'urag_anus':
-                    tower.basic_uragan_cooldown *= 2
-                    tower.time_indicator //= 2
+                # if tower.name == 'urag_anus':
+                #     tower.basic_uragan_cooldown *= 2
+                #     tower.time_indicator //= 2
 
             for nekusaemiy in self.buffed_towers:
-                if nekusaemiy.name == 'spike':
+                if nekusaemiy.name == 'spike' or nekusaemiy.name == 'pukish':
                     nekusaemiy.basic_attack_cooldown *= 2
                     nekusaemiy.time_indicator //= 2
 
-        self.mozhet_zhit = False
+            if self.name == 'vodkamat':
+                Buff('mat', self.rect.x, self.rect.y)
+
+        if self.name == 'mat':
+            self.mozhet_zhit = False
 
     def update(self):
         self.delat_buff()
         self.check_tower()
+
+        if self.name == 'vodkamat':
+            if self.lifetime > 0:
+                self.lifetime -= 1
+            else:
+                self.mozhet_zhit = False
 
 
 class UI(sprite.Sprite):
@@ -1774,16 +1809,13 @@ def guide_entity_create():
         line_ = int(i / 3)
         column_ = (i % 3)
         entity_ = Tower(tower_name, (30 + 154 * column_, 30 + (line_ * 154)))  # 50, 100
-        if hasattr(entity_, "blackik"):
-            entity_.blackik.kill()
-        buffs_group.empty()
         guide_group.add(entity_)
 
-    for i, enemy_name in enumerate(enemy_button_names):
-        line_ = int((i / 3))
-        column_ = (i % 3)
-        entity_ = Enemy(enemy_name, (30 + 154 * column_, 30 + (line_ * 154)))
-        guide_group.add(entity_)
+    # for i, enemy_name in enumerate(enemy_button_names):
+    #     line_ = int((i / 3))
+    #     column_ = (i % 3)
+    #     entity_ = Enemy(enemy_name, (1000 + 154 * column_, 100 + (line_ * 154)))
+    #     guide_group.add(entity_)
 
 
 def scroll_offset_min_max(min_offset, max_offset):
@@ -1944,49 +1976,36 @@ def menu_positioning():
             else:
                 draw_info((196, 360), 0, 0)
 
-            if guide_group.turn == "towers":
-                modification_guide_menu.blit(font40.render("Кд", True, (0, 0, 0)), (30, 400))
-                if guide_group.pushed_entity.name in towers_kd:
-                    draw_info((196, 410), towers_kd[guide_group.pushed_entity.name], max(towers_kd.values()), reversed_=True)
-                else:
-                    draw_info((196, 410), 0, 0)
+            modification_guide_menu.blit(font40.render("Кд", True, (0, 0, 0)), (30, 400))
+            if guide_group.pushed_entity.name in towers_kd:
+                draw_info((196, 410), towers_kd[guide_group.pushed_entity.name], max(towers_kd.values()), reversed_=True)
+            else:
+                draw_info((196, 410), 0, 0)
 
-                modification_guide_menu.blit(font40.render("Цена", True, (0, 0, 0)), (30, 450))
-                if guide_group.pushed_entity.name in tower_costs:
-                    modification_guide_menu.blit(font40.render(str(tower_costs[guide_group.pushed_entity.name]), True, (0, 0, 0)), (450, 450))
-                    # draw_info((196, 460), tower_costs[guide_group.pushed_entity.name], max(tower_costs.values()), reversed_=True)
-                else:
-                    draw_info((196, 460), 0, 0)
+            modification_guide_menu.blit(font40.render("Цена", True, (0, 0, 0)), (30, 450))
+            if guide_group.pushed_entity.name in tower_costs:
+                modification_guide_menu.blit(font40.render(str(tower_costs[guide_group.pushed_entity.name]), True, (0, 0, 0)), (450, 450))
+                # draw_info((196, 460), tower_costs[guide_group.pushed_entity.name], max(tower_costs.values()), reversed_=True)
+            else:
+                draw_info((196, 460), 0, 0)
 
-                modification_guide_menu.blit(font40.render("Редкость", True, (0, 0, 0)), (30, 500))
-                if hasattr(guide_group.pushed_entity, "rarity"):    # просто слева автоматически не рисовалось
-                    if guide_group.pushed_entity.rarity == "legendary":
-                        modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (255, 210, 0)), (310, 500))
-                    if guide_group.pushed_entity.rarity == "common":
-                        modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (0, 200, 0)), (340, 500))
-                    if guide_group.pushed_entity.rarity == "spell":
-                        modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (0, 0, 200)), (400, 500))
-                else:
-                    draw_info((196, 510), 0, 0)
+            modification_guide_menu.blit(font40.render("Редкость", True, (0, 0, 0)), (30, 500))
+            if hasattr(guide_group.pushed_entity, "rarity"):    # просто слева автоматически не рисовалось
+                if guide_group.pushed_entity.rarity == "legendary":
+                    modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (255, 210, 0)), (310, 500))
+                if guide_group.pushed_entity.rarity == "common":
+                    modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (0, 200, 0)), (340, 500))
+                if guide_group.pushed_entity.rarity == "spell":
+                    modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (0, 0, 200)), (400, 500))
 
-            if guide_group.turn == "enemies":
-                modification_guide_menu.blit(font40.render("Скорость", True, (0, 0, 0)), (30, 400))
-                if hasattr(guide_group.pushed_entity, "speed"):
-                    draw_info((196, 410), guide_group.pushed_entity.speed, guide_group.get_max_speed())
+            else:
+                draw_info((196, 510), 0, 0)
+
 
         guide_group.custom_draw(entity_guide_menu, offset_pos=offset)
 
         if back_button.click(screen, mouse_pos, (1000, 750)):
             game_state, last_game_state = last_game_state, game_state
-
-        if change_guide_turn_button.click(screen, mouse_pos, (1280, 90)):
-            if guide_group.turn == "enemies":
-                guide_group.turn = "towers"
-                change_guide_turn_button.image = image.load("images/other/city_coin.png").convert_alpha()
-            else:
-                guide_group.turn = "enemies"
-                change_guide_turn_button.image = image.load("images/other/evil_coin.png").convert_alpha()
-            guide_group.pushed_entity = list(filter(guide_group.filter_by_turn, guide_group.guide_entity))[0]
 
     if game_state != "main_menu" and game_state != "main_settings_menu" and game_state != "level_select" and game_state != "guide_menu":
         screen.blit(level.image, (0, 0))
@@ -2166,7 +2185,6 @@ cheat_button = Button("img", "menu", "cheat")
 start_level_button = Button("text", font60, "Начать")
 random_choice_button = Button("text", font50, "Случайно")
 guide_button = Button("text", font60, "Для чайников")
-change_guide_turn_button = Button("img", "other", "evil_coin")
 
 TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death"))
 level_number = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death"))
@@ -2177,7 +2195,7 @@ level_box_buttons = [level_box_button_creator(i) for i in range(1, 21)]  # со�
 
 tower_button_names = ["fire_mag", "pukish", "boomchick", "davalka", "kopitel", "matricayshon", "parasitelniy", "spike",
                       "terpila", "thunder", "yascerica", "zeus", "barrier_mag", "urag_anus",
-                      "big_mechman", "drachun", "tolkan", "knight_on_horse", "gnome_cannon1"]     # просто добавить имя башни
+                      "big_mechman", "drachun", "tolkan", "knight_on_horse", "gnome_cannon1", "bomb", "perec", "vodka"]     # просто добавить имя башни
 
 tower_select_buttons = [tower_select_button_creator(tower_name) for tower_name in tower_button_names]    # создание кнопок выбора башен без киллометра кода
 
