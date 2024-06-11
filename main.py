@@ -358,6 +358,7 @@ class Tower(sprite.Sprite):
             self.bullet_speed_y = 0
             self.attack_cooldown = self.basic_attack_cooldown = 85
             self.damage_type = ''
+            self.rarity = "common"
 
         if self.name == 'kopitel':
             self.hp = 200
@@ -370,6 +371,7 @@ class Tower(sprite.Sprite):
             self.damage_type = ''
             self.nakopleno = 0
             self.max_nakopit = 7
+            self.rarity = "common"
 
         if self.name == 'thunder':
             self.hp = 200
@@ -379,9 +381,11 @@ class Tower(sprite.Sprite):
             self.attack_cooldown = self.basic_attack_cooldown = 200
             self.target_phase = None
             self.damage_type = ''
-        
+            self.rarity = "common"
+
         if self.name == 'thunder_kamen':
             self.hp = 2000
+            self.rarity = "common"
 
         if self.name == 'zeus':
             self.hp = 100
@@ -390,6 +394,7 @@ class Tower(sprite.Sprite):
             self.bullet_speed_y = 0
             self.basic_attack_cooldown = self.attack_cooldown = 225
             self.damage_type = ''
+            self.rarity = "common"
 
         if self.name == 'yascerica':
             self.hp = 250
@@ -400,6 +405,7 @@ class Tower(sprite.Sprite):
             self.damage_type = ''
             self.blackik = Bullet("blackik", self.rect.centerx - 26, self.rect.centery, self.damage_type, 0, self.bullet_speed_x, self.bullet_speed_y, 'yas', self)
             self.blackik.remove(bullets_group)
+            self.rarity = "legendary"
 
         if self.name == 'parasitelniy':
             self.hp = 2200
@@ -408,6 +414,7 @@ class Tower(sprite.Sprite):
             self.attack_cooldown = self.basic_attack_cooldown = 150
             self.damage_type = ''
             self.have_parasite = sprite.Group()
+            self.rarity = "common"
 
         if self.name == 'spike':  
             self.hp = 1
@@ -416,6 +423,7 @@ class Tower(sprite.Sprite):
             self.damage_type = ''
             self.remove(towers_group)
             self.add(nekusaemie_group)
+            self.rarity = "spell"
 
         if self.name == 'pukish':
             self.hp = 1
@@ -429,7 +437,7 @@ class Tower(sprite.Sprite):
             self.hiding = False
             self.remove(towers_group)
             self.add(nekusaemie_group)
-            self.rarity = "common"
+            self.rarity = "legendary"
 
         if self.name == 'urag_anus':
             self.hp = 100
@@ -438,7 +446,7 @@ class Tower(sprite.Sprite):
             self.basic_attack_cooldown = 1875
             self.attack_cooldown = 375
             self.uragan = None
-            self.rarity = "spell"
+            self.rarity = "legendary"
 
         if self.name == 'drachun':
             self.hp = 400
@@ -446,6 +454,7 @@ class Tower(sprite.Sprite):
             self.basic_attack_cooldown = 55
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
+            self.rarity = "common"
 
         if self.name == 'knight_on_horse':       # нука кусни нет, потому что он подгружает картинки по кд
             self.knight_hp = 500                 # nuka_kusni
@@ -455,12 +464,14 @@ class Tower(sprite.Sprite):
             self.taran_atk = 500
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.damage_type = ''
+            self.rarity = "common"
 
         if self.name == "knight":
             self.hp = 500
             self.atk = 30
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.damage_type = ''
+            self.rarity = "common"
 
         if self.name == 'tolkan':
             self.hp = 2000
@@ -471,6 +482,7 @@ class Tower(sprite.Sprite):
             self.basic_attack_cooldown = 750
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
+            self.rarity = "common"
 
         if self.name == 'big_mechman':
             self.hp = 600
@@ -478,6 +490,7 @@ class Tower(sprite.Sprite):
             self.kulak_time = 15
             self.attack_cooldown = self.basic_attack_cooldown = 250
             self.damage_type = ''
+            self.rarity = "common"
 
         # for i in range(16):                           # гоблина нет, потому что 16 папок это тупизм
         #     if self.name == 'go_bleen' + str(i+1):    # пока оставил
@@ -498,6 +511,7 @@ class Tower(sprite.Sprite):
             self.attack_cooldown = self.basic_attack_cooldown = 450
             self.damage_type = ''
             self.stack = "gnome_cannon"
+            self.rarity = "legendary"
 
         if self.name == 'gnome_cannon2':
             self.max_hp = 2800
@@ -508,6 +522,7 @@ class Tower(sprite.Sprite):
             self.attack_cooldown = self.basic_attack_cooldown = 450
             self.damage_type = ''
             self.stack = "gnome_cannon"
+            self.rarity = "legendary"
 
         if self.name == 'gnome_cannon3':
             self.max_hp = 2800
@@ -518,6 +533,7 @@ class Tower(sprite.Sprite):
             self.attack_cooldown = self.basic_attack_cooldown = 225
             self.damage_type = ''
             self.stack = "gnome_cannon"
+            self.rarity = "legendary"
 
         if self.name == 'gnome_flamethrower':
             self.max_hp = 1
@@ -529,9 +545,11 @@ class Tower(sprite.Sprite):
             self.damage_type = ''
             self.remove(towers_group)
             self.add(nekusaemie_group)
+            self.rarity = "legendary"
 
         if self.name == 'terpila':
             self.hp = 6000
+            self.rarity = "common"
 
         if self.name == 'barrier_mag':
             self.hp = 1500
@@ -539,11 +557,13 @@ class Tower(sprite.Sprite):
             self.best_x = self
             self.basic_spawn_something_cooldown = 750  # 3375
             self.spawn_something_cooldown = 0
+            self.rarity = "common"
 
         if self.name == 'davalka':
             self.hp = 200
             self.skolko_deneg_dast = 30
             self.basic_spawn_something_cooldown = self.spawn_something_cooldown = 750
+            self.rarity = "common"
 
         if self.name == 'matricayshon':
             self.hp = 500
@@ -551,6 +571,7 @@ class Tower(sprite.Sprite):
                 self.buff_x = 1 + (i % 3) * 128 - 128
                 self.buff_y = 1 + (i // 3) * 128 - 128
                 self.buff = Buff("mat", self.rect.x + self.buff_x, self.rect.y + self.buff_y)
+            self.rarity = "legendary"
 
         # СТАТЫ конец
 
@@ -1756,15 +1777,22 @@ def scroll_offset_min_max(min_offset, max_offset):
         current_scroll_offset_state = game_state
 
 
-def draw_info(pos, current_value, max_value):       # (196, 380)
-    current_value *= 10
-    max_value *= 10
-    draw.rect(modification_guide_menu, (200, 0, 0), (*pos, 300, 35))      # (61, 243, 79)
-    w = 60 * max(int(current_value / (max_value / 5)), 1)             # int, max и 1 убрать и будут не целые квадраты
-    draw.rect(modification_guide_menu, (0, 200, 0), (*pos, w, 35))
+def draw_info(pos, current_value, max_value, reversed_=False):       # (196, 380)
+    w = 60  # а то ругается
+    draw.rect(modification_guide_menu, (200, 0, 0), (*pos, 300, 35))
+    if current_value != 0:
+        current_value *= 10
+        max_value *= 10
+        if not reversed_:
+            w = 60 * max(int(current_value / (max_value / 5)), 1)             # int, max и 1 убрать и будут не целые квадраты
+        if reversed_:
+            w = 60 * (6 - max(int(current_value / (max_value / 5)), 1))
+        draw.rect(modification_guide_menu, (0, 200, 0), (*pos, w, 35))
+        for i in range(1, 5):
+            draw.line(modification_guide_menu, (0, 0, 0), (pos[0] + (60 * i), pos[1]), (pos[0] + (60 * i), pos[1] + 34), 5)
+    else:
+        draw.rect(modification_guide_menu, (128, 128, 128), (*pos, 300, 35))
     draw.rect(modification_guide_menu, (0, 0, 0), (*pos, 300, 35), 5)
-    for i in range(1, 5):
-        draw.line(modification_guide_menu, (0, 0, 0), (pos[0] + (60 * i), pos[1]), (pos[0] + (60 * i), pos[1] + 34), 5)
 
 
 def menu_positioning():
@@ -1878,16 +1906,47 @@ def menu_positioning():
             pass
 
         if guide_group.pushed_entity:
-            screen.blit(font50.render(str(guide_group.pushed_entity.name), True, (0, 0, 0)), (960, 60))
+            screen.blit(font50.render(f"{str(guide_group.pushed_entity.name):^34}", True, (0, 0, 0)), (800, 60))    # 960 60
             screen.blit(modification_guide_menu, (830, 120))
             modification_guide_menu.blit(modification_guide_menu_copy, (0, 0))
-            modification_guide_menu.blit(font40.render("ХП", True, (0, 0, 0)), (30, 370))
-            draw_info((196, 380), guide_group.pushed_entity.hp, guide_group.get_max_hp())
-            # modification_guide_menu.blit(font40.render(str(guide_group.pushed_entity.hp), True, (0, 0, 0)), (110, 370))
+
+            modification_guide_menu.blit(font40.render("ХП", True, (0, 0, 0)), (30, 300))
+            if hasattr(guide_group.pushed_entity, "hp"):
+                draw_info((196, 310), guide_group.pushed_entity.hp, guide_group.get_max_hp())
+            else:
+                draw_info((196, 310), 0, 0)
+
+            modification_guide_menu.blit(font40.render("Урон", True, (0, 0, 0)), (30, 350))
             if hasattr(guide_group.pushed_entity, "atk"):
-                modification_guide_menu.blit(font40.render("Урон", True, (0, 0, 0)), (30, 420))
-                draw_info((196, 430), guide_group.get_damage_per_sec(guide_group.pushed_entity), guide_group.get_max_damage_per_sec())
-                # modification_guide_menu.blit(font40.render(str(guide_group.pushed_entity.atk), True, (0, 0, 0)), (150, 420))
+                draw_info((196, 360), guide_group.get_damage_per_sec(guide_group.pushed_entity), guide_group.get_max_damage_per_sec())
+            else:
+                draw_info((196, 360), 0, 0)
+
+            modification_guide_menu.blit(font40.render("Кд", True, (0, 0, 0)), (30, 400))
+            if guide_group.pushed_entity.name in towers_kd:
+                draw_info((196, 410), towers_kd[guide_group.pushed_entity.name], max(towers_kd.values()), reversed_=True)
+            else:
+                draw_info((196, 410), 0, 0)
+
+            modification_guide_menu.blit(font40.render("Цена", True, (0, 0, 0)), (30, 450))
+            if guide_group.pushed_entity.name in tower_costs:
+                modification_guide_menu.blit(font40.render(str(tower_costs[guide_group.pushed_entity.name]), True, (0, 0, 0)), (450, 450))
+                # draw_info((196, 460), tower_costs[guide_group.pushed_entity.name], max(tower_costs.values()), reversed_=True)
+            else:
+                draw_info((196, 460), 0, 0)
+
+            modification_guide_menu.blit(font40.render("Редкость", True, (0, 0, 0)), (30, 500))
+            if hasattr(guide_group.pushed_entity, "rarity"):    # просто слева автоматически не рисовалось
+                if guide_group.pushed_entity.rarity == "legendary":
+                    modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (255, 210, 0)), (310, 500))
+                if guide_group.pushed_entity.rarity == "common":
+                    modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (0, 200, 0)), (340, 500))
+                if guide_group.pushed_entity.rarity == "spell":
+                    modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (0, 0, 200)), (400, 500))
+
+            else:
+                draw_info((196, 510), 0, 0)
+
 
         guide_group.custom_draw(entity_guide_menu, offset_pos=offset)
 
@@ -2105,14 +2164,12 @@ while running:
 
     mouse_pos = mouse.get_pos()
     menu_positioning()
-    # if active_obj:
-    #     print(active_obj.unit_inside)
-    # a = Tower("fire_mag", (0, 0))
 
     alert_group.update()
     alert_group.draw(screen)
     if mouse.get_focused():
         screen.blit(cursor, mouse_pos)
+        screen.blit(font30.render(str(mouse_pos), True, (255, 0, 0)), (mouse_pos[0] - 60, mouse_pos[1] - 40))
 
     for enemy in enemies_group:
         if enemy.rect.x <= 150:
