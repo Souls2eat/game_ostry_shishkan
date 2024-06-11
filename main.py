@@ -17,14 +17,17 @@ menu = image.load("images/menu/pause_menu.png").convert_alpha()
 main_menu = image.load("images/menu/main_menu.png").convert_alpha()
 additional_menu = image.load("images/menu/additional_menu.png").convert_alpha()
 guide_menu = image.load("images/menu/guide_menu.png").convert_alpha()
-guide_menu_copy = guide_menu.__copy__()
 select_menu = image.load("images/menu/level_select_menu.png").convert_alpha()
 select_menu_copy = select_menu.__copy__()
+entity_guide_menu = image.load("images/menu/entity_guide_menu.png").convert_alpha()
+entity_guide_menu_copy = entity_guide_menu.__copy__()
 level_box = image.load("images/menu/level_box.png").convert_alpha()
 amogus = image.load("images/other/amogus!!!.png").convert_alpha()
 cursor = image.load("images/other/cursor.png").convert_alpha()
 tower_window = image.load("images/other/tower_select_window.png").convert_alpha()
-tower_window_purple = image.load("images/other/tower_select_window_purple.png").convert_alpha()
+tower_window_legendary = image.load("images/other/tower_select_window_legendary.png").convert_alpha()
+tower_window_common = image.load("images/other/tower_select_window_common.png").convert_alpha()
+tower_window_spell = image.load("images/other/tower_select_window_spell.png").convert_alpha()
 
 font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
 font40 = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
@@ -80,7 +83,8 @@ class GuideGroup(sprite.Group):
         super().__init__()
         self.guide_entity = []
         self.scroll_pos = 0
-        self.active_entity = None
+        self.hovered_entity = None
+        self.pushed_entity = None
 
     def add(self, *entity):
         for en in entity:
@@ -92,13 +96,24 @@ class GuideGroup(sprite.Group):
             if en in self.guide_entity:
                 self.guide_entity.remove(en)
 
-    def custom_draw(self, surf):
+    def custom_draw(self, surf, offset_pos=(0, 0)):
         for en in self.guide_entity:
-            surf.blit(en.image, en.rect)
+            en.rect = en.image.get_rect(topleft=(en.pos[0] + offset_pos[0], en.pos[1] + offset_pos[1]))
+            # draw.rect(screen, "GREEN", en.rect, 5)
+            surf.blit(en.image, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
+            if hasattr(en, "rarity"):
+                if en.rarity == "legendary":
+                    surf.blit(tower_window_legendary, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
+                if en.rarity == "common":
+                    surf.blit(tower_window_common, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
+                if en.rarity == "spell":
+                    surf.blit(tower_window_spell, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
+            else:
+                surf.blit(tower_window_common, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
 
     def go_animation(self):
         for en in self.guide_entity:
-            if en == self.active_entity:
+            if en == self.hovered_entity:
                 en.state = "attack"
             else:
                 en.state = "wait"
@@ -109,12 +124,33 @@ class GuideGroup(sprite.Group):
             en.move(scroll_offset - self.scroll_pos)
         self.scroll_pos = scroll_offset
 
-    def on_hover(self, mouse_pos_):
+    def on_hover(self, surf, offset_pos=(0, 0)):
+        surf_width = surf.get_width()
+        surf_height = surf.get_height()
+        on_surf = surf_width + offset_pos[0] > mouse_pos[0] > offset_pos[0] and surf_height + offset_pos[1] > mouse_pos[1] > offset_pos[1]
         for en in self.guide_entity:
-            if en.rect.collidepoint(mouse_pos_):
-                self.active_entity = en
+            en.rect = en.image.get_rect(topleft=(en.pos[0] + offset_pos[0], en.pos[1] + offset_pos[1]))
+            if en.rect.collidepoint(mouse_pos) and on_surf:
+                self.hovered_entity = en
                 return True
-        self.active_entity = None
+        self.hovered_entity = None
+        return False
+
+    def on_click(self, surf, offset_pos=(0, 0)):
+        surf_width = surf.get_width()
+        surf_height = surf.get_height()
+        on_surf = surf_width + offset_pos[0] > mouse_pos[0] > offset_pos[0] and surf_height + offset_pos[1] > mouse_pos[1] > offset_pos[1]
+        for en in self.guide_entity:
+            en.rect = en.image.get_rect(topleft=(en.pos[0] + offset_pos[0], en.pos[1] + offset_pos[1]))
+            if not en.rect.collidepoint(mouse_pos):
+                en.pushed = False
+            if en.rect.collidepoint(mouse_pos):
+                if mouse.get_pressed()[0] == 1 and not en.pushed:
+                    en.pushed = True
+            if mouse.get_pressed()[0] == 0 and en.pushed and on_surf:
+                en.pushed = False
+                self.pushed_entity = en
+                return True
         return False
 
     def __len__(self):
@@ -285,8 +321,9 @@ class Tower(sprite.Sprite):
         self.anim_tasks = []     # можно было и диктом, но я как то не захотел
         self.anim_count = 0
         self.anim_duration = 15     # сколько кадров будет оставаться 1 спрайт
-        self.preview_mode = False
         self.state = "wait"         # потом будет "attack", "death" и какие придумаете
+
+        self.pushed = False
 
         # СТАТЫ начало
 
@@ -298,6 +335,7 @@ class Tower(sprite.Sprite):
             self.basic_attack_cooldown = 60
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
+            self.rarity = "legendary"
 
         if self.name == 'boomchick':  
             self.hp = 200
@@ -377,6 +415,7 @@ class Tower(sprite.Sprite):
             self.hiding = False
             self.remove(towers_group)
             self.add(nekusaemie_group)
+            self.rarity = "common"
 
         if self.name == 'urag_anus':
             self.hp = 100
@@ -385,6 +424,7 @@ class Tower(sprite.Sprite):
             self.basic_attack_cooldown = 1875
             self.attack_cooldown = 375
             self.uragan = None
+            self.rarity = "spell"
 
         if self.name == 'drachun':
             self.hp = 400
@@ -846,6 +886,176 @@ class Tower(sprite.Sprite):
                     self.hiding = False                                                         # уже не прячится
 
 
+class Enemy(sprite.Sprite):
+    def __init__(self, name, pos):
+        super().__init__(all_sprites_group, enemies_group)
+        self.image = image.load(f"images/enemies/{name}.png").convert_alpha()
+        self.pos = pos
+        self.rect = self.image.get_rect(topleft=self.pos)
+        self.real_x = float(self.rect.x)
+        self.real_y = float(self.rect.y)
+        self.render_layer = 5
+        self.name = name
+        self.stop = False
+        self.alive = True
+        self.target = None
+        self.parasite_parents = set()
+        self.only_one_hit_bullets = set()
+
+        self.pushed = False
+
+        # СТАТЫ начало
+
+        if self.name == 'popusk':
+            self.hp = 300
+            self.atk = 100
+            self.speed = 1
+            self.attack_cooldown = self.basic_attack_cooldown = 75
+            self.attack_range = 0
+
+        if self.name == 'josky':
+            self.hp = 600
+            self.atk = 100
+            self.speed = 1
+            self.attack_cooldown = self.basic_attack_cooldown = 75
+            self.attack_range = 0
+
+        if self.name == 'sigma':
+            self.hp = 1200
+            self.atk = 100
+            self.speed = 1
+            self.attack_cooldown = self.basic_attack_cooldown = 75
+            self.attack_range = 0
+
+        if self.name == 'slabiy':
+            self.hp = 100
+            self.atk = 50
+            self.speed = 1
+            self.attack_cooldown = self.basic_attack_cooldown = 75
+            self.attack_range = 0
+            self.back_to_line()
+
+        if self.name == 'rojatel':
+            self.hp = 600
+            self.atk = 50
+            self.speed = 1
+            self.attack_cooldown = self.basic_attack_cooldown = 75
+            self.attack_range = 0
+
+        if self.name == 'sportik': #надо пофиксить таргеты у пукиша
+            self.hp = 300
+            self.atk = 100
+            self.speed = 2
+            self.attack_cooldown = self.basic_attack_cooldown = 50
+            self.attack_range = 0
+
+        if self.name == "zeleniy_strelok":
+            self.hp = 300
+            self.atk = 100
+            self.bullet_speed_x = -5
+            self.bullet_speed_y = 0
+            self.speed = 1
+            self.attack_cooldown = self.basic_attack_cooldown = 75
+            self.attack_range = 700
+
+        if self.name == 'mega_strelok':
+            self.hp = 800
+            self.atk = 100
+            self.bullet_speed_x = -5
+            self.bullet_speed_y = 0
+            self.speed = 0.5
+            self.attack_cooldown = self.basic_attack_cooldown = 5
+            self.attack_cooldown2 = self.basic_attack_cooldown2 = 750
+            self.ammos = 30
+            self.attack_range = 640
+
+        # СТАТЫ конец
+
+    def is_should_stop_to_attack(self):
+        for tower in towers_group:
+            if tower.rect.centery == self.rect.centery and -64 < self.rect.centerx - tower.rect.centerx < self.attack_range + 64 and self.rect.x < 1472:
+                return True, tower
+        return False, None
+
+    def preparing_to_attack(self):
+        if self.attack_cooldown > 0:
+            self.attack_cooldown -= 1
+        else:
+            self.attack_cooldown = self.basic_attack_cooldown
+            if self.stop:
+                if self.attack_range == 0:
+                    self.melee_attack()
+                if self.attack_range > 0:
+                    self.shoot()
+
+    def shoot(self):
+        if self.name == "zeleniy_strelok":
+            Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
+
+        if self.name == 'mega_strelok':
+            if self.ammos > 0:
+                Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery+randint(-16, 16), None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
+                self.ammos -= 1
+            else:
+                self.ammos = 30
+                self.attack_cooldown2 = self.basic_attack_cooldown2
+
+    def melee_attack(self):
+        if self.target:
+            if self.target.have_barrier:                     # проверка барьера
+                self.target.barrier.hp -= self.atk
+            elif self.target.name == 'knight_on_horse':      # проверка на коня
+                self.target.horse_hp -= self.atk
+            else:
+                self.target.hp -= self.atk
+
+    def movement(self):
+        if not self.stop:
+            self.real_x -= self.speed
+        self.rect.x = int(self.real_x)
+        self.rect.y = int(self.real_y)
+
+    def back_to_line(self):
+        if (self.rect.y-192) % 128 < 64:
+            #self.rect.y -= (self.rect.y-192) % 128
+            self.real_y -= (self.rect.y-192) % 128
+        else:
+            #self.rect.y += 128 - ((self.rect.y-192) % 128)
+            self.real_y += 128 - ((self.rect.y-192) % 128)
+        if self.rect.y > 704:
+            self.real_y -= 128
+        elif self.rect.y < 192:
+            self.real_y += 128
+
+    def animation(self):
+        pass    # не убирать, а то сломается справочник
+
+    def move(self, change_pos):
+        self.pos = self.pos[0], self.pos[1] + change_pos
+        self.rect = self.image.get_rect(topleft=self.pos)
+
+    def update(self):
+        self.stop, self.target = self.is_should_stop_to_attack()
+
+        if self.name == 'mega_strelok':
+            if self.attack_cooldown2 > 0:
+                self.attack_cooldown2 -= 1
+            else:
+                self.preparing_to_attack()
+        else:
+            self.preparing_to_attack()
+        self.movement()
+
+
+
+        if self.hp <= 0:
+            if self.name == 'rojatel':
+                self.slabiy1 = Enemy('slabiy', (self.rect.x, self.rect.y+128))
+                self.slabiy2 = Enemy('slabiy', (self.rect.x, self.rect.y-128))
+            self.alive = False
+            self.kill()
+
+
 class Bullet(sprite.Sprite):
     def __init__(self, bullet_sprite, x, y, damage_type, damage, speed_x, speed_y, name, parent):
         super().__init__(all_sprites_group, bullets_group)
@@ -1187,170 +1397,6 @@ class Buff(sprite.Sprite):
         self.check_tower()
 
 
-class Enemy(sprite.Sprite):
-    def __init__(self, name, pos):
-        super().__init__(all_sprites_group, enemies_group)
-        self.image = image.load(f"images/enemies/{name}.png").convert_alpha()
-        self.rect = self.image.get_rect(topleft=pos)
-        self.real_x = float(self.rect.x)
-        self.real_y = float(self.rect.y)
-        self.render_layer = 5
-        self.name = name
-        self.stop = False
-        self.alive = True
-        self.target = None
-        self.parasite_parents = set()
-        self.only_one_hit_bullets = set()
-        if self.name == 'slabiy':
-            self.back_to_line()
-
-        # СТАТЫ начало
-
-        if self.name == 'popusk':
-            self.hp = 300
-            self.atk = 100
-            self.speed = 1
-            self.attack_cooldown = self.basic_attack_cooldown = 75
-            self.attack_range = 0
-
-        if self.name == 'josky':
-            self.hp = 600
-            self.atk = 100
-            self.speed = 1
-            self.attack_cooldown = self.basic_attack_cooldown = 75
-            self.attack_range = 0
-
-        if self.name == 'sigma':
-            self.hp = 1200
-            self.atk = 100
-            self.speed = 1
-            self.attack_cooldown = self.basic_attack_cooldown = 75
-            self.attack_range = 0
-
-        if self.name == 'slabiy':
-            self.hp = 100
-            self.atk = 50
-            self.speed = 1
-            self.attack_cooldown = self.basic_attack_cooldown = 75
-            self.attack_range = 0
-        
-        if self.name == 'rojatel':
-            self.hp = 600
-            self.atk = 50
-            self.speed = 1
-            self.attack_cooldown = self.basic_attack_cooldown = 75
-            self.attack_range = 0
-
-        if self.name == 'sportik': #надо пофиксить таргеты у пукиша
-            self.hp = 300
-            self.atk = 100
-            self.speed = 2
-            self.attack_cooldown = self.basic_attack_cooldown = 50
-            self.attack_range = 0
-
-        if self.name == "zeleniy_strelok":
-            self.hp = 300
-            self.atk = 100
-            self.bullet_speed_x = -5
-            self.bullet_speed_y = 0
-            self.speed = 1
-            self.attack_cooldown = self.basic_attack_cooldown = 75
-            self.attack_range = 700
-        
-        if self.name == 'mega_strelok':
-            self.hp = 800
-            self.atk = 100
-            self.bullet_speed_x = -5
-            self.bullet_speed_y = 0
-            self.speed = 0.5
-            self.attack_cooldown = self.basic_attack_cooldown = 5
-            self.attack_cooldown2 = self.basic_attack_cooldown2 = 750
-            self.ammos = 30
-            self.attack_range = 640
-
-        # СТАТЫ конец
-
-    def is_should_stop_to_attack(self):
-        for tower in towers_group:
-            if tower.rect.centery == self.rect.centery and -64 < self.rect.centerx - tower.rect.centerx < self.attack_range + 64 and self.rect.x < 1472:
-                return True, tower
-        return False, None
-
-    def preparing_to_attack(self):
-        if self.attack_cooldown > 0:
-            self.attack_cooldown -= 1
-        else:
-            self.attack_cooldown = self.basic_attack_cooldown
-            if self.stop:
-                if self.attack_range == 0:
-                    self.melee_attack()
-                if self.attack_range > 0:
-                    self.shoot()
-
-    def shoot(self):
-        if self.name == "zeleniy_strelok":
-            Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
-        
-        if self.name == 'mega_strelok':
-            if self.ammos > 0:
-                Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery+randint(-16, 16), None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
-                self.ammos -= 1
-            else:
-                self.ammos = 30
-                self.attack_cooldown2 = self.basic_attack_cooldown2
-
-    def melee_attack(self):
-        if self.target:
-            if self.target.have_barrier:                     # проверка барьера
-                self.target.barrier.hp -= self.atk
-            elif self.target.name == 'knight_on_horse':      # проверка на коня
-                self.target.horse_hp -= self.atk
-            else:
-                self.target.hp -= self.atk
-
-    def movement(self):
-        if not self.stop:
-            self.real_x -= self.speed
-        self.rect.x = int(self.real_x)
-        self.rect.y = int(self.real_y)
-
-    def back_to_line(self):
-        if (self.rect.y-192) % 128 < 64:
-            #self.rect.y -= (self.rect.y-192) % 128
-            self.real_y -= (self.rect.y-192) % 128
-        else:
-            #self.rect.y += 128 - ((self.rect.y-192) % 128)
-            self.real_y += 128 - ((self.rect.y-192) % 128)
-        if self.rect.y > 704:
-            self.real_y -= 128
-        elif self.rect.y < 192:
-            self.real_y += 128
-
-    def animation(self):
-        pass    # не убирать, а то сломается справочник
-
-    def update(self):
-        self.stop, self.target = self.is_should_stop_to_attack()
-
-        if self.name == 'mega_strelok':
-            if self.attack_cooldown2 > 0:
-                self.attack_cooldown2 -= 1
-            else:
-                self.preparing_to_attack()
-        else:
-            self.preparing_to_attack()
-        self.movement()
-        
-        
-        
-        if self.hp <= 0:
-            if self.name == 'rojatel':
-                self.slabiy1 = Enemy('slabiy', (self.rect.x, self.rect.y+128))
-                self.slabiy2 = Enemy('slabiy', (self.rect.x, self.rect.y-128))
-            self.alive = False
-            self.kill()
-
-
 class UI(sprite.Sprite):
     def __init__(self, pos, path, unit_inside, kd_time=0):
         super().__init__(ui_group, all_sprites_group)
@@ -1602,7 +1648,21 @@ def tower_select_button_creator(tower_name):
 
 
 def enemy_select_button_creator(enemy_name):
-    return Button("img", f"enemies", enemy_name, windowed=True)
+    return Button("img", f"enemies", enemy_name, windowed=True)      # пока не юзается
+
+
+def guide_entity_create():
+    for i, tower_name in enumerate(tower_button_names):
+        line_ = int(i / 3)
+        column_ = (i % 3)
+        entity_ = Tower(tower_name, (30 + 154 * column_, 30 + (line_ * 154)))  # 50, 100
+        guide_group.add(entity_)
+
+    # for i, enemy_name in enumerate(enemy_button_names):
+    #     line_ = int((i / 3))
+    #     column_ = (i % 3)
+    #     entity_ = Enemy(enemy_name, (1000 + 154 * column_, 100 + (line_ * 154)))
+    #     guide_group.add(entity_)
 
 
 def scroll_offset_min_max(min_offset, max_offset):
@@ -1713,7 +1773,10 @@ def menu_positioning():
 
     if game_state == "guide_menu":
         screen.blit(guide_menu, (0, 0))
-        guide_menu.blit(guide_menu_copy, (0, 0))
+        guide_menu.blit(entity_guide_menu, (50, 100))
+        entity_guide_menu.blit(entity_guide_menu_copy, (0, 0))
+        offset = (50, 100)
+
         screen.blit(font60.render("Справочник", True, (255, 255, 255)), (621, 10))
         scroll_offset_min_max(-300, 0)
 
@@ -1731,28 +1794,37 @@ def menu_positioning():
         #         screen.blit(font40.render(tower_select_buttons[i-1].unit_inside, True, (255, 255, 255)), (700, 600))
         #         screen.blit(font40.render("Цена:" + str(tower_costs[tower_select_buttons[i-1].unit_inside]), True, (255, 255, 255)), (700, 680))   # пока [:-1] == название без цифры в конце
 
-        for i in range(1, len(enemy_select_buttons) + 1):
-            line = int((i - 1) / 3)
-            column = (i - 1) % 3
-            if enemy_select_buttons[i-1].click(guide_menu, mouse_pos, (1000 + 154 * column, 100 + (line * 154) + scroll_offset)):
-                active_obj = enemy_select_buttons[i-1]
-                Alert("Молодец, но пока ничего нет", (400, 680), 75)
-            if enemy_select_buttons[i-1].windowed:      # + offset_pos не забудьте
-                guide_menu.blit(tower_window_purple, (1000 + 154 * column, 100 + (line * 154) + scroll_offset))
-            if enemy_select_buttons[i-1].on_hover(mouse_pos, (1000 + 154 * column, 100 + (line * 154) + scroll_offset)):
-                screen.blit(font60.render("Тыкай", True, (255, 255, 255)), (700, 600))
+        # for i in range(1, len(enemy_select_buttons) + 1):
+        #     line = int((i - 1) / 3)
+        #     column = (i - 1) % 3
+        #     if enemy_select_buttons[i-1].click(guide_menu, mouse_pos, (1000 + 154 * column, 100 + (line * 154) + scroll_offset)):
+        #         active_obj = enemy_select_buttons[i-1]
+        #         Alert("Молодец, но пока ничего нет", (400, 680), 75)
+        #     if enemy_select_buttons[i-1].windowed:      # + offset_pos не забудьте
+        #         guide_menu.blit(tower_window_purple, (1000 + 154 * column, 100 + (line * 154) + scroll_offset))
+        #     if enemy_select_buttons[i-1].on_hover(mouse_pos, (1000 + 154 * column, 100 + (line * 154) + scroll_offset)):
+        #         screen.blit(font60.render("Тыкай", True, (255, 255, 255)), (700, 600))
 
         guide_group.scroll_move()
         guide_group.go_animation()    # можно сделать чтобы все двигались одновременно
 
-        if guide_group.on_hover(mouse_pos):
-            screen.blit(font60.render("Тыкай", True, (255, 255, 255)), (700, 600))
-            screen.blit(font60.render(str(guide_group.active_entity.hp), True, (255, 255, 255)), (700, 680))
+        if guide_group.on_hover(entity_guide_menu, offset_pos=offset):
+            pass    # при наведении можно чёто сделать
+
+            # screen.blit(font50.render("Тыкай", True, (255, 255, 255)), (700, 600))
+            # screen.blit(font50.render(str(guide_group.hovered_entity.hp), True, (255, 255, 255)), (700, 650))
+
             # entity.animation()    # можно сделать чтобы двигались только при наведении
 
-        guide_group.custom_draw(screen)
+        if guide_group.on_click(entity_guide_menu, offset_pos=offset):
+            pass    # хз, мега амнимация или ещё что-то
 
-        if back_button.click(screen, mouse_pos, (709, 780)):
+        # if guide_group.pushed_entity:
+        #     screen.blit(font50.render(str(guide_group.pushed_entity.name), True, (255, 255, 255)), (700, 700))
+
+        guide_group.custom_draw(entity_guide_menu, offset_pos=offset)
+
+        if back_button.click(screen, mouse_pos, (709, 800)):
             game_state, last_game_state = last_game_state, game_state
 
     if game_state != "main_menu" and game_state != "main_settings_menu" and game_state != "level_select" and game_state != "guide_menu":
@@ -1941,9 +2013,9 @@ level_money = TextSprite(font40.render("300", True, (0, 0, 0)), (88, 53))
 
 level_box_buttons = [level_box_button_creator(i) for i in range(1, 21)]  # создание кнопок уровней без киллометра кода. 20 -- кол-во уровней в игре
 
-tower_button_names = ["fire_mag", "boomchick", "davalka", "kopitel", "matricayshon", "parasitelniy", "spike",
+tower_button_names = ["fire_mag", "pukish", "boomchick", "davalka", "kopitel", "matricayshon", "parasitelniy", "spike",
                       "terpila", "thunder", "yascerica", "zeus", "barrier_mag", "urag_anus",
-                      "big_mechman", "drachun", "tolkan", "pukish", "knight_on_horse", "gnome_cannon1"]     # просто добавить имя башни
+                      "big_mechman", "drachun", "tolkan", "knight_on_horse", "gnome_cannon1"]     # просто добавить имя башни
 
 tower_select_buttons = [tower_select_button_creator(tower_name) for tower_name in tower_button_names]    # создание кнопок выбора башен без киллометра кода
 
@@ -1958,12 +2030,7 @@ levels = [Level(1, 7500, 300, 300, level_1_waves, ("popusk", "sigma", "josky", "
           Level(5, 4000, 75, 300, level_4_waves, ("sigma", "josky"))]
 level = levels[0]
 
-
-for i, tower_name in enumerate(tower_button_names):
-    line_ = int(i / 3)
-    column_ = (i % 3)
-    entity_ = Tower(tower_name, (100 + 154 * column_, 100 + (line_ * 154)))
-    guide_group.add(entity_)
+guide_entity_create()
 
 active_obj = None
 running = True
