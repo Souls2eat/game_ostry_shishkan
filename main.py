@@ -21,6 +21,8 @@ select_menu = image.load("images/menu/level_select_menu.png").convert_alpha()
 select_menu_copy = select_menu.__copy__()
 entity_guide_menu = image.load("images/menu/entity_guide_menu.png").convert_alpha()
 entity_guide_menu_copy = entity_guide_menu.__copy__()
+modification_guide_menu = image.load("images/menu/modification_guide_menu.png").convert_alpha()
+modification_guide_menu_copy = modification_guide_menu.__copy__()
 level_box = image.load("images/menu/level_box.png").convert_alpha()
 amogus = image.load("images/other/amogus!!!.png").convert_alpha()
 cursor = image.load("images/other/cursor.png").convert_alpha()
@@ -152,6 +154,18 @@ class GuideGroup(sprite.Group):
                 self.pushed_entity = en
                 return True
         return False
+
+    def get_max_damage_per_sec(self):
+        return self.get_damage_per_sec(sorted(self.guide_entity, key=GuideGroup.get_damage_per_sec)[-1])
+
+    @staticmethod
+    def get_damage_per_sec(obj_):
+        if hasattr(obj_, "atk"):
+            return obj_.atk / (obj_.basic_attack_cooldown / 75)
+        return 0
+
+    def get_max_hp(self):
+        return sorted(self.guide_entity, key=lambda en: en.hp)[-1].hp
 
     def __len__(self):
         return len(self.guide_entity)
@@ -562,9 +576,8 @@ class Tower(sprite.Sprite):
 
         if self.name == "boomchick":
             Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk * 5, 0, 0, 'explosion', self)
-
         if self.name == "thunder":
-            self.kamen = Tower('thunder_kamen', self.pos)
+            Tower('thunder_kamen', self.pos)
 
         self.kill()     # + потом анимация смерти
 
@@ -1024,13 +1037,6 @@ class Enemy(sprite.Sprite):
         if self.name == "zeleniy_strelok" or self.name == 'telezhnik':
             Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
 
-        if self.name == 'drobik':
-            Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, 0, "anti_hrom", self)
-            if self.rect.centery-138 >= 192:
-                Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y*-1, "anti_hrom", self)
-            if self.rect.centery+138 <= 832:
-                Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "anti_hrom", self)
-    
         if self.name == 'mega_strelok':
             if self.ammos > 0:
                 Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery+randint(-16, 16), None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
@@ -1038,6 +1044,13 @@ class Enemy(sprite.Sprite):
             else:
                 self.ammos = 30
                 self.attack_cooldown2 = self.basic_attack_cooldown2
+
+        if self.name == 'drobik':
+            Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, 0, "anti_hrom", self)
+            if self.rect.centery-138 >= 192:
+                Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y*-1, "anti_hrom", self)
+            if self.rect.centery+138 <= 832:
+                Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "anti_hrom", self)
 
     def melee_attack(self):
         if self.target:
@@ -1069,10 +1082,6 @@ class Enemy(sprite.Sprite):
     def animation(self):
         pass    # не убирать, а то сломается справочник
 
-    def move(self, change_pos): # я хз зачем это существует
-        self.pos = self.pos[0], self.pos[1] + change_pos
-        self.rect = self.image.get_rect(topleft=self.pos)
-
     def armor_check(self):
         if hasattr(self, "armor"):
             if self.armor <= 0:
@@ -1087,6 +1096,10 @@ class Enemy(sprite.Sprite):
                     self.attack_range = self.attack_range2
                     self.image = image.load(f"images/enemies/{self.name}_zloy.png").convert_alpha()
 
+
+    def move(self, change_pos):
+        self.pos = self.pos[0], self.pos[1] + change_pos
+        self.rect = self.image.get_rect(topleft=self.pos)
 
     def update(self):
         self.stop, self.target = self.is_should_stop_to_attack()
@@ -1210,7 +1223,6 @@ class Bullet(sprite.Sprite):
                 if sprite.collide_rect(enemy, self) and enemy.hp > 0 and self not in enemy.only_one_hit_bullets:
                     self.dealing_damage(enemy)
                     if self.name == "tolkan_bux":
-                        #enemy.rect.x += self.parent.push
                         enemy.real_x += self.parent.push
                     enemy.only_one_hit_bullets.add(self)
             if self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux":
@@ -1226,7 +1238,7 @@ class Bullet(sprite.Sprite):
         # if self.name == "tolkan_bux":
         #     for enemy in enemies_group:
         #         if enemy.rect.colliderect(self.rect):
-        #             self.dealing_damage(enemy)
+        #             enemy.hp -= self.parent.atk
         #             #enemy.rect.x += self.parent.push
         #             enemy.real_x += self.parent.push
         #     targets[id(self.parent)] = None
@@ -1246,7 +1258,6 @@ class Bullet(sprite.Sprite):
                 if self.name == 'yas' and self in bullets_group:
                     enemy.hp -= enemy.hp
                     self.remove(bullets_group)
-                
                 break
 
     def check_parent(self):
@@ -1411,7 +1422,7 @@ class Buff(sprite.Sprite):
         for nekusaemiy in nekusaemie_group:
             if nekusaemiy not in self.buffed_towers:
                 if self.rect.collidepoint(nekusaemiy.rect.centerx, nekusaemiy.rect.centery):
-                    if nekusaemiy.name == 'spike':
+                    if nekusaemiy.name == 'spike' or nekusaemiy.name == 'pukish':
                         nekusaemiy.basic_attack_cooldown //= 2
                         nekusaemiy.time_indicator *= 2
                         nekusaemiy.add(self.buffed_towers)
@@ -1745,6 +1756,17 @@ def scroll_offset_min_max(min_offset, max_offset):
         current_scroll_offset_state = game_state
 
 
+def draw_info(pos, current_value, max_value):       # (196, 380)
+    current_value *= 10
+    max_value *= 10
+    draw.rect(modification_guide_menu, (200, 0, 0), (*pos, 300, 35))      # (61, 243, 79)
+    w = 60 * max(int(current_value / (max_value / 5)), 1)             # int, max и 1 убрать и будут не целые квадраты
+    draw.rect(modification_guide_menu, (0, 200, 0), (*pos, w, 35))
+    draw.rect(modification_guide_menu, (0, 0, 0), (*pos, 300, 35), 5)
+    for i in range(1, 5):
+        draw.line(modification_guide_menu, (0, 0, 0), (pos[0] + (60 * i), pos[1]), (pos[0] + (60 * i), pos[1] + 34), 5)
+
+
 def menu_positioning():
     global game_state,\
             new_game,\
@@ -1840,58 +1862,36 @@ def menu_positioning():
 
     if game_state == "guide_menu":
         screen.blit(guide_menu, (0, 0))
-        guide_menu.blit(entity_guide_menu, (50, 100))
+        guide_menu.blit(entity_guide_menu, (250, 120))      # 50 100 пофиксить/вырезать нафиг
         entity_guide_menu.blit(entity_guide_menu_copy, (0, 0))
-        offset = (50, 100)
-
-        screen.blit(font60.render("Справочник", True, (255, 255, 255)), (621, 10))
-        scroll_offset_min_max(-400, 0)
-
-        # for i in range(1, len(tower_select_buttons) + 1):
-        #     line = int((i - 1) / 3)
-        #     column = (i - 1) % 3
-        #     if tower_select_buttons[i-1].click(guide_menu, mouse_pos, (100 + 154 * column, 100 + (line * 154) + scroll_offset)):
-        #         active_obj = tower_select_buttons[i-1]
-        #         Alert("Молодец, но пока ничего нет", (400, 680), 75)
-        #         # add_to_slots(i-1, *blocked_slots)
-        #     if tower_select_buttons[i-1].windowed:      # + offset_pos не забудьте
-        #         guide_menu.blit(tower_window_purple, (100 + 154 * column, 100 + (line * 154) + scroll_offset))
-        #     if tower_select_buttons[i-1].on_hover(mouse_pos, (100 + 154 * column, 100 + (line * 154) + scroll_offset)):
-        #         screen.blit(font60.render("Тыкай", True, (255, 255, 255)), (700, 600))
-        #         screen.blit(font40.render(tower_select_buttons[i-1].unit_inside, True, (255, 255, 255)), (700, 600))
-        #         screen.blit(font40.render("Цена:" + str(tower_costs[tower_select_buttons[i-1].unit_inside]), True, (255, 255, 255)), (700, 680))   # пока [:-1] == название без цифры в конце
-
-        # for i in range(1, len(enemy_select_buttons) + 1):
-        #     line = int((i - 1) / 3)
-        #     column = (i - 1) % 3
-        #     if enemy_select_buttons[i-1].click(guide_menu, mouse_pos, (1000 + 154 * column, 100 + (line * 154) + scroll_offset)):
-        #         active_obj = enemy_select_buttons[i-1]
-        #         Alert("Молодец, но пока ничего нет", (400, 680), 75)
-        #     if enemy_select_buttons[i-1].windowed:      # + offset_pos не забудьте
-        #         guide_menu.blit(tower_window_purple, (1000 + 154 * column, 100 + (line * 154) + scroll_offset))
-        #     if enemy_select_buttons[i-1].on_hover(mouse_pos, (1000 + 154 * column, 100 + (line * 154) + scroll_offset)):
-        #         screen.blit(font60.render("Тыкай", True, (255, 255, 255)), (700, 600))
+        screen.blit(font50.render("Справочник", True, (0, 0, 0)), (370, 60))
+        scroll_offset_min_max(-450, 0)
+        offset = (250, 120)
 
         guide_group.scroll_move()
-        guide_group.go_animation()    # можно сделать чтобы все двигались одновременно
+        guide_group.go_animation()
 
         if guide_group.on_hover(entity_guide_menu, offset_pos=offset):
-            pass    # при наведении можно чёто сделать
-
-            # screen.blit(font50.render("Тыкай", True, (255, 255, 255)), (700, 600))
-            # screen.blit(font50.render(str(guide_group.hovered_entity.hp), True, (255, 255, 255)), (700, 650))
-
-            # entity.animation()    # можно сделать чтобы двигались только при наведении
+            pass
 
         if guide_group.on_click(entity_guide_menu, offset_pos=offset):
-            pass    # хз, мега амнимация или ещё что-то
+            pass
 
-        # if guide_group.pushed_entity:
-        #     screen.blit(font50.render(str(guide_group.pushed_entity.name), True, (255, 255, 255)), (700, 700))
+        if guide_group.pushed_entity:
+            screen.blit(font50.render(str(guide_group.pushed_entity.name), True, (0, 0, 0)), (960, 60))
+            screen.blit(modification_guide_menu, (830, 120))
+            modification_guide_menu.blit(modification_guide_menu_copy, (0, 0))
+            modification_guide_menu.blit(font40.render("ХП", True, (0, 0, 0)), (30, 370))
+            draw_info((196, 380), guide_group.pushed_entity.hp, guide_group.get_max_hp())
+            # modification_guide_menu.blit(font40.render(str(guide_group.pushed_entity.hp), True, (0, 0, 0)), (110, 370))
+            if hasattr(guide_group.pushed_entity, "atk"):
+                modification_guide_menu.blit(font40.render("Урон", True, (0, 0, 0)), (30, 420))
+                draw_info((196, 430), guide_group.get_damage_per_sec(guide_group.pushed_entity), guide_group.get_max_damage_per_sec())
+                # modification_guide_menu.blit(font40.render(str(guide_group.pushed_entity.atk), True, (0, 0, 0)), (150, 420))
 
         guide_group.custom_draw(entity_guide_menu, offset_pos=offset)
 
-        if back_button.click(screen, mouse_pos, (709, 800)):
+        if back_button.click(screen, mouse_pos, (1000, 750)):
             game_state, last_game_state = last_game_state, game_state
 
     if game_state != "main_menu" and game_state != "main_settings_menu" and game_state != "level_select" and game_state != "guide_menu":
@@ -2107,6 +2107,7 @@ while running:
     menu_positioning()
     # if active_obj:
     #     print(active_obj.unit_inside)
+    # a = Tower("fire_mag", (0, 0))
 
     alert_group.update()
     alert_group.draw(screen)
