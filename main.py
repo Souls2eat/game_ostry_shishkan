@@ -16,12 +16,15 @@ bg = image.load(f"images/maps/map1.png").convert_alpha()
 menu = image.load("images/menu/pause_menu.png").convert_alpha()
 main_menu = image.load("images/menu/main_menu.png").convert_alpha()
 additional_menu = image.load("images/menu/additional_menu.png").convert_alpha()
+guide_menu = image.load("images/menu/guide_menu.png").convert_alpha()
+guide_menu_copy = guide_menu.__copy__()
 select_menu = image.load("images/menu/level_select_menu.png").convert_alpha()
 select_menu_copy = select_menu.__copy__()
 level_box = image.load("images/menu/level_box.png").convert_alpha()
 amogus = image.load("images/other/amogus!!!.png").convert_alpha()
 cursor = image.load("images/other/cursor.png").convert_alpha()
 tower_window = image.load("images/other/tower_select_window.png").convert_alpha()
+tower_window_purple = image.load("images/other/tower_select_window_purple.png").convert_alpha()
 
 font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
 font40 = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
@@ -70,6 +73,52 @@ class ModGroup(sprite.Group):
                 obj_.draw2(surf)
             if hasattr(obj_, "image3"):
                 obj_.draw3(surf)
+
+
+class GuideGroup(sprite.Group):
+    def __init__(self):
+        super().__init__()
+        self.guide_entity = []
+        self.scroll_pos = 0
+        self.active_entity = None
+
+    def add(self, *entity):
+        for en in entity:
+            self.guide_entity.append(en)
+            all_sprites_group.remove(en)
+
+    def remove(self, *entity):
+        for en in entity:
+            if en in self.guide_entity:
+                self.guide_entity.remove(en)
+
+    def custom_draw(self, surf):
+        for en in self.guide_entity:
+            surf.blit(en.image, en.rect)
+
+    def go_animation(self):
+        for en in self.guide_entity:
+            if en == self.active_entity:
+                en.state = "attack"
+            else:
+                en.state = "wait"
+            en.animation()
+
+    def scroll_move(self):
+        for en in self.guide_entity:
+            en.move(scroll_offset - self.scroll_pos)
+        self.scroll_pos = scroll_offset
+
+    def on_hover(self, mouse_pos_):
+        for en in self.guide_entity:
+            if en.rect.collidepoint(mouse_pos_):
+                self.active_entity = en
+                return True
+        self.active_entity = None
+        return False
+
+    def __len__(self):
+        return len(self.guide_entity)
 
 
 class TextSprite(sprite.Sprite):
@@ -170,6 +219,7 @@ class Level:
             for button in buttons_group:
                 button.ok = False
 
+
     @staticmethod
     def spawn():
         UI((1500, 800), "shovel", "lopata")
@@ -235,6 +285,7 @@ class Tower(sprite.Sprite):
         self.anim_tasks = []     # можно было и диктом, но я как то не захотел
         self.anim_count = 0
         self.anim_duration = 15     # сколько кадров будет оставаться 1 спрайт
+        self.preview_mode = False
         self.state = "wait"         # потом будет "attack", "death" и какие придумаете
 
         # СТАТЫ начало
@@ -709,11 +760,12 @@ class Tower(sprite.Sprite):
         if 0 <= self.anim_count < self.anim_duration\
                 or self.anim_duration <= self.anim_count < 2 * self.anim_duration\
                 or self.anim_duration * 2 <= self.anim_count < 3 * self.anim_duration\
-                or self.anim_duration * 3 <= self.anim_count < 4 * self.anim_duration:
+                or self.anim_duration * 3 <= self.anim_count < 4 * self.anim_duration:      # переделать
             if self.state == "wait":
                 self.image = towers_wait[self.name][int(self.anim_count//self.anim_duration)]
             if self.state == "attack":
-                self.image = towers_attack[self.name][int(self.anim_count//self.anim_duration)]
+                if self.name in towers_attack:      # чтобы не ломались юниты без анимации атаки
+                    self.image = towers_attack[self.name][int(self.anim_count//self.anim_duration)]
             if self.state == "give":
                 self.image = towers_give[self.name][int(self.anim_count//self.anim_duration)]
             if self.state == "hide":
@@ -725,6 +777,10 @@ class Tower(sprite.Sprite):
             self.anim_count = 0
         else:
             self.anim_count += self.time_indicator
+
+    def move(self, change_pos):
+        self.pos = self.pos[0], self.pos[1] + change_pos
+        self.rect = self.image.get_rect(topleft=self.pos)
 
     def cooldown(self):                           # есть баг с перезарядкой, но там много всего должно сойтись и я пока забью
         if hasattr(self, "attack_cooldown"):      # там буквально 3 тика раз в 100 тиков голимые
@@ -767,7 +823,7 @@ class Tower(sprite.Sprite):
         self.animation()
 
         if self.hp <= 0:
-             self.dead()
+            self.dead()
 
         if hasattr(self, "horse_hp"):
             if self.horse_hp <= 0:
@@ -1242,6 +1298,7 @@ class Enemy(sprite.Sprite):
             else:
                 self.ammos = 30
                 self.attack_cooldown2 = self.basic_attack_cooldown2
+
     def melee_attack(self):
         if self.target:
             if self.target.have_barrier:                     # проверка барьера
@@ -1268,6 +1325,9 @@ class Enemy(sprite.Sprite):
             self.real_y -= 128
         elif self.rect.y < 192:
             self.real_y += 128
+
+    def animation(self):
+        pass    # не убирать, а то сломается справочник
 
     def update(self):
         self.stop, self.target = self.is_should_stop_to_attack()
@@ -1541,6 +1601,10 @@ def tower_select_button_creator(tower_name):
     return Button("img", f"towers/{tower_name}/wait", tower_name + str(1), windowed=True)
 
 
+def enemy_select_button_creator(enemy_name):
+    return Button("img", f"enemies", enemy_name, windowed=True)
+
+
 def scroll_offset_min_max(min_offset, max_offset):
     global scroll_offset, current_scroll_offset_state
 
@@ -1566,7 +1630,8 @@ def menu_positioning():
             levels, \
             level,\
             blocked_slots,\
-            scroll_offset
+            scroll_offset,\
+            active_obj
 
     mouse_pos = mouse.get_pos()
 
@@ -1577,7 +1642,7 @@ def menu_positioning():
         screen.blit(game_name, (416, 10))
         # dirty_group.add(game_name, (416, 10), 0)
 
-        if new_game_button.click(screen, mouse_pos, (30, 460)):                         # 1 кнопка
+        if new_game_button.click(screen, mouse_pos, (30, 380)):                         # 1 кнопка # 460
             last_game_state = game_state
             game_state = "tower_select"  # новая игра
             new_game = False
@@ -1585,19 +1650,22 @@ def menu_positioning():
             level.refresh()
             level.state = "not_run"
         if new_game:
-            if resume_button.click(screen, mouse_pos, (30, 540), col=(130, 130, 130)):  # 2 кнопка серая
+            if resume_button.click(screen, mouse_pos, (30, 460), col=(130, 130, 130)):  # 2 кнопка серая
                 Alert("<- Тыкай новую игру", (500, 460), 75)
         else:
-            if resume_button.click(screen, mouse_pos, (30, 540)):                       # 2 кнопка белая
+            if resume_button.click(screen, mouse_pos, (30, 460)):                       # 2 кнопка белая
                 last_game_state = game_state
                 if level.state == "run":
                     game_state = "run"
                 else:
                     selected_towers.clear()
                     game_state = "level_select"
-        if level_select_button.click(screen, mouse_pos, (30, 620)):                     # 3 кнопка
+        if level_select_button.click(screen, mouse_pos, (30, 540)):                     # 3 кнопка
             last_game_state = game_state
             game_state = "level_select"
+        if guide_button.click(screen, mouse_pos, (30, 620)):
+            last_game_state = game_state
+            game_state = "guide_menu"
         if settings_button.click(screen, mouse_pos, (30, 700)):                         # 4 кнопка
             last_game_state = game_state
             game_state = "settings_menu"
@@ -1643,7 +1711,51 @@ def menu_positioning():
         if back_button.click(screen, mouse_pos, (1190, 630)):
             game_state = last_game_state
 
-    if game_state != "main_menu" and game_state != "main_settings_menu" and game_state != "level_select":
+    if game_state == "guide_menu":
+        screen.blit(guide_menu, (0, 0))
+        guide_menu.blit(guide_menu_copy, (0, 0))
+        screen.blit(font60.render("Справочник", True, (255, 255, 255)), (621, 10))
+        scroll_offset_min_max(-300, 0)
+
+        # for i in range(1, len(tower_select_buttons) + 1):
+        #     line = int((i - 1) / 3)
+        #     column = (i - 1) % 3
+        #     if tower_select_buttons[i-1].click(guide_menu, mouse_pos, (100 + 154 * column, 100 + (line * 154) + scroll_offset)):
+        #         active_obj = tower_select_buttons[i-1]
+        #         Alert("Молодец, но пока ничего нет", (400, 680), 75)
+        #         # add_to_slots(i-1, *blocked_slots)
+        #     if tower_select_buttons[i-1].windowed:      # + offset_pos не забудьте
+        #         guide_menu.blit(tower_window_purple, (100 + 154 * column, 100 + (line * 154) + scroll_offset))
+        #     if tower_select_buttons[i-1].on_hover(mouse_pos, (100 + 154 * column, 100 + (line * 154) + scroll_offset)):
+        #         screen.blit(font60.render("Тыкай", True, (255, 255, 255)), (700, 600))
+        #         screen.blit(font40.render(tower_select_buttons[i-1].unit_inside, True, (255, 255, 255)), (700, 600))
+        #         screen.blit(font40.render("Цена:" + str(tower_costs[tower_select_buttons[i-1].unit_inside]), True, (255, 255, 255)), (700, 680))   # пока [:-1] == название без цифры в конце
+
+        for i in range(1, len(enemy_select_buttons) + 1):
+            line = int((i - 1) / 3)
+            column = (i - 1) % 3
+            if enemy_select_buttons[i-1].click(guide_menu, mouse_pos, (1000 + 154 * column, 100 + (line * 154) + scroll_offset)):
+                active_obj = enemy_select_buttons[i-1]
+                Alert("Молодец, но пока ничего нет", (400, 680), 75)
+            if enemy_select_buttons[i-1].windowed:      # + offset_pos не забудьте
+                guide_menu.blit(tower_window_purple, (1000 + 154 * column, 100 + (line * 154) + scroll_offset))
+            if enemy_select_buttons[i-1].on_hover(mouse_pos, (1000 + 154 * column, 100 + (line * 154) + scroll_offset)):
+                screen.blit(font60.render("Тыкай", True, (255, 255, 255)), (700, 600))
+
+        guide_group.scroll_move()
+        guide_group.go_animation()    # можно сделать чтобы все двигались одновременно
+
+        if guide_group.on_hover(mouse_pos):
+            screen.blit(font60.render("Тыкай", True, (255, 255, 255)), (700, 600))
+            screen.blit(font60.render(str(guide_group.active_entity.hp), True, (255, 255, 255)), (700, 680))
+            # entity.animation()    # можно сделать чтобы двигались только при наведении
+
+        guide_group.custom_draw(screen)
+
+        if back_button.click(screen, mouse_pos, (709, 780)):
+            game_state, last_game_state = last_game_state, game_state
+
+    if game_state != "main_menu" and game_state != "main_settings_menu" and game_state != "level_select" and game_state != "guide_menu":
         screen.blit(level.image, (0, 0))
         if level.cheat:
             # screen.blit(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110))
@@ -1805,6 +1917,7 @@ all_sprites_group = ModGroup()
 clouds_group = sprite.Group()
 alert_group = sprite.Group()
 level_group = sprite.Group()
+guide_group = GuideGroup()
 
 pause_button = Button("text", font40, "||",)
 restart_button = Button("text", font60, "Перезапустить")
@@ -1819,14 +1932,11 @@ next_level_button = Button("text", font60, "Следующий уровень")
 cheat_button = Button("img", "menu", "cheat")
 start_level_button = Button("text", font60, "Начать")
 random_choice_button = Button("text", font50, "Случайно")
+guide_button = Button("text", font60, "Для чайников")
 
 TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death"))
 level_number = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death"))
 level_money = TextSprite(font40.render("300", True, (0, 0, 0)), (88, 53))
-# TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), "paused")
-# TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), "level_complited")
-# TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), "tower_select")
-# TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), "death")
 
 
 level_box_buttons = [level_box_button_creator(i) for i in range(1, 21)]  # создание кнопок уровней без киллометра кода. 20 -- кол-во уровней в игре
@@ -1837,6 +1947,10 @@ tower_button_names = ["fire_mag", "boomchick", "davalka", "kopitel", "matricaysh
 
 tower_select_buttons = [tower_select_button_creator(tower_name) for tower_name in tower_button_names]    # создание кнопок выбора башен без киллометра кода
 
+enemy_button_names = ["popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "slabiy"]
+
+enemy_select_buttons = [enemy_select_button_creator(enemy_name) for enemy_name in enemy_button_names]
+
 levels = [Level(1, 7500, 300, 300, level_1_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok")),
           Level(2, 3000, 150, 300, level_2_waves, ("popusk", "sigma", "mega_strelok")),             # типо можно выбрать, каких врагов спавнить можно, а каких нет
           Level(3, 6000, 225, 300, level_3_waves, ("josky", "sigma", "sportik")),              # это из конфига
@@ -1845,11 +1959,20 @@ levels = [Level(1, 7500, 300, 300, level_1_waves, ("popusk", "sigma", "josky", "
 level = levels[0]
 
 
+for i, tower_name in enumerate(tower_button_names):
+    line_ = int(i / 3)
+    column_ = (i % 3)
+    entity_ = Tower(tower_name, (100 + 154 * column_, 100 + (line_ * 154)))
+    guide_group.add(entity_)
+
+active_obj = None
 running = True
 while running:
 
     mouse_pos = mouse.get_pos()
     menu_positioning()
+    # if active_obj:
+    #     print(active_obj.unit_inside)
 
     alert_group.update()
     alert_group.draw(screen)
@@ -1865,8 +1988,9 @@ while running:
     clock.tick(75)
     display.update()
     for e in event.get():
-        if e.type == MOUSEWHEEL and (game_state == "level_select" or game_state == "tower_select"):
+        if e.type == MOUSEWHEEL and (game_state == "level_select" or game_state == "tower_select" or game_state == "guide_menu"):
             scroll_offset += e.y * 50
+            # scroll_pos = mouse_pos    # пока что забью
         if e.type == KEYDOWN:
             if e.key == K_ESCAPE and (game_state == "run"
                                       or game_state == "paused"
