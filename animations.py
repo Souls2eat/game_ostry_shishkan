@@ -26,6 +26,9 @@ towers_wait = {
     "gnome_cannon3": [image.load(f"images/towers/gnome_cannon3/wait/gnome_cannon3{i}.png") for i in range(1, 5)],
     "gnome_flamethrower": [image.load(f"images/towers/gnome_flamethrower/wait/gnome_flamethrower{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
+    "bomb": [image.load(f"images/towers/bomb/wait/bomb{i}.png") for i in range(1, 5)],
+    "perec": [image.load(f"images/towers/perec/wait/perec{i}.png") for i in range(1, 5)],
+    "vodka": [image.load(f"images/towers/vodka/wait/vodka{i}.png") for i in range(1, 5)],
 
 }
 
