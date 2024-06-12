@@ -1,3 +1,2 @@
-Думал тут что то будет? Вот сделай)
 new_game = True
 unlocked_levels = 5

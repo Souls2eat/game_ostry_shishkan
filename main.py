@@ -30,8 +30,10 @@ tower_window = image.load("images/other/tower_select_window.png").convert_alpha(
 tower_window_legendary = image.load("images/other/tower_select_window_legendary.png").convert_alpha()
 tower_window_common = image.load("images/other/tower_select_window_common.png").convert_alpha()
 tower_window_spell = image.load("images/other/tower_select_window_spell.png").convert_alpha()
+line_ = image.load("images/other/line.png").convert_alpha()
 
 font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
+font35 = font.Font("fonts/ofont.ru_Nunito.ttf", 35)
 font40 = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
 font50 = font.Font("fonts/ofont.ru_Nunito.ttf", 50)
 font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
@@ -47,7 +49,6 @@ current_scroll_offset_state = game_state
 
 
 with open("save.txt", "r", encoding="utf-8") as file:
-    just_text = file.readline().strip()
     new_game = file.readline().strip().split()[2]               # получить значение переменной
     unlocked_levels = int(file.readline().strip().split()[2])
     if new_game.lower() == "true":
@@ -62,8 +63,11 @@ class ModGroup(sprite.Group):
 
     def custom_draw(self, surf):
         for sprite_ in sorted(self.sprites(), key=self.sort_by_layer):
-            if hasattr(sprite_, "active_game_state"):
-                if game_state in sprite_.active_game_states:
+            if hasattr(sprite_, "active_game_states"):
+                if "cheat" in sprite_.active_game_states:
+                    if level.cheat:
+                        surf.blit(sprite_.image, sprite_.rect)
+                elif game_state in sprite_.active_game_states:
                     surf.blit(sprite_.image, sprite_.rect)
             else:
                 surf.blit(sprite_.image, sprite_.rect)
@@ -159,8 +163,8 @@ class GuideGroup(sprite.Group):
                 return True
         return False
 
-    def get_max_damage_per_sec(self):
-        return self.get_damage_per_sec(sorted(self.guide_entity, key=GuideGroup.get_damage_per_sec)[-1])
+    def get_max_damage_per_sec(self):       # добавить 2 кд 2 атаку и белый список мб
+        return self.get_damage_per_sec(sorted(filter(self.filter_by_turn, self.guide_entity), key=GuideGroup.get_damage_per_sec)[-1])
 
     @staticmethod
     def get_damage_per_sec(obj_):
@@ -168,11 +172,14 @@ class GuideGroup(sprite.Group):
             return obj_.atk / (obj_.basic_attack_cooldown / 75)
         return 0
 
+    def get_max_attack_range(self):
+        return sorted(filter(self.filter_by_turn, self.guide_entity), key=lambda en: en.attack_range)[-1].attack_range
+
     def get_max_hp(self):
-        return sorted(self.guide_entity, key=lambda en: en.hp)[-1].hp
+        return sorted(filter(self.filter_by_turn, self.guide_entity), key=lambda en: en.hp)[-1].hp
     
     def get_max_speed(self):
-        return sorted(self.guide_entity, key=self.get_speed)[-1].speed
+        return sorted(filter(self.filter_by_turn, self.guide_entity), key=self.get_speed)[-1].speed
 
     @staticmethod
     def get_speed(en):
@@ -191,7 +198,7 @@ class GuideGroup(sprite.Group):
 
 
 class TextSprite(sprite.Sprite):
-    def __init__(self, sprite_, pos, *active_game_states):
+    def __init__(self, sprite_, pos, active_game_states=()):
         super().__init__(all_sprites_group)
         self.image = sprite_
         self.rect = self.image.get_rect(topleft=pos)
@@ -442,7 +449,7 @@ class Tower(sprite.Sprite):
             self.damage_type = ''
             self.remove(towers_group)
             self.add(nekusaemie_group)
-            self.rarity = "spell"
+            self.rarity = "common"
 
         if self.name == 'pukish':
             self.hp = 1
@@ -1086,7 +1093,7 @@ class Enemy(sprite.Sprite):
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 5
             self.attack_cooldown2 = self.basic_attack_cooldown2 = 750
-            self.ammos = 30
+            self.ammos = 30                     # хапххапхап ammo надо
             self.attack_range = 640
 
         # СТАТЫ конец
@@ -1862,7 +1869,7 @@ def draw_info(pos, current_value, max_value, reversed_=False):       # (196, 380
         current_value *= 10
         max_value *= 10
         if not reversed_:
-            w = 60 * max(int(current_value / (max_value / 5)), 1)             # int, max и 1 убрать и будут не целые квадраты
+            w = 60 * max(int(current_value / (max_value / 5)), 1)       # int, max и 1 убрать и будут не целые квадраты
         if reversed_:
             w = 60 * (6 - max(int(current_value / (max_value / 5)), 1))
         draw.rect(modification_guide_menu, (0, 200, 0), (*pos, w, 35))
@@ -1888,8 +1895,6 @@ def menu_positioning():
             scroll_offset,\
             active_obj
 
-    mouse_pos = mouse.get_pos()
-
     if game_state == "main_menu":
 
         screen.blit(main_menu, (0, 0))
@@ -1899,11 +1904,8 @@ def menu_positioning():
 
         if new_game_button.click(screen, mouse_pos, (30, 380)):                         # 1 кнопка # 460
             last_game_state = game_state
-            game_state = "tower_select"  # новая игра
-            new_game = False
-            level = levels[0]
-            level.refresh()
-            level.state = "not_run"
+            game_state = "yes_no_window"  # новая игра
+
         if new_game:
             if resume_button.click(screen, mouse_pos, (30, 460), col=(130, 130, 130)):  # 2 кнопка серая
                 Alert("<- Тыкай новую игру", (500, 460), 75)
@@ -1926,6 +1928,25 @@ def menu_positioning():
             game_state = "settings_menu"
         if quit_button.click(screen, mouse_pos, (30, 780)):                             # 5 кнопка
             running = False
+
+    if game_state == "yes_no_window":
+        screen.blit(main_menu, (0, 0))
+        screen.blit(menu, (480, 250))
+        screen.blit(font60.render("Начать новую игру?", True, (255, 255, 255)), (507, 280))
+
+        if accept_button.click(screen, mouse_pos, (620, 485)):
+            last_game_state = game_state
+            game_state = "tower_select"
+            new_game = False
+            level = levels[0]
+            level.refresh()
+            level.state = "not_run"
+
+        if accept_button.on_hover(mouse_pos, (630, 485)):
+            screen.blit(font30.render("!!! Весь прогресс сотрётся !!!", True, (255, 0, 0)), (598, 580))
+
+        if deny_button.click(screen, mouse_pos, (870, 485)):
+            last_game_state, game_state = game_state, last_game_state
 
     if game_state == "level_select":
         screen.blit(main_menu, (0, 0))
@@ -1971,7 +1992,9 @@ def menu_positioning():
         guide_menu.blit(entity_guide_menu, (250, 120))      # 50 100 пофиксить/вырезать нафиг
         entity_guide_menu.blit(entity_guide_menu_copy, (0, 0))
         screen.blit(font50.render("Справочник", True, (0, 0, 0)), (370, 60))
-        scroll_offset_min_max(-450, 0)
+        # draw.line(modification_guide_menu, (0, 0, 0), (10, 280), (650, 280), 15)
+        modification_guide_menu.blit(line_, (0, 275))
+        scroll_offset_min_max(-600, 0)
         offset = (250, 120)
 
         guide_group.scroll_move()
@@ -1988,47 +2011,58 @@ def menu_positioning():
             screen.blit(modification_guide_menu, (830, 120))
             modification_guide_menu.blit(modification_guide_menu_copy, (0, 0))
 
-            modification_guide_menu.blit(font40.render("ХП", True, (0, 0, 0)), (30, 300))
+            modification_guide_menu.blit(font35.render("ХП", True, (0, 0, 0)), (10, 302))
             if hasattr(guide_group.pushed_entity, "hp"):
                 draw_info((196, 310), guide_group.pushed_entity.hp, guide_group.get_max_hp())
             else:
                 draw_info((196, 310), 0, 0)
 
-            modification_guide_menu.blit(font40.render("Урон", True, (0, 0, 0)), (30, 350))
+            modification_guide_menu.blit(font35.render("Урон", True, (0, 0, 0)), (10, 352))
             if hasattr(guide_group.pushed_entity, "atk"):
                 draw_info((196, 360), guide_group.get_damage_per_sec(guide_group.pushed_entity), guide_group.get_max_damage_per_sec())
             else:
                 draw_info((196, 360), 0, 0)
 
             if guide_group.turn == "towers":
-                modification_guide_menu.blit(font40.render("Кд", True, (0, 0, 0)), (30, 400))
+                modification_guide_menu.blit(font35.render("Кд", True, (0, 0, 0)), (10, 402))
                 if guide_group.pushed_entity.name in towers_kd:
                     draw_info((196, 410), towers_kd[guide_group.pushed_entity.name], max(towers_kd.values()), reversed_=True)
                 else:
                     draw_info((196, 410), 0, 0)
 
-                modification_guide_menu.blit(font40.render("Цена", True, (0, 0, 0)), (30, 450))
+                modification_guide_menu.blit(font35.render("Цена", True, (0, 0, 0)), (10, 452))
                 if guide_group.pushed_entity.name in tower_costs:
                     modification_guide_menu.blit(font40.render(str(tower_costs[guide_group.pushed_entity.name]), True, (0, 0, 0)), (450, 450))
                     # draw_info((196, 460), tower_costs[guide_group.pushed_entity.name], max(tower_costs.values()), reversed_=True)
                 else:
                     draw_info((196, 460), 0, 0)
 
-                modification_guide_menu.blit(font40.render("Редкость", True, (0, 0, 0)), (30, 500))
+                modification_guide_menu.blit(font35.render("Редкость", True, (0, 0, 0)), (10, 502))
                 if hasattr(guide_group.pushed_entity, "rarity"):    # просто слева автоматически не рисовалось
                     if guide_group.pushed_entity.rarity == "legendary":
-                        modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (255, 210, 0)), (310, 500))
+                        modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (255, 210, 0)), (310, 497))
                     if guide_group.pushed_entity.rarity == "common":
-                        modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (0, 200, 0)), (340, 500))
+                        modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (0, 200, 0)), (340, 497))
                     if guide_group.pushed_entity.rarity == "spell":
-                        modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (0, 0, 200)), (400, 500))
+                        modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (0, 0, 200)), (400, 497))
                 else:
                     draw_info((196, 510), 0, 0)
 
+                modification_guide_menu.blit(line_, (0, 560))
+
             if guide_group.turn == "enemies":
-                modification_guide_menu.blit(font40.render("Скорость", True, (0, 0, 0)), (30, 400))
+                modification_guide_menu.blit(font35.render("Скорость", True, (0, 0, 0)), (10, 402))
                 if hasattr(guide_group.pushed_entity, "speed"):
                     draw_info((196, 410), guide_group.pushed_entity.speed, guide_group.get_max_speed())
+
+                modification_guide_menu.blit(font35.render("Дальность", True, (0, 0, 0)), (10, 452))
+                if hasattr(guide_group.pushed_entity, "attack_range"):
+                    if guide_group.pushed_entity.attack_range == 0:
+                        modification_guide_menu.blit(font40.render("Рукопашная", True, (0, 0, 0)), (257, 447))
+                    else:
+                        draw_info((196, 460), guide_group.pushed_entity.attack_range, guide_group.get_max_attack_range())
+
+                modification_guide_menu.blit(line_, (0, 510))
 
         guide_group.custom_draw(entity_guide_menu, offset_pos=offset)
 
@@ -2044,7 +2078,7 @@ def menu_positioning():
                 change_guide_turn_button.image = image.load("images/other/evil_coin.png").convert_alpha()
             guide_group.pushed_entity = list(filter(guide_group.filter_by_turn, guide_group.guide_entity))[0]
 
-    if game_state != "main_menu" and game_state != "main_settings_menu" and game_state != "level_select" and game_state != "guide_menu":
+    if game_state != "main_menu" and game_state != "main_settings_menu" and game_state != "level_select" and game_state != "guide_menu" and game_state != "yes_no_window":
         screen.blit(level.image, (0, 0))
         if level.cheat:
             # screen.blit(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110))
@@ -2221,11 +2255,13 @@ next_level_button = Button("text", font60, "Следующий уровень")
 cheat_button = Button("img", "menu", "cheat")
 start_level_button = Button("text", font60, "Начать")
 random_choice_button = Button("text", font50, "Случайно")
-guide_button = Button("text", font60, "Для чайников")
-change_guide_turn_button = Button("img", "other", "evil_coin")
+guide_button = Button("text", font60, "Справочник")
+change_guide_turn_button = Button("img", "other", "city_coin")
+accept_button = Button("text", font60, "Да")
+deny_button = Button("text", font60, "Нет")
 
-TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death"))
-level_number = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death"))
+TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death", "cheat", "settings_menu"))
+level_number = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
 level_money = TextSprite(font40.render("300", True, (0, 0, 0)), (88, 53))
 
 
@@ -2237,7 +2273,7 @@ tower_button_names = ["fire_mag", "pukish", "boomchick", "davalka", "kopitel", "
 
 tower_select_buttons = [tower_select_button_creator(tower_name) for tower_name in tower_button_names]    # создание кнопок выбора башен без киллометра кода
 
-enemy_button_names = ["popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "slabiy"]
+enemy_button_names = ["popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "slabiy", "armorik", "telezhnik", "drobik"]
 
 enemy_select_buttons = [enemy_select_button_creator(enemy_name) for enemy_name in enemy_button_names]
 
@@ -2262,6 +2298,8 @@ while running:
     if mouse.get_focused():
         screen.blit(cursor, mouse_pos)
         screen.blit(font30.render(str(mouse_pos), True, (255, 0, 0)), (mouse_pos[0] - 60, mouse_pos[1] - 40))
+        # draw.line(screen, (0, 0, 0), (800, 0), (800, 900), 5)
+        # draw.line(screen, (0, 0, 0), (0, 450), (1600, 450), 5)
 
     for enemy in enemies_group:
         if enemy.rect.x <= 150:
@@ -2368,6 +2406,5 @@ while running:
 
 with open("save.txt", "w", encoding="utf-8") as file:
     new_game = True
-    file.write(just_text + "\n")
     file.write("new_game = " + str(new_game) + "\n")
     file.write("unlocked_levels = " + str(unlocked_levels))
