@@ -1,25 +1,31 @@
 # Примеры волн
 level_1_waves = {       # время волны : поинты спавна на волну
-    7200: 50,
-    5000: 50,
-    2000: 50
+    3000: 20,
+    2000: 20,
+    1000: 20
 }
 
 level_2_waves = {
-    2600: 40,
-    2000: 40,
-    1000: 1500  # не ну а чё? 
+    2000: 30,
+    1000: 30,
+    500: 30
 }
 
 level_3_waves = {
-    5000: 30,
-    4000: 50
+    4000: 40,
+    2000: 40
 }
 
 level_4_waves = {
-    3800: 30,
-    2500: 50,
-    1000: 40
+    3000: 50,
+    2000: 50,
+    1000: 50
+}
+level_5_waves = {
+    6000: 60,
+    4500: 60,
+    3000: 60,
+    1500: 60
 }
 
 
@@ -95,10 +101,12 @@ towers_kd = {
     
 }
 
-# мега крутая штука, но надо обсудить
-# targets = {
-#     1213242: [1314, 422, 23543, 134]      # id башни: list c id врагов
-# }
-
-
 targets = {}
+
+# level_number, level_time, time_to_spawn, start_money, waves: dict, allowed_enemies: tuple, allowed_cords=(192, 320, 448, 576, 704
+#
+levels_config = {1: [1, 4000, 150, 300, level_1_waves, ("popusk", "josky")],
+                 2: [2, 3000, 150, 300, level_2_waves, ("josky", "sigma", "sportik", "popusk")],
+                 3: [3, 6000, 225, 300, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok")],
+                 4: [4, 4000, 75, 300, level_4_waves, ("telezhnik", "rojatel", "sigma", "armorik", "zeleniy_strelok", "drobik")],
+                 5: [5, 7500, 75, 300, level_5_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik")]}

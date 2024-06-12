@@ -221,7 +221,7 @@ class Level:
         self.state = "not_run"
         self.level_time = self.start_level_time = level_time
         self.start_time_to_spawn = self.time_to_spawn = time_to_spawn
-        self.cheat = True
+        self.cheat = False
         self.waves = waves
         self.allowed_enemies = allowed_enemies
         self.allowed_cords = allowed_cords
@@ -299,7 +299,6 @@ class Level:
             for button in buttons_group:
                 button.ok = False
 
-
     @staticmethod
     def spawn():
         UI((1500, 800), "shovel", "lopata")
@@ -321,6 +320,50 @@ class Level:
         self.time_to_spawn = self.start_time_to_spawn
         self.clear()
 
+    def give_reward(self):
+        global unlocked_levels
+        # if self.current_level == 1:
+        if len(not_received_towers) > 3:
+            Alert("+ 3 башни открыто", (100, 100), 75)
+            for i in range(3):
+                new_tower = choice(not_received_towers)
+                not_received_towers.remove(new_tower)
+                received_towers.append(new_tower)
+        elif len(not_received_towers) == 3:
+            Alert("Последние 3 башни открыты", (100, 100), 75)
+            for i in range(3):
+                new_tower = choice(not_received_towers)
+                not_received_towers.remove(new_tower)
+                received_towers.append(new_tower)
+        elif len(not_received_towers) >= 2:
+            Alert("Последние 2 башни открыты", (100, 100), 75)
+            for i in range(2):
+                new_tower = choice(not_received_towers)
+                not_received_towers.remove(new_tower)
+                received_towers.append(new_tower)
+        elif len(not_received_towers) >= 1:
+            Alert("Последняя башня открыта", (100, 100), 75)
+            new_tower = choice(not_received_towers)
+            not_received_towers.remove(new_tower)
+            received_towers.append(new_tower)
+        else:
+            Alert("Все башни открыты", (100, 100), 75)
+
+        if len(not_encountered_enemies) >= 1:
+            for enemy_ in levels_config[self.current_level][5]:
+                if enemy_ not in encountered_enemies:
+                    encountered_enemies.append(enemy_)
+                    not_encountered_enemies.remove(enemy_)
+                    Alert("Новые враги известны", (100, 200), 75)
+        else:
+            Alert("Все враги известны", (100, 200), 75)
+
+        guide_group.clear_()
+        guide_entity_create()
+        create_buttons()
+        unlocked_levels = self.current_level + 1
+        save_data()
+
     def update(self):
         all_sprites_group.update()
         for wave_time in self.waves:
@@ -338,6 +381,7 @@ class Level:
                 self.level_time -= 1
                 return "run"
             else:
+                self.give_reward()
                 return "level_complited"
         else:
             return "run"
@@ -2209,6 +2253,7 @@ def menu_positioning():
     if game_state == "level_complited":
         screen.blit(menu, (480, 250))
         screen.blit(font60.render("Уровень пройден", True, (193, 8, 42)), (544, 280))
+        # give_level_reward()
         if next_level_button.click(screen, mouse_pos, (496, 360)):
             level.refresh()
             level = levels[level.current_level]
@@ -2391,11 +2436,11 @@ if not error_:
 
     # enemy_select_buttons = [enemy_select_button_creator(enemy_name) for enemy_name in enemy_button_names]
 
-    levels = [Level(1, 7500, 300, 300, level_1_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik")),
-              Level(2, 3000, 150, 300, level_2_waves, ("popusk", "sigma", "mega_strelok")),             # типо можно выбрать, каких врагов спавнить можно, а каких нет
-              Level(3, 6000, 225, 300, level_3_waves, ("josky", "sigma", "sportik")),              # это из конфига
-              Level(4, 4000, 75, 300, level_4_waves, ("josky", "popusk", "rojatel")),              # !!! МИНИМУМ 2 ВРАГА, иначе не работает
-              Level(5, 4000, 75, 300, level_4_waves, ("sigma", "josky"))]
+    levels = [Level(*levels_config[1]),
+              Level(*levels_config[2]),             # типо можно выбрать, каких врагов спавнить можно, а каких нет
+              Level(*levels_config[3]),              # это из конфига
+              Level(*levels_config[4]),              # !!! МИНИМУМ 2 ВРАГА, иначе не работает
+              Level(*levels_config[5])]
     level = levels[0]
 
     guide_entity_create()
@@ -2523,4 +2568,5 @@ while running:
 #     new_game = True
 #     file.write("new_game = " + str(new_game) + "\n")
 #     file.write("unlocked_levels = " + str(unlocked_levels))
-save_data()
+if not error_:
+    save_data()
