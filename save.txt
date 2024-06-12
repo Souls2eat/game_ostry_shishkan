@@ -1,2 +1,0 @@
-new_game = True
-unlocked_levels = 5
