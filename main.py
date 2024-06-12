@@ -31,6 +31,7 @@ tower_window_legendary = image.load("images/other/tower_select_window_legendary.
 tower_window_common = image.load("images/other/tower_select_window_common.png").convert_alpha()
 tower_window_spell = image.load("images/other/tower_select_window_spell.png").convert_alpha()
 line_ = image.load("images/other/line.png").convert_alpha()
+unknown_entity = image.load("images/other/unknown_entity.png").convert_alpha()
 
 font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
 font35 = font.Font("fonts/ofont.ru_Nunito.ttf", 35)
@@ -110,12 +111,16 @@ class GuideGroup(sprite.Group):
 
     def clear_(self):
         self.guide_entity.clear()
+        self.scroll_pos = 0
 
     def custom_draw(self, surf, offset_pos=(0, 0)):
         for en in filter(self.filter_by_turn, self.guide_entity):
             en.rect = en.image.get_rect(topleft=(en.pos[0] + offset_pos[0], en.pos[1] + offset_pos[1]))
             # draw.rect(screen, "GREEN", en.rect, 5)
-            surf.blit(en.image, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
+            if en.name in received_towers or en.name in encountered_enemies:
+                surf.blit(en.image, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
+            else:
+                surf.blit(unknown_entity, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
             if hasattr(en, "rarity"):
                 if en.rarity == "legendary":
                     surf.blit(tower_window_legendary, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
@@ -1882,7 +1887,7 @@ def enemy_select_button_creator(enemy_name):
 
 
 def guide_entity_create():
-    for i, tower_name in enumerate(received_towers):
+    for i, tower_name in enumerate([*received_towers, *not_received_towers]):
         line_ = int(i / 3)
         column_ = (i % 3)
         entity_ = Tower(tower_name, (30 + 154 * column_, 30 + (line_ * 154)))  # 50, 100
@@ -1891,7 +1896,7 @@ def guide_entity_create():
         buffs_group.empty()
         guide_group.add(entity_)
 
-    for i, enemy_name in enumerate(encountered_enemies):
+    for i, enemy_name in enumerate([*encountered_enemies, *not_encountered_enemies]):
         line_ = int((i / 3))
         column_ = (i % 3)
         entity_ = Enemy(enemy_name, (30 + 154 * column_, 30 + (line_ * 154)))
@@ -1932,8 +1937,12 @@ def upload_data(default=False):
             unlocked_levels = int(file_.readline().strip().split()[2])                          # считать значение
             received_towers = str(*file_.readline().strip().split(" = ")[1:]).split(", ")       # считать список
             not_received_towers = str(*file_.readline().strip().split(" = ")[1:]).split(", ")
+            if not_received_towers[0] == "[]":
+                not_received_towers = []
             encountered_enemies = str(*file_.readline().strip().split(" = ")[1:]).split(", ")
             not_encountered_enemies = str(*file_.readline().strip().split(" = ")[1:]).split(", ")
+            if not_encountered_enemies[0] == "[]":
+                not_encountered_enemies = []
             _ = file_.readline().strip()                                                        # считать строку с дефисами
             city_coins = int(file_.readline().strip().split()[2])
             forest_coins = int(file_.readline().strip().split()[2])
@@ -2181,6 +2190,7 @@ def menu_positioning():
 
         if back_button.click(screen, mouse_pos, (1000, 750)):
             game_state, last_game_state = last_game_state, game_state
+            scroll_offset = 0
 
         if change_guide_turn_button.click(screen, mouse_pos, (1280, 90)):
             if guide_group.turn == "enemies":
@@ -2251,6 +2261,7 @@ def menu_positioning():
         # give_level_reward()
         if next_level_button.click(screen, mouse_pos, (496, 360)):
             level.refresh()
+            unlocked_levels = level.current_level + 1
             level = levels[level.current_level]
             game_state = "tower_select"
         if restart_button.click(screen, mouse_pos, (582, 440)):
@@ -2331,14 +2342,15 @@ def menu_positioning():
             guide_group.clear_()
 
             for tower in not_received_towers:
-                if tower not in received_towers:
-                    received_towers.append(tower)
+                received_towers.append(tower)
+            not_received_towers.clear()
 
             for enemy_ in not_encountered_enemies:
-                if enemy_ not in encountered_enemies:
-                    encountered_enemies.append(enemy_)
+                encountered_enemies.append(enemy_)
+            not_encountered_enemies.clear()
 
             unlocked_levels = 5
+            # guide_group.clear_()
             guide_entity_create()
             create_buttons()
             print("all_unlocked")
