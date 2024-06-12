@@ -46,15 +46,16 @@ buttons_group = []
 blocked_slots = []
 scroll_offset = 0
 current_scroll_offset_state = game_state
+level = sprite.Sprite       # не юзается, но и не ругается
 
 
-with open("save.txt", "r", encoding="utf-8") as file:
-    new_game = file.readline().strip().split()[2]               # получить значение переменной
-    unlocked_levels = int(file.readline().strip().split()[2])
-    if new_game.lower() == "true":
-        new_game = True
-    else:
-        new_game = False
+# with open("save.txt", "r", encoding="utf-8") as file:
+#     new_game = file.readline().strip().split()[2]               # получить значение переменной
+#     unlocked_levels = int(file.readline().strip().split()[2])
+#     if new_game.lower() == "true":
+#         new_game = True
+#     else:
+#         new_game = False
 
 
 class ModGroup(sprite.Group):
@@ -105,6 +106,9 @@ class GuideGroup(sprite.Group):
         for en in entity:
             if en in self.guide_entity:
                 self.guide_entity.remove(en)
+
+    def clear_(self):
+        self.guide_entity.clear()
 
     def custom_draw(self, surf, offset_pos=(0, 0)):
         for en in filter(self.filter_by_turn, self.guide_entity):
@@ -1833,7 +1837,7 @@ def enemy_select_button_creator(enemy_name):
 
 
 def guide_entity_create():
-    for i, tower_name in enumerate(tower_button_names):
+    for i, tower_name in enumerate(received_towers):
         line_ = int(i / 3)
         column_ = (i % 3)
         entity_ = Tower(tower_name, (30 + 154 * column_, 30 + (line_ * 154)))  # 50, 100
@@ -1842,7 +1846,7 @@ def guide_entity_create():
         buffs_group.empty()
         guide_group.add(entity_)
 
-    for i, enemy_name in enumerate(enemy_button_names):
+    for i, enemy_name in enumerate(encountered_enemies):
         line_ = int((i / 3))
         column_ = (i % 3)
         entity_ = Enemy(enemy_name, (30 + 154 * column_, 30 + (line_ * 154)))
@@ -1860,6 +1864,71 @@ def scroll_offset_min_max(min_offset, max_offset):
     if current_scroll_offset_state != game_state:
         scroll_offset = 0
         current_scroll_offset_state = game_state
+
+
+def upload_data(default=False):
+    global continue_level, \
+        unlocked_levels, \
+        received_towers, \
+        not_received_towers, \
+        encountered_enemies, \
+        not_encountered_enemies, \
+        city_coins, \
+        forest_coins, \
+        evil_coins, \
+        mountain_coins, \
+        snow_coins, \
+        running
+
+    load_file = "saves/current_save.txt"
+    if default:
+        load_file = "saves/default_save.txt"
+    try:
+        with open(load_file, "r") as file_:
+            continue_level = file_.readline().strip().split()[2]
+            _ = file_.readline().strip()                                                        # считать строку с дефисами
+            unlocked_levels = int(file_.readline().strip().split()[2])                          # считать значение
+            received_towers = str(*file_.readline().strip().split(" = ")[1:]).split(", ")       # считать список
+            not_received_towers = str(*file_.readline().strip().split(" = ")[1:]).split(", ")
+            encountered_enemies = str(*file_.readline().strip().split(" = ")[1:]).split(", ")
+            not_encountered_enemies = str(*file_.readline().strip().split(" = ")[1:]).split(", ")
+            _ = file_.readline().strip()
+            city_coins = int(file_.readline().strip().split()[2])
+            forest_coins = int(file_.readline().strip().split()[2])
+            evil_coins = int(file_.readline().strip().split()[2])
+            mountain_coins = int(file_.readline().strip().split()[2])
+            snow_coins = int(file_.readline().strip().split()[2])
+            _ = file_.readline().strip()
+            return False
+    except:
+        running = False
+        print("Сохранение повреждено")
+        return True
+
+
+def save_data():
+    with open("saves/current_save.txt", "w") as file:
+        file.write(f"continue_level = {continue_level}\n")
+        file.write(f"-----\n")
+        file.write(f"unlocked_levels = {unlocked_levels}\n")
+        file.write(f"received_towers = " + str(received_towers).replace("['", "").replace("']", "").replace("'", "") + "\n")
+        file.write(f"not_received_towers = " + str(not_received_towers).replace("['", "").replace("']", "").replace("'", "") + "\n")
+        file.write(f"encountered_enemies = " + str(encountered_enemies).replace("['", "").replace("']", "").replace("'", "") + "\n")
+        file.write(f"not_encountered_enemies = " + str(not_encountered_enemies).replace("['", "").replace("']", "").replace("'", "") + "\n")
+        file.write(f"-----\n")
+        file.write(f"city_coins = {city_coins}\n")
+        file.write(f"forest_coins = {forest_coins}\n")
+        file.write(f"evil_coins = {evil_coins}\n")
+        file.write(f"mountain_coins = {mountain_coins}\n")
+        file.write(f"snow_coins = {snow_coins}\n")
+        file.write(f"-----\n")
+
+
+def create_buttons():
+    global level_box_buttons, tower_select_buttons, enemy_select_buttons
+    level_box_buttons = [level_box_button_creator(i) for i in range(1, 21)]
+    tower_select_buttons = [tower_select_button_creator(tower_name) for tower_name in received_towers]
+    enemy_select_buttons = [enemy_select_button_creator(enemy_name) for enemy_name in encountered_enemies]
 
 
 def draw_info(pos, current_value, max_value, reversed_=False):       # (196, 380)
@@ -1882,7 +1951,7 @@ def draw_info(pos, current_value, max_value, reversed_=False):       # (196, 380
 
 def menu_positioning():
     global game_state,\
-            new_game,\
+            continue_level,\
             running,\
             last_game_state,\
             selected_towers,\
@@ -1906,7 +1975,7 @@ def menu_positioning():
             last_game_state = game_state
             game_state = "yes_no_window"  # новая игра
 
-        if new_game:
+        if continue_level:
             if resume_button.click(screen, mouse_pos, (30, 460), col=(130, 130, 130)):  # 2 кнопка серая
                 Alert("<- Тыкай новую игру", (500, 460), 75)
         else:
@@ -1935,9 +2004,14 @@ def menu_positioning():
         screen.blit(font60.render("Начать новую игру?", True, (255, 255, 255)), (507, 280))
 
         if accept_button.click(screen, mouse_pos, (620, 485)):
+            guide_group.clear_()
+            upload_data(default=True)
+            guide_entity_create()
+            create_buttons()
+
             last_game_state = game_state
             game_state = "tower_select"
-            new_game = False
+            continue_level = False
             level = levels[0]
             level.refresh()
             level.state = "not_run"
@@ -1966,7 +2040,7 @@ def menu_positioning():
                 if not level_box_buttons[i-1].closed:
                     if len(levels) >= i:        # проверка есть ли уровень в списке
                         scroll_offset = 0
-                        new_game = False
+                        continue_level = False
                         level.refresh()
                         level = levels[i-1]
                         last_game_state = game_state
@@ -2211,6 +2285,23 @@ def menu_positioning():
                 cheat_button.ok = True
                 level.cheat = True
 
+        if unlock_all_button.click(screen, mouse_pos, (600, 420)):
+            unlock_all_button.ok = True
+            guide_group.clear_()
+
+            for tower in not_received_towers:
+                if tower not in received_towers:
+                    received_towers.append(tower)
+
+            for enemy_ in not_encountered_enemies:
+                if enemy_ not in encountered_enemies:
+                    encountered_enemies.append(enemy_)
+
+            unlocked_levels = 5
+            guide_entity_create()
+            create_buttons()
+            print("all_unlocked")
+
     if game_state == "death":
         screen.blit(menu, (480, 250))
         screen.blit(font60.render("Вы проиграли", True, (193, 8, 42)), (590, 280))
@@ -2259,35 +2350,59 @@ guide_button = Button("text", font60, "Справочник")
 change_guide_turn_button = Button("img", "other", "city_coin")
 accept_button = Button("text", font60, "Да")
 deny_button = Button("text", font60, "Нет")
+unlock_all_button = Button("text", font60, "Открыть всё")
 
 TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death", "cheat", "settings_menu"))
 level_number = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
 level_money = TextSprite(font40.render("300", True, (0, 0, 0)), (88, 53))
 
 
-level_box_buttons = [level_box_button_creator(i) for i in range(1, 21)]  # создание кнопок уровней без киллометра кода. 20 -- кол-во уровней в игре
+# --- from save
+continue_level = None
+unlocked_levels = None
+received_towers = []
+not_received_towers = []
+encountered_enemies = []
+not_encountered_enemies = []
+city_coins = None
+forest_coins = None
+evil_coins = None
+mountain_coins = None
+snow_coins = None
+error_ = upload_data()
+# ---
+if not error_:
+    # --- from create_buttons
+    level_box_buttons = []
+    tower_select_buttons = []
+    enemy_select_buttons = []
+    create_buttons()
+    # ---
 
-tower_button_names = ["fire_mag", "pukish", "boomchick", "davalka", "kopitel", "matricayshon", "parasitelniy", "spike",
-                      "terpila", "thunder", "yascerica", "zeus", "barrier_mag", "urag_anus",
-                      "big_mechman", "drachun", "tolkan", "knight_on_horse", "gnome_cannon1", "bomb", "perec", "vodka"]     # просто добавить имя башни
+    # level_box_buttons = [level_box_button_creator(i) for i in range(1, 21)]  # создание кнопок уровней без киллометра кода. 20 -- кол-во уровней в игре
 
-tower_select_buttons = [tower_select_button_creator(tower_name) for tower_name in tower_button_names]    # создание кнопок выбора башен без киллометра кода
+    # tower_button_names = ["fire_mag", "pukish", "boomchick", "davalka", "kopitel", "matricayshon", "parasitelniy", "spike",
+    #                       "terpila", "thunder", "yascerica", "zeus", "barrier_mag", "urag_anus",
+    #                       "big_mechman", "drachun", "tolkan", "knight_on_horse", "gnome_cannon1", "bomb", "perec", "vodka"]     # просто добавить имя башни
 
-enemy_button_names = ["popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "slabiy", "armorik", "telezhnik", "drobik"]
+    # tower_select_buttons = [tower_select_button_creator(tower_name) for tower_name in tower_button_names]    # создание кнопок выбора башен без киллометра кода
 
-enemy_select_buttons = [enemy_select_button_creator(enemy_name) for enemy_name in enemy_button_names]
+    # enemy_button_names = ["popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "slabiy", "armorik", "telezhnik", "drobik"]
 
-levels = [Level(1, 7500, 300, 300, level_1_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik")),
-          Level(2, 3000, 150, 300, level_2_waves, ("popusk", "sigma", "mega_strelok")),             # типо можно выбрать, каких врагов спавнить можно, а каких нет
-          Level(3, 6000, 225, 300, level_3_waves, ("josky", "sigma", "sportik")),              # это из конфига
-          Level(4, 4000, 75, 300, level_4_waves, ("josky", "popusk", "rojatel")),              # !!! МИНИМУМ 2 ВРАГА, иначе не работает
-          Level(5, 4000, 75, 300, level_4_waves, ("sigma", "josky"))]
-level = levels[0]
+    # enemy_select_buttons = [enemy_select_button_creator(enemy_name) for enemy_name in enemy_button_names]
 
-guide_entity_create()
+    levels = [Level(1, 7500, 300, 300, level_1_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik")),
+              Level(2, 3000, 150, 300, level_2_waves, ("popusk", "sigma", "mega_strelok")),             # типо можно выбрать, каких врагов спавнить можно, а каких нет
+              Level(3, 6000, 225, 300, level_3_waves, ("josky", "sigma", "sportik")),              # это из конфига
+              Level(4, 4000, 75, 300, level_4_waves, ("josky", "popusk", "rojatel")),              # !!! МИНИМУМ 2 ВРАГА, иначе не работает
+              Level(5, 4000, 75, 300, level_4_waves, ("sigma", "josky"))]
+    level = levels[0]
+
+    guide_entity_create()
+
 
 active_obj = None
-running = True
+running = not error_
 while running:
 
     mouse_pos = mouse.get_pos()
@@ -2297,7 +2412,7 @@ while running:
     alert_group.draw(screen)
     if mouse.get_focused():
         screen.blit(cursor, mouse_pos)
-        screen.blit(font30.render(str(mouse_pos), True, (255, 0, 0)), (mouse_pos[0] - 60, mouse_pos[1] - 40))
+        # screen.blit(font30.render(str(mouse_pos), True, (255, 0, 0)), (mouse_pos[0] - 60, mouse_pos[1] - 40))
         # draw.line(screen, (0, 0, 0), (800, 0), (800, 900), 5)
         # draw.line(screen, (0, 0, 0), (0, 450), (1600, 450), 5)
 
@@ -2306,7 +2421,7 @@ while running:
             if not level.cheat:
                 game_state = "death"
             enemy.kill()
-    
+
     clock.tick(75)
     display.update()
     for e in event.get():
@@ -2404,7 +2519,8 @@ while running:
                                         obj.bullet.kill()
                                     obj.kill()
 
-with open("save.txt", "w", encoding="utf-8") as file:
-    new_game = True
-    file.write("new_game = " + str(new_game) + "\n")
-    file.write("unlocked_levels = " + str(unlocked_levels))
+# with open("save.txt", "w", encoding="utf-8") as file:
+#     new_game = True
+#     file.write("new_game = " + str(new_game) + "\n")
+#     file.write("unlocked_levels = " + str(unlocked_levels))
+save_data()
