@@ -1,5 +1,3 @@
-continue_level = False
------
 unlocked_levels = 1
 received_towers = fire_mag, pukish, boomchick, davalka, kopitel, matricayshon, parasitelniy, spike
 not_received_towers = terpila, thunder, yascerica, zeus, barrier_mag, urag_anus, big_mechman, drachun, tolkan, knight_on_horse, gnome_cannon1, bomb, perec, vodka

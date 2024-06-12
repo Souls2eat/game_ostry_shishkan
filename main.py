@@ -47,6 +47,7 @@ blocked_slots = []
 scroll_offset = 0
 current_scroll_offset_state = game_state
 level = sprite.Sprite       # не юзается, но и не ругается
+continue_level = False
 
 
 # with open("save.txt", "r", encoding="utf-8") as file:
@@ -1921,22 +1922,19 @@ def upload_data(default=False):
         forest_coins, \
         evil_coins, \
         mountain_coins, \
-        snow_coins, \
-        running
+        snow_coins
 
     load_file = "saves/current_save.txt"
     if default:
         load_file = "saves/default_save.txt"
     try:
         with open(load_file, "r") as file_:
-            continue_level = file_.readline().strip().split()[2]
-            _ = file_.readline().strip()                                                        # считать строку с дефисами
             unlocked_levels = int(file_.readline().strip().split()[2])                          # считать значение
             received_towers = str(*file_.readline().strip().split(" = ")[1:]).split(", ")       # считать список
             not_received_towers = str(*file_.readline().strip().split(" = ")[1:]).split(", ")
             encountered_enemies = str(*file_.readline().strip().split(" = ")[1:]).split(", ")
             not_encountered_enemies = str(*file_.readline().strip().split(" = ")[1:]).split(", ")
-            _ = file_.readline().strip()
+            _ = file_.readline().strip()                                                        # считать строку с дефисами
             city_coins = int(file_.readline().strip().split()[2])
             forest_coins = int(file_.readline().strip().split()[2])
             evil_coins = int(file_.readline().strip().split()[2])
@@ -1945,15 +1943,12 @@ def upload_data(default=False):
             _ = file_.readline().strip()
             return False
     except:
-        running = False
         print("Сохранение повреждено")
         return True
 
 
 def save_data():
     with open("saves/current_save.txt", "w") as file:
-        file.write(f"continue_level = {continue_level}\n")
-        file.write(f"-----\n")
         file.write(f"unlocked_levels = {unlocked_levels}\n")
         file.write(f"received_towers = " + str(received_towers).replace("['", "").replace("']", "").replace("'", "") + "\n")
         file.write(f"not_received_towers = " + str(not_received_towers).replace("['", "").replace("']", "").replace("'", "") + "\n")
@@ -2019,9 +2014,9 @@ def menu_positioning():
             last_game_state = game_state
             game_state = "yes_no_window"  # новая игра
 
-        if continue_level:
+        if not continue_level:
             if resume_button.click(screen, mouse_pos, (30, 460), col=(130, 130, 130)):  # 2 кнопка серая
-                Alert("<- Тыкай новую игру", (500, 460), 75)
+                Alert("<- Тыкай новую игру", (500, 380), 75)
         else:
             if resume_button.click(screen, mouse_pos, (30, 460)):                       # 2 кнопка белая
                 last_game_state = game_state
@@ -2061,7 +2056,7 @@ def menu_positioning():
             level.state = "not_run"
 
         if accept_button.on_hover(mouse_pos, (630, 485)):
-            screen.blit(font30.render("!!! Весь прогресс сотрётся !!!", True, (255, 0, 0)), (598, 580))
+            screen.blit(font30.render("!!! Весь прогресс сотрётся !!!", True, (200, 0, 0)), (598, 580))
 
         if deny_button.click(screen, mouse_pos, (870, 485)):
             last_game_state, game_state = game_state, last_game_state
@@ -2084,7 +2079,7 @@ def menu_positioning():
                 if not level_box_buttons[i-1].closed:
                     if len(levels) >= i:        # проверка есть ли уровень в списке
                         scroll_offset = 0
-                        continue_level = False
+                        continue_level = True
                         level.refresh()
                         level = levels[i-1]
                         last_game_state = game_state
@@ -2305,6 +2300,7 @@ def menu_positioning():
                 game_state = "run"
                 level.clear("ui_group")
                 level.state = "not_run"
+                continue_level = True
             else:
                 Alert("Остались свободные слоты", (400, 760), 75)
         if pause_button.click(screen, mouse_pos, (1550, 30)):
@@ -2359,6 +2355,7 @@ def menu_positioning():
             game_state = "tower_select"
             level.state = "not_run"
         if main_menu_button.click(screen, mouse_pos, (567, 520)):
+            continue_level = False
             last_game_state = game_state
             game_state = "main_menu"
             level.state = "not_run"
@@ -2403,7 +2400,6 @@ level_money = TextSprite(font40.render("300", True, (0, 0, 0)), (88, 53), ("run"
 
 
 # --- from save
-continue_level = None
 unlocked_levels = None
 received_towers = []
 not_received_towers = []
