@@ -29,6 +29,8 @@ towers_wait = {
     "bomb": [image.load(f"images/towers/bomb/wait/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/wait/perec{i}.png") for i in range(1, 5)],
     "vodka": [image.load(f"images/towers/vodka/wait/vodka{i}.png") for i in range(1, 5)],
+    "easy_money": [image.load(f"images/towers/easy_money/wait/easy_money{i}.png") for i in range(1, 5)],
+    "vistrel": [image.load(f"images/towers/vistrel/wait/vistrel{i}.png") for i in range(1, 5)],
 
 }
 

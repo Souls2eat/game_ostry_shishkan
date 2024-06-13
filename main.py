@@ -51,6 +51,7 @@ scroll_offset = 0
 current_scroll_offset_state = game_state
 level = sprite.Sprite       # не юзается, но и не ругается
 continue_level = False
+free_money = default_free_money = 750
 
 
 class ModGroup(sprite.Group):
@@ -193,7 +194,7 @@ class PreviewGroup(sprite.Group):
 
     @staticmethod
     def get_damage_per_sec(obj_):
-        if hasattr(obj_, "atk"):
+        if hasattr(obj_, "basic_attack_cooldown"):
             return obj_.atk / (obj_.basic_attack_cooldown / 75)
         return 0
 
@@ -433,6 +434,7 @@ class Level:
                 return "level_complited"
         else:
             return "run"
+        
 
 
 class Tower(sprite.Sprite):
@@ -466,31 +468,31 @@ class Tower(sprite.Sprite):
 
         if self.name == 'fire_mag':  # циферки поменять
             self.hp = 200
-            self.atk = 20
+            self.atk = 10
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
-            self.basic_attack_cooldown = 60
+            self.basic_attack_cooldown = 75
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
-            self.rarity = "legendary"
+            self.rarity = "common"
 
         if self.name == 'boomchick':  
             self.hp = 200
-            self.atk = 20  # типа по кому попадёт получит 40 а остальные по 20
+            self.atk = 10  # типа по кому попадёт получит 40 а остальные по 20
             self.bullet_speed_x = 4
             self.bullet_speed_y = 0
-            self.attack_cooldown = self.basic_attack_cooldown = 85
+            self.attack_cooldown = self.basic_attack_cooldown = 150
             self.damage_type = ''
             self.rarity = "common"
 
         if self.name == 'kopitel':
             self.hp = 200
-            self.atk = 30
+            self.atk = 20
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.basic_spawn_something_cooldown = self.spawn_something_cooldown = 80
+            self.basic_spawn_something_cooldown = self.spawn_something_cooldown = 75
             self.spawned_things = []
-            self.basic_attack_cooldown = self.attack_cooldown = 80
+            self.basic_attack_cooldown = self.attack_cooldown = 75
             self.damage_type = ''
             self.nakopleno = 0
             self.max_nakopit = 7
@@ -498,10 +500,10 @@ class Tower(sprite.Sprite):
 
         if self.name == 'thunder':
             self.hp = 200
-            self.atk = 30
+            self.atk = 15
             self.bullet_speed_x = 7
             self.bullet_speed_y = 3
-            self.attack_cooldown = self.basic_attack_cooldown = 200
+            self.attack_cooldown = self.basic_attack_cooldown = 225
             self.target_phase = None
             self.damage_type = ''
             self.rarity = "common"
@@ -511,19 +513,20 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'zeus':
-            self.hp = 100
-            self.atk = 100
+            self.hp = 50
+            self.atk = 15
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.basic_attack_cooldown = self.attack_cooldown = 225
+            self.basic_attack_cooldown = self.attack_cooldown = 150
             self.damage_type = ''
             self.rarity = "common"
 
         if self.name == 'yascerica':
-            self.hp = 250
+            self.hp = 200
+            self.atk = 0
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.basic_attack_cooldown = 150
+            self.basic_attack_cooldown = 1125
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.blackik = Bullet("blackik", self.rect.centerx - 26, self.rect.centery, self.damage_type, 0, self.bullet_speed_x, self.bullet_speed_y, 'yas', self)
@@ -531,9 +534,9 @@ class Tower(sprite.Sprite):
             self.rarity = "legendary"
 
         if self.name == 'parasitelniy':
-            self.hp = 2200
-            self.max_hp = 2200
-            self.atk = 10
+            self.hp = 2500
+            self.max_hp = 2500
+            self.atk = 5
             self.attack_cooldown = self.basic_attack_cooldown = 150
             self.damage_type = ''
             self.have_parasite = sprite.Group()
@@ -550,8 +553,8 @@ class Tower(sprite.Sprite):
 
         if self.name == 'pukish':
             self.hp = 1
-            self.atk = 50
-            self.atk2 = 5
+            self.atk = 15
+            self.atk2 = 2
             self.bullet_speed_x = 2
             self.bullet_speed_y = 0
             self.attack_cooldown = self.basic_attack_cooldown = 150
@@ -563,41 +566,41 @@ class Tower(sprite.Sprite):
             self.rarity = "legendary"
 
         if self.name == 'urag_anus':
-            self.hp = 100
-            self.atk = 3
-            self.uragan_duration = 375
-            self.basic_attack_cooldown = 1875
+            self.hp = 700
+            self.atk = 0
+            self.uragan_duration = 450
+            self.basic_attack_cooldown = 2250
             self.attack_cooldown = 375
             self.uragan = None
             self.rarity = "legendary"
 
         if self.name == 'drachun':
-            self.hp = 400
+            self.hp = 700
             self.atk = 25
-            self.basic_attack_cooldown = 55
+            self.basic_attack_cooldown = 60
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.rarity = "common"
 
         if self.name == 'knight_on_horse':       # нука кусни нет, потому что он подгружает картинки по кд
-            self.knight_hp = 500                 # nuka_kusni
-            self.horse_hp = 500
+            self.knight_hp = 1500                 # nuka_kusni
+            self.horse_hp = 1500  # уменьшить отхилл рыцарю
             self.hp = self.knight_hp + self.horse_hp
-            self.atk = 30
-            self.taran_atk = 500
-            self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.atk = 20  # надо сделать атаку на 2 клетки вперёд, а не на одну
+            self.taran_atk = 400
+            self.attack_cooldown = self.basic_attack_cooldown = 150
             self.damage_type = ''
-            self.rarity = "common"
+            self.rarity = "legendary"
 
         if self.name == "knight":
-            self.hp = 500
-            self.atk = 30
-            self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.hp = 1500
+            self.atk = 20  # надо сделать атаку на 1 клетки вперёд, а не на две
+            self.attack_cooldown = self.basic_attack_cooldown = 150
             self.damage_type = ''
-            self.rarity = "common"
+            self.rarity = "legendary"
 
         if self.name == 'tolkan':
-            self.hp = 2000
+            self.hp = 3000
             self.atk = 50
             self.ottalkivanie_solo = self.push = 384
             self.ottalkivanie_ne_solo = 128
@@ -608,10 +611,10 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'big_mechman':
-            self.hp = 600
-            self.atk = 75
+            self.hp = 700
+            self.atk = 60
             self.kulak_time = 15
-            self.attack_cooldown = self.basic_attack_cooldown = 250
+            self.attack_cooldown = self.basic_attack_cooldown = 225
             self.damage_type = ''
             self.rarity = "common"
 
@@ -626,21 +629,21 @@ class Tower(sprite.Sprite):
         #         self.damage_type = ''
 
         if self.name == 'gnome_cannon1':
-            self.max_hp = 700
-            self.hp = 700
-            self.atk = 375
-            self.bullet_speed_x = 8
+            self.max_hp = 500
+            self.hp = 500
+            self.atk = 150
+            self.bullet_speed_x = 10
             self.bullet_speed_y = 0
-            self.attack_cooldown = self.basic_attack_cooldown = 450
+            self.attack_cooldown = self.basic_attack_cooldown = 750
             self.damage_type = ''
             self.stack = "gnome_cannon"
             self.rarity = "legendary"
 
         if self.name == 'gnome_cannon2':
-            self.max_hp = 2800
-            self.hp = 2800
-            self.atk = 375
-            self.bullet_speed_x = 8
+            self.max_hp = 2500   # сделать чтобы хиллилась каждую секунду
+            self.hp = 2500
+            self.atk = 150
+            self.bullet_speed_x = 10
             self.bullet_speed_y = 0
             self.attack_cooldown = self.basic_attack_cooldown = 450
             self.damage_type = ''
@@ -648,12 +651,12 @@ class Tower(sprite.Sprite):
             self.rarity = "legendary"
 
         if self.name == 'gnome_cannon3':
-            self.max_hp = 2800
-            self.hp = 2800
-            self.atk = 375
-            self.bullet_speed_x = 8
+            self.max_hp = 2500
+            self.hp = 2500
+            self.atk = 150
+            self.bullet_speed_x = 10
             self.bullet_speed_y = 0
-            self.attack_cooldown = self.basic_attack_cooldown = 225
+            self.attack_cooldown = self.basic_attack_cooldown = 375
             self.damage_type = ''
             self.stack = "gnome_cannon"
             self.rarity = "legendary"
@@ -662,7 +665,7 @@ class Tower(sprite.Sprite):
             self.max_hp = 1
             self.hp = 1
             self.atk = 0
-            self.atk2 = 5   # баффающая башня не баффает скорость атаки огнемета, если надо будет сделаю чтобы баффала
+            self.atk2 = 3   # баффающая башня не баффает скорость атаки огнемета, если надо будет сделаю чтобы баффала
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_cooldown2 = self.basic_attack_cooldown2 = 6
             self.damage_type = ''
@@ -671,26 +674,26 @@ class Tower(sprite.Sprite):
             self.rarity = "legendary"
 
         if self.name == 'terpila':
-            self.hp = 6000
+            self.hp = 7500
             self.rarity = "common"
 
         if self.name == 'barrier_mag':
             self.hp = 1500
             self.barrier_hp = 3000
             self.best_x = self
-            self.basic_spawn_something_cooldown = 750  # 3375
+            self.basic_spawn_something_cooldown = 3375  # 3375
             self.spawn_something_cooldown = 0
             self.rarity = "common"
 
         if self.name == 'davalka':
             self.hp = 200
-            self.skolko_deneg_dast = 30
-            self.basic_spawn_something_cooldown = self.spawn_something_cooldown = 750
+            self.skolko_deneg_dast = 10
+            self.basic_spawn_something_cooldown = self.spawn_something_cooldown = 1500  # возможно надо 1875
             self.rarity = "common"
 
         if self.name == 'matricayshon':
-            self.hp = 500
-            for i in range(9):
+            self.hp = 666
+            for i in range(9):  # надо сделать предел усиления (3 сек)
                 self.buff_x = 1 + (i % 3) * 128 - 128
                 self.buff_y = 1 + (i // 3) * 128 - 128
                 self.buff = Buff("mat", self.rect.x + self.buff_x, self.rect.y + self.buff_y)
@@ -700,20 +703,30 @@ class Tower(sprite.Sprite):
 
         if self.name == 'bomb':
             self.hp = 0
-            self.atk = 1000
-            self.attack_cooldown = self.basic_attack_cooldown = 7500
+            self.atk = 700
             self.damage_type = ''
             self.rarity = "spell"
 
         if self.name == 'perec':
             self.hp = 0
-            self.atk = 1000
-            self.attack_cooldown = self.basic_attack_cooldown = 7500
+            self.atk = 700
             self.damage_type = ''
             self.rarity = "spell"
 
         if self.name == 'vodka':
+            self.hp = 0  # надо сделать предел усиления (3 сек)
+            self.rarity = "spell"
+
+        if self.name == 'easy_money':
             self.hp = 0
+            self.rarity = "spell"
+
+        if self.name == 'vistrel':
+            self.hp = 0
+            self.atk = 30
+            self.bullet_speed_x = 5
+            self.bullet_speed_y = 0
+            self.damage_type = ''
             self.rarity = "spell"
 
         # СТАТЫ конец
@@ -752,11 +765,17 @@ class Tower(sprite.Sprite):
         if self.name == "perec":
             Bullet("perec_bullet", 960, self.rect.bottom-8, self.damage_type, self.atk, 0, 0, 'explosion', self)
 
+        if self.name == "vistrel":
+            Bullet("vistrel_bullet", 384, self.rect.centery-10, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
+
         if self.name == "vodka":
             for i in range(9):
                 self.buff_x = 1 + (i % 3) * 128 - 128
                 self.buff_y = 1 + (i // 3) * 128 - 128
                 self.buff = Buff("vodkamat", self.rect.x + self.buff_x, self.rect.y + self.buff_y)
+
+        if self.name == "easy_money":
+            level.money += 30
 
         self.kill()     # + потом анимация смерти
 
@@ -978,7 +997,7 @@ class Tower(sprite.Sprite):
 
         if self.name == 'davalka':
             level.money += self.skolko_deneg_dast
-            Alert("+30", (self.rect.centerx-15, self.rect.centery-55), 50, font30, (0, 70, 200))
+            Alert("+10", (self.rect.centerx-15, self.rect.centery-55), 50, font30, (0, 70, 200))
 
     def sort_by_x(self, t):
         if t.rect.y == self.rect.y and t.have_barrier is False:
@@ -1099,98 +1118,99 @@ class Enemy(sprite.Sprite):
         # СТАТЫ начало
 
         if self.name == 'popusk':
-            self.hp = 300
+            self.hp = 200
             self.atk = 100
-            self.speed = 1
+            self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 75
             self.attack_range = 0
 
         if self.name == 'josky':
-            self.hp = 600
-            self.atk = 100
-            self.speed = 1
-            self.attack_cooldown = self.basic_attack_cooldown = 75
+            self.hp = 400
+            self.atk = 80
+            self.speed = 0.5
+            self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 0
 
         if self.name == 'sigma':
-            self.hp = 1200
-            self.atk = 100
-            self.speed = 1
+            self.hp = 800
+            self.atk = 200
+            self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 75
             self.attack_range = 0
 
         if self.name == 'armorik':
-            self.hp = 450
-            self.armor = 450
+            self.hp = 300
+            self.armor = 300
             self.atk = 100
-            self.atk2 = 120
-            self.speed = 1
-            self.speed2 = 2
+            self.atk2 = 135
+            self.speed = 0.5
+            self.speed2 = 1
             self.attack_cooldown = self.basic_attack_cooldown = 75
-            self.attack_cooldown2 = self.basic_attack_cooldown2 = 50
+            self.attack_cooldown2 = self.basic_attack_cooldown2 = 60
             self.attack_range = 0
 
         if self.name == 'slabiy':
             self.hp = 100
             self.atk = 50
-            self.speed = 1
+            self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 75
             self.attack_range = 0
             self.back_to_line()
 
         if self.name == 'rojatel':
-            self.hp = 600
+            self.hp = 500
             self.atk = 50
-            self.speed = 1
+            self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 75
             self.attack_range = 0
 
         if self.name == 'sportik': #надо пофиксить таргеты у пукиша
-            self.hp = 300
-            self.atk = 100
-            self.speed = 2
-            self.attack_cooldown = self.basic_attack_cooldown = 50
+            self.hp = 200
+            self.atk = 115
+            self.speed = 1
+            self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 0
 
         if self.name == "zeleniy_strelok":
-            self.hp = 300
-            self.atk = 100
+            self.hp = 200
+            self.atk = 75
             self.bullet_speed_x = -5
             self.bullet_speed_y = 0
-            self.speed = 1
+            self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 75
             self.attack_range = 700
 
         if self.name == "telezhnik":
-            self.hp = 550
-            self.armor = 50
-            self.atk = 100
+            self.hp = 370
+            self.armor = 30
+            self.atk = 70
+            self.atk2 = 100
             self.bullet_speed_x = -5
             self.bullet_speed_y = 0
-            self.speed = 1
-            self.speed2 = 1.5
+            self.speed = 0.5
+            self.speed2 = 1
             self.attack_cooldown = self.basic_attack_cooldown = 75
             self.attack_range = 768
             self.attack_range2 = 0
 
         if self.name == "drobik":
-            self.hp = 400
+            self.hp = 450
             self.atk = 50
             self.bullet_speed_x = -5
             self.bullet_speed_y = 4
-            self.speed = 1
+            self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 100
             self.attack_range = 128
 
         if self.name == 'mega_strelok':
-            self.hp = 800
+            self.hp = 600
             self.atk = 100
             self.bullet_speed_x = -5
             self.bullet_speed_y = 0
-            self.speed = 0.5
+            self.speed = 0.25
             self.attack_cooldown = self.basic_attack_cooldown = 5
             self.attack_cooldown2 = self.basic_attack_cooldown2 = 750
-            self.ammos = 30                     # хапххапхап ammo надо
+            self.ammo = 30                     # хапххапхап ammo надо
             self.attack_range = 640
 
         # СТАТЫ конец
@@ -1217,11 +1237,11 @@ class Enemy(sprite.Sprite):
             Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
 
         if self.name == 'mega_strelok':
-            if self.ammos > 0:
+            if self.ammo > 0:
                 Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery+randint(-16, 16), None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
-                self.ammos -= 1
+                self.ammo -= 1
             else:
-                self.ammos = 30
+                self.ammo = 30
                 self.attack_cooldown2 = self.basic_attack_cooldown2
 
         if self.name == 'drobik':
@@ -1271,6 +1291,7 @@ class Enemy(sprite.Sprite):
                     self.image = image.load(f"images/enemies/{self.name}_zloy.png").convert_alpha()
 
                 elif self.name == 'telezhnik':
+                    self.atk = self.atk2
                     self.speed = self.speed2
                     self.attack_range = self.attack_range2
                     self.image = image.load(f"images/enemies/{self.name}_zloy.png").convert_alpha()
@@ -1516,7 +1537,7 @@ class Parasite(sprite.Sprite):
                 self.attack_cooldown = 75
                 self.owner.hp -= self.damage
                 if self.parent.hp < self.parent.max_hp - (self.damage//2):
-                    self.parent.hp += self.damage//2
+                    self.parent.hp += self.damage
 
         if self.name == 'uragan':
             for enemy in enemies_group:
@@ -1582,25 +1603,26 @@ class Buff(sprite.Sprite):
             if tower not in self.buffed_towers:
                 if self.rect.collidepoint(tower.rect.centerx, tower.rect.centery):
                     if tower.name == 'fire_mag'\
-                            or tower.name == 'kopitel'\
-                            or tower.name == 'thunder'\
-                            or tower.name == 'yascerica'\
-                            or tower.name == 'zeus'\
-                            or tower.name == 'boomchick'\
-                            or tower.name == 'parasitelniy'\
-                            or tower.name == 'pukish'\
-                            or tower.name == 'drachun'\
-                            or tower.name == 'tolkan'\
-                            or tower.name == 'big_mechman'\
-                            or tower.name == 'knight_on_horse'\
-                            or tower.name == "knight"\
-                            or tower.name == "urag_anus"\
-                            or tower.name == "gnome_cannon1"\
-                            or tower.name == "gnome_cannon2"\
-                            or tower.name == "gnome_cannon3":
+                        or tower.name == 'kopitel'\
+                        or tower.name == 'thunder'\
+                        or tower.name == 'yascerica'\
+                        or tower.name == 'zeus'\
+                        or tower.name == 'boomchick'\
+                        or tower.name == 'parasitelniy'\
+                        or tower.name == 'drachun'\
+                        or tower.name == 'tolkan'\
+                        or tower.name == 'big_mechman'\
+                        or tower.name == 'knight_on_horse'\
+                        or tower.name == "knight"\
+                        or tower.name == "urag_anus"\
+                        or tower.name == "gnome_cannon1"\
+                        or tower.name == "gnome_cannon2"\
+                        or tower.name == "gnome_cannon3":
 
                         tower.basic_attack_cooldown //= 2
                         tower.time_indicator *= 2
+                        if tower.name == 'kopitel':
+                            tower.basic_spawn_something_cooldown //= 2
                         tower.add(self.buffed_towers)
 
                     # for i in range(16):
@@ -1628,23 +1650,26 @@ class Buff(sprite.Sprite):
             for tower in self.buffed_towers:
                 if tower.name == 'fire_mag'\
                         or tower.name == 'kopitel'\
-                            or tower.name == 'thunder'\
-                            or tower.name == 'yascerica'\
-                            or tower.name == 'zeus'\
-                            or tower.name == 'boomchick'\
-                            or tower.name == 'parasitelniy'\
-                            or tower.name == 'pukish'\
-                            or tower.name == 'drachun'\
-                            or tower.name == 'tolkan'\
-                            or tower.name == 'big_mechman'\
-                            or tower.name == 'knight_on_horse'\
-                            or tower.name == "knight"\
-                            or tower.name == "urag_anus"\
-                            or tower.name == "gnome_cannon1"\
-                            or tower.name == "gnome_cannon2"\
-                            or tower.name == "gnome_cannon3":
+                        or tower.name == 'thunder'\
+                        or tower.name == 'yascerica'\
+                        or tower.name == 'zeus'\
+                        or tower.name == 'boomchick'\
+                        or tower.name == 'parasitelniy'\
+                        or tower.name == 'pukish'\
+                        or tower.name == 'spike'\
+                        or tower.name == 'drachun'\
+                        or tower.name == 'tolkan'\
+                        or tower.name == 'big_mechman'\
+                        or tower.name == 'knight_on_horse'\
+                        or tower.name == "knight"\
+                        or tower.name == "urag_anus"\
+                        or tower.name == "gnome_cannon1"\
+                        or tower.name == "gnome_cannon2"\
+                        or tower.name == "gnome_cannon3":
                     tower.basic_attack_cooldown *= 2
                     tower.time_indicator //= 2
+                    if tower.name == 'kopitel':
+                        tower.basic_spawn_something_cooldown *= 2
 
                 # for i in range(16):
                 #     if tower.name == 'go_bleen' + str(i+1):
@@ -1655,10 +1680,10 @@ class Buff(sprite.Sprite):
                 #     tower.basic_uragan_cooldown *= 2
                 #     tower.time_indicator //= 2
 
-            for nekusaemiy in self.buffed_towers:
-                if nekusaemiy.name == 'spike' or nekusaemiy.name == 'pukish':
-                    nekusaemiy.basic_attack_cooldown *= 2
-                    nekusaemiy.time_indicator //= 2
+            # for nekusaemiy in self.buffed_towers:
+            #     if nekusaemiy.name == 'spike' or nekusaemiy.name == 'pukish':
+            #         nekusaemiy.basic_attack_cooldown *= 2
+            #         nekusaemiy.time_indicator //= 2
 
             if self.name == 'vodkamat':
                 Buff('mat', self.rect.x, self.rect.y)
@@ -2492,6 +2517,14 @@ while running:
 
     mouse_pos = mouse.get_pos()
     menu_positioning()
+
+    if level.state == 'run':
+        if free_money > 0:
+            free_money -= 1
+        else:
+            free_money = default_free_money
+            level.money += 5
+            Alert('+5', (200, 30), 75, col=(0, 0, 0))
 
     alert_group.update()
     alert_group.draw(screen)
