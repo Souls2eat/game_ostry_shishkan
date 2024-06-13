@@ -1873,36 +1873,16 @@ def tower_placement(new_tower):
                 new_tower.kd_time = new_tower.default_kd_time
 
 
-def add_to_slots(i, *blocked_slots):              # instant_select будет потом
-    if tower_select_buttons[i].ok:
-        tower_select_buttons[i].ok = False
-        selected_towers.remove(tower_select_buttons[i].unit_inside)
-        for ui in ui_group:
-            if ui.unit_inside == tower_select_buttons[i].unit_inside:
-                ui.kill()
-
-    elif len(selected_towers) <= 6 - len(blocked_slots):
-        tower_select_buttons[i].ok = True
-        if blocked_slots:
-            UI((94, first_empty_slot(*blocked_slots)), "towers", tower_select_buttons[i].unit_inside, towers_kd[tower_select_buttons[i].unit_inside])
-        else:
-            UI((94, first_empty_slot()), "towers", tower_select_buttons[i].unit_inside, towers_kd[tower_select_buttons[i].unit_inside])
-        selected_towers.append(tower_select_buttons[i].unit_inside)
-
-    else:
-        Alert("Закончились свободные слоты", (345, 760), 75)
-
-
-def random_add_to_slots():    # жестко пофиксить
+def random_add_to_slots(*blocked_slots_):    # жестко пофиксить
     all_towers = []
     for tower in select_towers_preview_group.guide_entity:
         if tower not in select_towers_preview_group.remember_entities:
             all_towers.append(tower)
     random_unit = choice(all_towers)
-    add_to_slots2(random_unit)
+    add_to_slots(random_unit, *blocked_slots_)
 
 
-def add_to_slots2(en, *blocked_slots_):    # жестко пофиксить
+def add_to_slots(en, *blocked_slots_):    # жестко пофиксить
     if len(select_towers_preview_group.remember_entities) <= 6 or en.in_slot:
         if not en.in_slot:
             UI((94, first_empty_slot(blocked_slots_)), "towers", en.name, towers_kd[en.name])
@@ -2344,7 +2324,7 @@ def menu_positioning():
         select_towers_preview_group.move_element_by_scroll()
         select_towers_preview_group.check_hover(select_menu, offset_pos=(250, 150))
         if select_towers_preview_group.check_click(select_menu, offset_pos=(250, 150)):
-            add_to_slots2(select_towers_preview_group.pushed_entity, *blocked_slots)
+            add_to_slots(select_towers_preview_group.pushed_entity, *blocked_slots)
         select_towers_preview_group.go_animation()
         select_towers_preview_group.custom_draw(select_menu)
 
