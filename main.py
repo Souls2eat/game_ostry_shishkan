@@ -120,6 +120,11 @@ class PreviewGroup(sprite.Group):
             if obj_ in self.remember_entities:
                 self.remember_entities.remove(obj_)
 
+    def remember_entities_empty(self):
+        for tower in self.remember_entities:
+            tower.in_slot = False
+        self.remember_entities.clear()
+
     def custom_draw(self, surf, offset_pos=(0, 0)):
         for en in filter(self.filter_by_turn, self.guide_entity):
             en.rect = en.image.get_rect(topleft=(en.pos[0] + offset_pos[0], en.pos[1] + offset_pos[1]))
@@ -138,8 +143,6 @@ class PreviewGroup(sprite.Group):
             else:
                 surf.blit(tower_window_common, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
 
-            if en.pushed:
-                surf.blit(ok, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
             if en in self.remember_entities:
                 surf.blit(ok, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
 
@@ -323,6 +326,9 @@ class Level:
             if "buttons_group" not in without:
                 for button in buttons_group:
                     button.ok = False
+            if "select_towers_preview_group" not in without:
+                select_towers_preview_group.remember_entities_empty()
+
         else:
             for enemy in enemies_group:
                 enemy.kill()
@@ -340,6 +346,7 @@ class Level:
                 ui.kill()
             for button in buttons_group:
                 button.ok = False
+            select_towers_preview_group.remember_entities_empty()
 
     @staticmethod
     def spawn():
@@ -1886,51 +1893,39 @@ def add_to_slots(i, *blocked_slots):              # instant_select будет п
         Alert("Закончились свободные слоты", (345, 760), 75)
 
 
-def add_to_slots2(obj_, *blocked_slots):    # жестко пофиксить
-    if not obj_.in_slot:
-        if len(selected_towers) <= 6 - len(blocked_slots):
-            if blocked_slots:
-                UI((94, first_empty_slot(*blocked_slots)), "towers", obj_.name, towers_kd[obj_.name])
-            else:
-                UI((94, first_empty_slot()), "towers", obj_.name, towers_kd[obj_.name])
-            selected_towers.append(obj_)
-            obj_.in_slot = True
-            select_towers_preview_group.remember_entities.append(obj_)
-        else:
-            Alert("Закончились свободные слоты", (345, 760), 75)
-    elif obj_.in_slot:
-        for ui in ui_group:
-            if ui.unit_inside == obj_.name:
-                ui.kill()
-                obj_.in_slot = False
-                selected_towers.remove(obj_)
-                select_towers_preview_group.remember_entities.remove(obj_)
+def random_add_to_slots():    # жестко пофиксить
+    all_towers = []
+    for tower in select_towers_preview_group.guide_entity:
+        if tower not in select_towers_preview_group.remember_entities:
+            all_towers.append(tower)
+    random_unit = choice(all_towers)
+    add_to_slots2(random_unit)
 
 
-def first_empty_slot(*blocked_slots):
-    if blocked_slots:
-        ui_pos_list = {160, 256, 352, 448, 544, 640, 736} - set(blocked_slots)
+def add_to_slots2(en, *blocked_slots_):    # жестко пофиксить
+    if len(select_towers_preview_group.remember_entities) <= 6 or en.in_slot:
+        if not en.in_slot:
+            UI((94, first_empty_slot(blocked_slots_)), "towers", en.name, towers_kd[en.name])
+            en.in_slot = True
+            select_towers_preview_group.remember_entities.append(en)
+        elif en.in_slot:
+            for ui in ui_group:
+                if ui.unit_inside == en.name:
+                    ui.kill()
+                    en.in_slot = False
+                    select_towers_preview_group.remember_entities.remove(en)
     else:
-        ui_pos_list = {160, 256, 352, 448, 544, 640, 736}
+        Alert("Закончились свободные слоты", (345, 760), 75)
+
+
+def first_empty_slot(blocked_slots_):
+    ui_pos_list = {160, 256, 352, 448, 544, 640, 736} - set(blocked_slots_)
     fill_pos = set()
     for ui in ui_group:
         if ui.rect.y in ui_pos_list:
             fill_pos.add(ui.rect.y)
 
     return min(ui_pos_list - fill_pos)
-
-
-def random_add_to_slots(*blocked_slots):    # жестко пофиксить
-    all_units = [tower.name for tower in select_towers_preview_group.guide_entity if tower.name not in selected_towers]
-    random_unit = choice(all_units)
-    for tower in select_towers_preview_group.guide_entity:
-        if tower.name == random_unit:
-            if blocked_slots:
-                add_to_slots2(tower, *blocked_slots)
-                select_towers_preview_group.remember_entities.append(tower)
-            else:
-                add_to_slots2(tower)
-                select_towers_preview_group.remember_entities.append(tower)
 
 
 def level_box_button_creator(button_number):
@@ -2081,7 +2076,7 @@ def menu_positioning():
                     game_state = "global_map"
         if level_select_button.click(screen, mouse_pos, (30, 540)):                     # 3 кнопка
             last_game_state = game_state
-            game_state = "global_map"
+            game_state = "level_select"
         if guide_button.click(screen, mouse_pos, (30, 620)):
             last_game_state = game_state
             game_state = "manual_menu"
@@ -2350,37 +2345,23 @@ def menu_positioning():
         select_towers_preview_group.check_hover(select_menu, offset_pos=(250, 150))
         if select_towers_preview_group.check_click(select_menu, offset_pos=(250, 150)):
             add_to_slots2(select_towers_preview_group.pushed_entity, *blocked_slots)
-            # add_to_slots()
-            print(select_towers_preview_group.pushed_entity.name)
         select_towers_preview_group.go_animation()
         select_towers_preview_group.custom_draw(select_menu)
-        # for i in range(1, len(tower_select_buttons) + 1):
-        #     line = int((i - 1) / 6)
-        #     column = (i - 1) % 6
-        #     if tower_select_buttons[i-1].click(select_menu, mouse_pos, (20 + 154 * column, 30 + (line * 154) + scroll_offset), offset_pos=(250, 150)):
-        #         add_to_slots(i-1, *blocked_slots)
-        #     if tower_select_buttons[i-1].windowed:      # + offset_pos не забудьте
-        #         select_menu.blit(tower_window, (20 + 154 * column, 30 + (line * 154) + scroll_offset))
-        #     if tower_select_buttons[i-1].on_hover(mouse_pos, (20 + 154 * column, 30 + (line * 154) + scroll_offset), offset_pos=(250, 150)):
-        #         screen.blit(font40.render(tower_select_buttons[i-1].unit_inside, True, (255, 255, 255)), (1285, 200))
-        #         screen.blit(font40.render("Цена:" + str(tower_costs[tower_select_buttons[i-1].unit_inside]), True, (255, 255, 255)), (1285, 280))   # пока [:-1] == название без цифры в конце
 
         if random_choice_button.click(screen, mouse_pos, (1248, 550)):
-            if len(selected_towers) == 7 - len(blocked_slots):
+            if len(select_towers_preview_group.remember_entities) == 7 - len(blocked_slots):
                 level.clear()
-                selected_towers.clear()
-                select_towers_preview_group.remember_entities.clear()
-            else:
-                for i in range(7 - len(blocked_slots)):
-                    random_add_to_slots(*blocked_slots)
+            for i in range(7 - len(select_towers_preview_group.remember_entities)):
+                random_add_to_slots(*blocked_slots)
 
         if start_level_button.click(screen, mouse_pos, (1265, 630)):
-            if len(selected_towers) == 7 - len(blocked_slots):
+            if len(select_towers_preview_group.remember_entities) == 7 - len(blocked_slots):
                 scroll_offset = 0
                 game_state = "run"
                 level.clear("ui_group")
                 level.state = "not_run"
                 continue_level = True
+                select_towers_preview_group.remember_entities.clear()
             else:
                 Alert("Остались свободные слоты", (400, 760), 75)
         if pause_button.click(screen, mouse_pos, (1550, 30)):
