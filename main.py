@@ -32,6 +32,8 @@ tower_window_common = image.load("images/other/tower_select_window_common.png").
 tower_window_spell = image.load("images/other/tower_select_window_spell.png").convert_alpha()
 line_ = image.load("images/other/line.png").convert_alpha()
 unknown_entity = image.load("images/other/unknown_entity.png").convert_alpha()
+game_map = image.load("images/maps/game_map.png").convert_alpha()
+ok = image.load("images/other/ok.png").convert_alpha()
 
 font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
 font35 = font.Font("fonts/ofont.ru_Nunito.ttf", 35)
@@ -79,13 +81,15 @@ class ModGroup(sprite.Group):
 
 
 class PreviewGroup(sprite.Group):
-    def __init__(self):
+    def __init__(self, supported_entity=("tower", "enemy")):
         super().__init__()
         self.guide_entity = []
         self.scroll_pos = 0
         self.hovered_entity = None
         self.pushed_entity = None
         self.turn = "towers"
+        self.supported_entities = supported_entity
+        self.remember_entities = []
 
     def add(self, *entity):
         for en in entity:
@@ -104,6 +108,18 @@ class PreviewGroup(sprite.Group):
         self.guide_entity.clear()
         self.scroll_pos = 0
 
+    def remember_entity(self):
+        if self.pushed_entity not in self.remember_entities:
+            self.remember_entities.append(self.pushed_entity)
+
+    def remove_remember_entity(self, obj_="pushed_entity"):
+        if obj_ == "pushed_entity":
+            if self.pushed_entity in self.remember_entities:
+                self.remember_entities.remove(self.pushed_entity)
+        else:
+            if obj_ in self.remember_entities:
+                self.remember_entities.remove(obj_)
+
     def custom_draw(self, surf, offset_pos=(0, 0)):
         for en in filter(self.filter_by_turn, self.guide_entity):
             en.rect = en.image.get_rect(topleft=(en.pos[0] + offset_pos[0], en.pos[1] + offset_pos[1]))
@@ -121,6 +137,11 @@ class PreviewGroup(sprite.Group):
                     surf.blit(tower_window_spell, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
             else:
                 surf.blit(tower_window_common, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
+
+            if en.pushed:
+                surf.blit(ok, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
+            if en in self.remember_entities:
+                surf.blit(ok, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
 
     def go_animation(self):
         for en in self.guide_entity:
@@ -194,8 +215,32 @@ class PreviewGroup(sprite.Group):
         if self.turn == "enemies":
             return isinstance(en, Enemy)
 
+    def entity_create(self, columns, indent=30):
+        if "tower" in self.supported_entities:
+            for i, tower_name in enumerate([*received_towers, *not_received_towers]):
+                line_ = int(i / columns)
+                column_ = (i % columns)
+                entity_ = Tower(tower_name, (indent + column_ * (128 + indent - 4), indent + (line_ * (128 + indent - 4))))  # 50, 100
+                if hasattr(entity_, "blackik"):
+                    entity_.blackik.kill()
+                buffs_group.empty()
+                self.add(entity_)
+        if "enemy" in self.supported_entities:
+            for i, enemy_name in enumerate([*encountered_enemies, *not_encountered_enemies]):
+                line_ = int((i / columns))
+                column_ = (i % columns)
+                entity_ = Enemy(enemy_name, (indent + column_ * (128 + indent - 4), indent + (line_ * (128 + indent - 4))))
+                self.add(entity_)
+
+    def refresh(self, columns, indent=30):
+        self.clear_()
+        self.entity_create(columns, indent)
+
     def __len__(self):
         return len(self.guide_entity)
+
+    def get_len_remembered(self):
+        return len(self.remember_entities)
 
 
 class TextSprite(sprite.Sprite):
@@ -355,8 +400,7 @@ class Level:
         else:
             Alert("Все враги известны", (100, 200), 75)
 
-        preview_group.clear_()
-        guide_entity_create()
+        preview_group.refresh(3)
         create_buttons()
         unlocked_levels = self.current_level + 1
         save_data()
@@ -409,6 +453,7 @@ class Tower(sprite.Sprite):
         self.state = "wait"         # потом будет "attack", "death" и какие придумаете
 
         self.pushed = False
+        self.in_slot = False
 
         # СТАТЫ начало
 
@@ -1223,7 +1268,6 @@ class Enemy(sprite.Sprite):
                     self.attack_range = self.attack_range2
                     self.image = image.load(f"images/enemies/{self.name}_zloy.png").convert_alpha()
 
-
     def move(self, change_pos):
         self.pos = self.pos[0], self.pos[1] + change_pos
         self.rect = self.image.get_rect(topleft=self.pos)
@@ -1344,6 +1388,9 @@ class Bullet(sprite.Sprite):
                     if enemy not in self.gazirovannie_group:
                         self.dealing_damage(enemy)
                         enemy.add(self.gazirovannie_group)
+                        if len(self.gazirovannie_group) >= 5:
+                            self.kill()
+                            break
 
         if self.name == 'ls' or self.name == 'explosion' or self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux":
             for enemy in enemies_group:
@@ -1834,8 +1881,30 @@ def add_to_slots(i, *blocked_slots):              # instant_select будет п
         else:
             UI((94, first_empty_slot()), "towers", tower_select_buttons[i].unit_inside, towers_kd[tower_select_buttons[i].unit_inside])
         selected_towers.append(tower_select_buttons[i].unit_inside)
+
     else:
         Alert("Закончились свободные слоты", (345, 760), 75)
+
+
+def add_to_slots2(obj_, *blocked_slots):    # жестко пофиксить
+    if not obj_.in_slot:
+        if len(selected_towers) <= 6 - len(blocked_slots):
+            if blocked_slots:
+                UI((94, first_empty_slot(*blocked_slots)), "towers", obj_.name, towers_kd[obj_.name])
+            else:
+                UI((94, first_empty_slot()), "towers", obj_.name, towers_kd[obj_.name])
+            selected_towers.append(obj_)
+            obj_.in_slot = True
+            select_towers_preview_group.remember_entities.append(obj_)
+        else:
+            Alert("Закончились свободные слоты", (345, 760), 75)
+    elif obj_.in_slot:
+        for ui in ui_group:
+            if ui.unit_inside == obj_.name:
+                ui.kill()
+                obj_.in_slot = False
+                selected_towers.remove(obj_)
+                select_towers_preview_group.remember_entities.remove(obj_)
 
 
 def first_empty_slot(*blocked_slots):
@@ -1851,15 +1920,17 @@ def first_empty_slot(*blocked_slots):
     return min(ui_pos_list - fill_pos)
 
 
-def random_add_to_slots(*blocked_slots):
-    all_units = [button.unit_inside for button in tower_select_buttons if button.unit_inside not in selected_towers]
+def random_add_to_slots(*blocked_slots):    # жестко пофиксить
+    all_units = [tower.name for tower in select_towers_preview_group.guide_entity if tower.name not in selected_towers]
     random_unit = choice(all_units)
-    for index, button in enumerate(tower_select_buttons):
-        if button.unit_inside == random_unit:
+    for tower in select_towers_preview_group.guide_entity:
+        if tower.name == random_unit:
             if blocked_slots:
-                add_to_slots(index, *blocked_slots)
+                add_to_slots2(tower, *blocked_slots)
+                select_towers_preview_group.remember_entities.append(tower)
             else:
-                add_to_slots(index)
+                add_to_slots2(tower)
+                select_towers_preview_group.remember_entities.append(tower)
 
 
 def level_box_button_creator(button_number):
@@ -1875,23 +1946,6 @@ def tower_select_button_creator(tower_name):
 
 def enemy_select_button_creator(enemy_name):
     return Button("img", f"enemies", enemy_name, windowed=True)      # пока не юзается
-
-
-def guide_entity_create():
-    for i, tower_name in enumerate([*received_towers, *not_received_towers]):
-        line_ = int(i / 3)
-        column_ = (i % 3)
-        entity_ = Tower(tower_name, (30 + 154 * column_, 30 + (line_ * 154)))  # 50, 100
-        if hasattr(entity_, "blackik"):
-            entity_.blackik.kill()
-        buffs_group.empty()
-        preview_group.add(entity_)
-
-    for i, enemy_name in enumerate([*encountered_enemies, *not_encountered_enemies]):
-        line_ = int((i / 3))
-        column_ = (i % 3)
-        entity_ = Enemy(enemy_name, (30 + 154 * column_, 30 + (line_ * 154)))
-        preview_group.add(entity_)
 
 
 def scroll_offset_min_max(min_offset, max_offset):
@@ -2024,10 +2078,10 @@ def menu_positioning():
                     game_state = "run"
                 else:
                     selected_towers.clear()
-                    game_state = "level_select"
+                    game_state = "global_map"
         if level_select_button.click(screen, mouse_pos, (30, 540)):                     # 3 кнопка
             last_game_state = game_state
-            game_state = "level_select"
+            game_state = "global_map"
         if guide_button.click(screen, mouse_pos, (30, 620)):
             last_game_state = game_state
             game_state = "manual_menu"
@@ -2043,9 +2097,8 @@ def menu_positioning():
         screen.blit(font60.render("Начать новую игру?", True, (255, 255, 255)), (507, 280))
 
         if accept_button.click(screen, mouse_pos, (620, 485)):
-            preview_group.clear_()
             upload_data(default=True)
-            guide_entity_create()
+            preview_group.refresh(3)
             create_buttons()
 
             last_game_state = game_state
@@ -2068,6 +2121,7 @@ def menu_positioning():
         # dirty_group.add(additional_menu, (1120, 150), 0)
         screen.blit(select_menu, (160, 150))      # (160, 150) и будет offset_pos
         # dirty_group.add(additional_menu, (160, 150), 0)
+        screen.blit(font60.render("Этой менюшки не будет", True, (0, 0, 0)), (500, 30))
         select_menu.blit(select_menu_copy, (0, 0))
         scroll_offset_min_max(-550, 0)
 
@@ -2092,7 +2146,7 @@ def menu_positioning():
                     select_menu.blit(font60.render(str(i), True, (255, 255, 255)), (108 + (228 * column), 90 + (line * 228) + scroll_offset))  # 108 + 10 можно
                 if 1 <= i // 10 <= 9:
                     select_menu.blit(font60.render(str(i), True, (255, 255, 255)), (90 + (228 * column), 90 + (line * 228) + scroll_offset))  # 90 + 10 можно
-                if level_box_buttons[i-1].check_hover(mouse_pos, (50 + 228 * column, 60 + (line * 228) + scroll_offset), offset_pos=(160, 150)):
+                if level_box_buttons[i-1].on_hover(mouse_pos, (50 + 228 * column, 60 + (line * 228) + scroll_offset), offset_pos=(160, 150)):
                     if len(levels) >= i:         # проверка есть ли уровень в списке
                         for index, enemy_name in enumerate(levels[i-1].allowed_enemies):
                             screen.blit(image.load(f"images/enemies/{enemy_name}.png"), (1100 + index * 80, 200))
@@ -2195,7 +2249,7 @@ def menu_positioning():
                 change_guide_turn_button.image = image.load("images/other/evil_coin.png").convert_alpha()
             preview_group.pushed_entity = list(filter(preview_group.filter_by_turn, preview_group.guide_entity))[0]
 
-    if game_state != "main_menu" and game_state != "main_settings_menu" and game_state != "level_select" and game_state != "manual_menu" and game_state != "yes_no_window":
+    if game_state != "main_menu" and game_state != "main_settings_menu" and game_state != "level_select" and game_state != "manual_menu" and game_state != "yes_no_window" and game_state != "global_map":
         screen.blit(level.image, (0, 0))
         if level.cheat:
             # screen.blit(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110))
@@ -2210,6 +2264,17 @@ def menu_positioning():
 
         all_sprites_group.custom_draw(screen)
         all_sprites_group.draw_other(screen)
+
+    if game_state == "global_map":
+        scroll_offset_min_max(-1600, 0)
+        screen.blit(game_map, (0 + scroll_offset, 0))
+
+        if temp_button_on_map.click(screen, mouse_pos, (2900 + scroll_offset, 780), col=(200, 0, 0)):
+            last_game_state = game_state
+            game_state = "level_select"
+
+        if back_button.click(screen, mouse_pos, (30 + scroll_offset, 780), col=(200, 0, 0)):
+            last_game_state, game_state = game_state, last_game_state
 
     if game_state == "run":
         game_state = level.update()
@@ -2252,10 +2317,10 @@ def menu_positioning():
     if game_state == "level_complited":
         screen.blit(menu, (480, 250))
         screen.blit(font60.render("Уровень пройден", True, (193, 8, 42)), (544, 280))
+        unlocked_levels = level.current_level + 1
         # give_level_reward()
         if next_level_button.click(screen, mouse_pos, (496, 360)):
             level.refresh()
-            unlocked_levels = level.current_level + 1
             level = levels[level.current_level]
             game_state = "tower_select"
         if restart_button.click(screen, mouse_pos, (582, 440)):
@@ -2264,6 +2329,7 @@ def menu_positioning():
             game_state = "tower_select"
             level.state = "not_run"
         if main_menu_button.click(screen, mouse_pos, (567, 520)):
+
             last_game_state = game_state
             game_state = "main_menu"
             level.state = "not_run"
@@ -2280,21 +2346,30 @@ def menu_positioning():
         if level.current_level == 2:
             blocked_slots = []
 
-        for i in range(1, len(tower_select_buttons) + 1):       
-            line = int((i - 1) / 6)
-            column = (i - 1) % 6
-            if tower_select_buttons[i-1].click(select_menu, mouse_pos, (20 + 154 * column, 30 + (line * 154) + scroll_offset), offset_pos=(250, 150)):
-                add_to_slots(i-1, *blocked_slots)
-            if tower_select_buttons[i-1].windowed:      # + offset_pos не забудьте
-                select_menu.blit(tower_window, (20 + 154 * column, 30 + (line * 154) + scroll_offset))
-            if tower_select_buttons[i-1].check_hover(mouse_pos, (20 + 154 * column, 30 + (line * 154) + scroll_offset), offset_pos=(250, 150)):
-                screen.blit(font40.render(tower_select_buttons[i-1].unit_inside, True, (255, 255, 255)), (1285, 200))
-                screen.blit(font40.render("Цена:" + str(tower_costs[tower_select_buttons[i-1].unit_inside]), True, (255, 255, 255)), (1285, 280))   # пока [:-1] == название без цифры в конце
+        select_towers_preview_group.move_element_by_scroll()
+        select_towers_preview_group.check_hover(select_menu, offset_pos=(250, 150))
+        if select_towers_preview_group.check_click(select_menu, offset_pos=(250, 150)):
+            add_to_slots2(select_towers_preview_group.pushed_entity, *blocked_slots)
+            # add_to_slots()
+            print(select_towers_preview_group.pushed_entity.name)
+        select_towers_preview_group.go_animation()
+        select_towers_preview_group.custom_draw(select_menu)
+        # for i in range(1, len(tower_select_buttons) + 1):
+        #     line = int((i - 1) / 6)
+        #     column = (i - 1) % 6
+        #     if tower_select_buttons[i-1].click(select_menu, mouse_pos, (20 + 154 * column, 30 + (line * 154) + scroll_offset), offset_pos=(250, 150)):
+        #         add_to_slots(i-1, *blocked_slots)
+        #     if tower_select_buttons[i-1].windowed:      # + offset_pos не забудьте
+        #         select_menu.blit(tower_window, (20 + 154 * column, 30 + (line * 154) + scroll_offset))
+        #     if tower_select_buttons[i-1].on_hover(mouse_pos, (20 + 154 * column, 30 + (line * 154) + scroll_offset), offset_pos=(250, 150)):
+        #         screen.blit(font40.render(tower_select_buttons[i-1].unit_inside, True, (255, 255, 255)), (1285, 200))
+        #         screen.blit(font40.render("Цена:" + str(tower_costs[tower_select_buttons[i-1].unit_inside]), True, (255, 255, 255)), (1285, 280))   # пока [:-1] == название без цифры в конце
 
         if random_choice_button.click(screen, mouse_pos, (1248, 550)):
             if len(selected_towers) == 7 - len(blocked_slots):
                 level.clear()
                 selected_towers.clear()
+                select_towers_preview_group.remember_entities.clear()
             else:
                 for i in range(7 - len(blocked_slots)):
                     random_add_to_slots(*blocked_slots)
@@ -2333,7 +2408,6 @@ def menu_positioning():
 
         if unlock_all_button.click(screen, mouse_pos, (600, 420)):
             unlock_all_button.ok = True
-            preview_group.clear_()
 
             for tower in not_received_towers:
                 received_towers.append(tower)
@@ -2345,7 +2419,7 @@ def menu_positioning():
 
             unlocked_levels = 5
             # guide_group.clear_()
-            guide_entity_create()
+            preview_group.refresh(3)
             create_buttons()
             print("all_unlocked")
 
@@ -2380,6 +2454,7 @@ clouds_group = sprite.Group()
 alert_group = sprite.Group()
 level_group = sprite.Group()
 preview_group = PreviewGroup()
+select_towers_preview_group = PreviewGroup(supported_entity="tower")
 
 pause_button = Button("text", font40, "||",)
 restart_button = Button("text", font60, "Перезапустить")
@@ -2399,6 +2474,7 @@ change_guide_turn_button = Button("img", "other", "city_coin")
 accept_button = Button("text", font60, "Да")
 deny_button = Button("text", font60, "Нет")
 unlock_all_button = Button("text", font60, "Открыть всё")
+temp_button_on_map = Button("text", font60, "Играть")
 
 TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death", "cheat", "settings_menu"))
 level_number = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
@@ -2445,8 +2521,9 @@ if not error_:
               Level(*levels_config[5])]
     level = levels[0]
 
-    guide_entity_create()
+    preview_group.entity_create(3)
 
+    select_towers_preview_group.entity_create(6)
 
 active_obj = None
 running = not error_
@@ -2472,7 +2549,7 @@ while running:
     clock.tick(75)
     display.update()
     for e in event.get():
-        if e.type == MOUSEWHEEL and (game_state == "level_select" or game_state == "tower_select" or game_state == "manual_menu"):
+        if e.type == MOUSEWHEEL and (game_state == "level_select" or game_state == "tower_select" or game_state == "manual_menu" or game_state == "global_map"):
             scroll_offset += e.y * 50
             # scroll_pos = mouse_pos    # пока что забью
         if e.type == KEYDOWN:
