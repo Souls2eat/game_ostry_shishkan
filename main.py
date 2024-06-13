@@ -19,10 +19,10 @@ additional_menu = image.load("images/menu/additional_menu.png").convert_alpha()
 guide_menu = image.load("images/menu/guide_menu.png").convert_alpha()
 select_menu = image.load("images/menu/level_select_menu.png").convert_alpha()
 select_menu_copy = select_menu.__copy__()
-entity_guide_menu = image.load("images/menu/entity_guide_menu.png").convert_alpha()
-entity_guide_menu_copy = entity_guide_menu.__copy__()
-modification_guide_menu = image.load("images/menu/modification_guide_menu.png").convert_alpha()
-modification_guide_menu_copy = modification_guide_menu.__copy__()
+entity_preview_menu = image.load("images/menu/entity_guide_menu.png").convert_alpha()
+entity_preview_menu_copy = entity_preview_menu.__copy__()
+modification_preview_menu = image.load("images/menu/modification_guide_menu.png").convert_alpha()
+modification_preview_menu_copy = modification_preview_menu.__copy__()
 level_box = image.load("images/menu/level_box.png").convert_alpha()
 amogus = image.load("images/other/amogus!!!.png").convert_alpha()
 cursor = image.load("images/other/cursor.png").convert_alpha()
@@ -49,15 +49,6 @@ scroll_offset = 0
 current_scroll_offset_state = game_state
 level = sprite.Sprite       # не юзается, но и не ругается
 continue_level = False
-
-
-# with open("save.txt", "r", encoding="utf-8") as file:
-#     new_game = file.readline().strip().split()[2]               # получить значение переменной
-#     unlocked_levels = int(file.readline().strip().split()[2])
-#     if new_game.lower() == "true":
-#         new_game = True
-#     else:
-#         new_game = False
 
 
 class ModGroup(sprite.Group):
@@ -87,7 +78,7 @@ class ModGroup(sprite.Group):
                 obj_.draw3(surf)
 
 
-class GuideGroup(sprite.Group):
+class PreviewGroup(sprite.Group):
     def __init__(self):
         super().__init__()
         self.guide_entity = []
@@ -139,12 +130,12 @@ class GuideGroup(sprite.Group):
                 en.state = "wait"
             en.animation()
 
-    def scroll_move(self):
+    def move_element_by_scroll(self):
         for en in self.guide_entity:
             en.move(scroll_offset - self.scroll_pos)
         self.scroll_pos = scroll_offset
 
-    def on_hover(self, surf, offset_pos=(0, 0)):
+    def check_hover(self, surf, offset_pos=(0, 0)):
         surf_width = surf.get_width()
         surf_height = surf.get_height()
         on_surf = surf_width + offset_pos[0] > mouse_pos[0] > offset_pos[0] and surf_height + offset_pos[1] > mouse_pos[1] > offset_pos[1]
@@ -156,7 +147,7 @@ class GuideGroup(sprite.Group):
         self.hovered_entity = None
         return False
 
-    def on_click(self, surf, offset_pos=(0, 0)):
+    def check_click(self, surf, offset_pos=(0, 0)):
         surf_width = surf.get_width()
         surf_height = surf.get_height()
         on_surf = surf_width + offset_pos[0] > mouse_pos[0] > offset_pos[0] and surf_height + offset_pos[1] > mouse_pos[1] > offset_pos[1]
@@ -174,7 +165,7 @@ class GuideGroup(sprite.Group):
         return False
 
     def get_max_damage_per_sec(self):       # добавить 2 кд 2 атаку и белый список мб
-        return self.get_damage_per_sec(sorted(filter(self.filter_by_turn, self.guide_entity), key=GuideGroup.get_damage_per_sec)[-1])
+        return self.get_damage_per_sec(sorted(filter(self.filter_by_turn, self.guide_entity), key=PreviewGroup.get_damage_per_sec)[-1])
 
     @staticmethod
     def get_damage_per_sec(obj_):
@@ -364,7 +355,7 @@ class Level:
         else:
             Alert("Все враги известны", (100, 200), 75)
 
-        guide_group.clear_()
+        preview_group.clear_()
         guide_entity_create()
         create_buttons()
         unlocked_levels = self.current_level + 1
@@ -1894,13 +1885,13 @@ def guide_entity_create():
         if hasattr(entity_, "blackik"):
             entity_.blackik.kill()
         buffs_group.empty()
-        guide_group.add(entity_)
+        preview_group.add(entity_)
 
     for i, enemy_name in enumerate([*encountered_enemies, *not_encountered_enemies]):
         line_ = int((i / 3))
         column_ = (i % 3)
         entity_ = Enemy(enemy_name, (30 + 154 * column_, 30 + (line_ * 154)))
-        guide_group.add(entity_)
+        preview_group.add(entity_)
 
 
 def scroll_offset_min_max(min_offset, max_offset):
@@ -1981,7 +1972,7 @@ def create_buttons():
 
 def draw_info(pos, current_value, max_value, reversed_=False):       # (196, 380)
     w = 60  # а то ругается
-    draw.rect(modification_guide_menu, (200, 0, 0), (*pos, 300, 35))
+    draw.rect(modification_preview_menu, (200, 0, 0), (*pos, 300, 35))
     if current_value != 0:
         current_value *= 10
         max_value *= 10
@@ -1989,12 +1980,12 @@ def draw_info(pos, current_value, max_value, reversed_=False):       # (196, 380
             w = 60 * max(int(current_value / (max_value / 5)), 1)       # int, max и 1 убрать и будут не целые квадраты
         if reversed_:
             w = 60 * (6 - max(int(current_value / (max_value / 5)), 1))
-        draw.rect(modification_guide_menu, (0, 200, 0), (*pos, w, 35))
+        draw.rect(modification_preview_menu, (0, 200, 0), (*pos, w, 35))
         for i in range(1, 5):
-            draw.line(modification_guide_menu, (0, 0, 0), (pos[0] + (60 * i), pos[1]), (pos[0] + (60 * i), pos[1] + 34), 5)
+            draw.line(modification_preview_menu, (0, 0, 0), (pos[0] + (60 * i), pos[1]), (pos[0] + (60 * i), pos[1] + 34), 5)
     else:
-        draw.rect(modification_guide_menu, (128, 128, 128), (*pos, 300, 35))
-    draw.rect(modification_guide_menu, (0, 0, 0), (*pos, 300, 35), 5)
+        draw.rect(modification_preview_menu, (128, 128, 128), (*pos, 300, 35))
+    draw.rect(modification_preview_menu, (0, 0, 0), (*pos, 300, 35), 5)
 
 
 def menu_positioning():
@@ -2039,7 +2030,7 @@ def menu_positioning():
             game_state = "level_select"
         if guide_button.click(screen, mouse_pos, (30, 620)):
             last_game_state = game_state
-            game_state = "guide_menu"
+            game_state = "manual_menu"
         if settings_button.click(screen, mouse_pos, (30, 700)):                         # 4 кнопка
             last_game_state = game_state
             game_state = "settings_menu"
@@ -2052,7 +2043,7 @@ def menu_positioning():
         screen.blit(font60.render("Начать новую игру?", True, (255, 255, 255)), (507, 280))
 
         if accept_button.click(screen, mouse_pos, (620, 485)):
-            guide_group.clear_()
+            preview_group.clear_()
             upload_data(default=True)
             guide_entity_create()
             create_buttons()
@@ -2101,7 +2092,7 @@ def menu_positioning():
                     select_menu.blit(font60.render(str(i), True, (255, 255, 255)), (108 + (228 * column), 90 + (line * 228) + scroll_offset))  # 108 + 10 можно
                 if 1 <= i // 10 <= 9:
                     select_menu.blit(font60.render(str(i), True, (255, 255, 255)), (90 + (228 * column), 90 + (line * 228) + scroll_offset))  # 90 + 10 можно
-                if level_box_buttons[i-1].on_hover(mouse_pos, (50 + 228 * column, 60 + (line * 228) + scroll_offset), offset_pos=(160, 150)):
+                if level_box_buttons[i-1].check_hover(mouse_pos, (50 + 228 * column, 60 + (line * 228) + scroll_offset), offset_pos=(160, 150)):
                     if len(levels) >= i:         # проверка есть ли уровень в списке
                         for index, enemy_name in enumerate(levels[i-1].allowed_enemies):
                             screen.blit(image.load(f"images/enemies/{enemy_name}.png"), (1100 + index * 80, 200))
@@ -2109,99 +2100,102 @@ def menu_positioning():
         if back_button.click(screen, mouse_pos, (1190, 630)):
             game_state = last_game_state
 
-    if game_state == "guide_menu":
+    if game_state == "manual_menu":
         screen.blit(guide_menu, (0, 0))
-        guide_menu.blit(entity_guide_menu, (250, 120))      # 50 100 пофиксить/вырезать нафиг
-        entity_guide_menu.blit(entity_guide_menu_copy, (0, 0))
+        guide_menu.blit(entity_preview_menu, (250, 120))      # 50 100 пофиксить/вырезать нафиг
+        entity_preview_menu.blit(entity_preview_menu_copy, (0, 0))
         screen.blit(font50.render("Справочник", True, (0, 0, 0)), (370, 60))
         # draw.line(modification_guide_menu, (0, 0, 0), (10, 280), (650, 280), 15)
-        modification_guide_menu.blit(line_, (0, 275))
+        modification_preview_menu.blit(line_, (0, 275))
         scroll_offset_min_max(-600, 0)
-        offset = (250, 120)
+        menu_offset = (250, 120)
 
-        guide_group.scroll_move()
-        guide_group.go_animation()
+        preview_group.move_element_by_scroll()
+        preview_group.go_animation()
 
-        if guide_group.on_hover(entity_guide_menu, offset_pos=offset):
-            pass
+        preview_group.check_hover(entity_preview_menu, offset_pos=menu_offset)
+        preview_group.check_click(entity_preview_menu, offset_pos=menu_offset)
 
-        if guide_group.on_click(entity_guide_menu, offset_pos=offset):
-            pass
+        if preview_group.pushed_entity.name in received_towers or preview_group.pushed_entity.name in encountered_enemies:
+            screen.blit(font50.render(f"{str(preview_group.pushed_entity.name):^34}", True, (0, 0, 0)), (800, 60))    # 960 60
+        else:
+            screen.blit(font50.render("???", True, (0, 0, 0)), (1030, 60))
+        screen.blit(modification_preview_menu, (830, 120))
+        modification_preview_menu.blit(modification_preview_menu_copy, (0, 0))
 
-        if guide_group.pushed_entity:
-            screen.blit(font50.render(f"{str(guide_group.pushed_entity.name):^34}", True, (0, 0, 0)), (800, 60))    # 960 60
-            screen.blit(modification_guide_menu, (830, 120))
-            modification_guide_menu.blit(modification_guide_menu_copy, (0, 0))
+        modification_preview_menu.blit(font35.render("ХП", True, (0, 0, 0)), (10, 302))
+        if hasattr(preview_group.pushed_entity, "hp") and (preview_group.pushed_entity.name in received_towers or preview_group.pushed_entity.name in encountered_enemies):
+            draw_info((196, 310), preview_group.pushed_entity.hp, preview_group.get_max_hp())
+        else:
+            draw_info((196, 310), 0, 0)
 
-            modification_guide_menu.blit(font35.render("ХП", True, (0, 0, 0)), (10, 302))
-            if hasattr(guide_group.pushed_entity, "hp"):
-                draw_info((196, 310), guide_group.pushed_entity.hp, guide_group.get_max_hp())
+        modification_preview_menu.blit(font35.render("Урон", True, (0, 0, 0)), (10, 352))
+        if hasattr(preview_group.pushed_entity, "atk") and (preview_group.pushed_entity.name in received_towers or preview_group.pushed_entity.name in encountered_enemies):
+            draw_info((196, 360), preview_group.get_damage_per_sec(preview_group.pushed_entity), preview_group.get_max_damage_per_sec())
+        else:
+            draw_info((196, 360), 0, 0)
+
+        if preview_group.turn == "towers":
+            modification_preview_menu.blit(font35.render("Кд", True, (0, 0, 0)), (10, 402))
+            if preview_group.pushed_entity.name in towers_kd and (preview_group.pushed_entity.name in received_towers or preview_group.pushed_entity.name in encountered_enemies):
+                draw_info((196, 410), towers_kd[preview_group.pushed_entity.name], max(towers_kd.values()), reversed_=True)
             else:
-                draw_info((196, 310), 0, 0)
+                draw_info((196, 410), 0, 0)
 
-            modification_guide_menu.blit(font35.render("Урон", True, (0, 0, 0)), (10, 352))
-            if hasattr(guide_group.pushed_entity, "atk"):
-                draw_info((196, 360), guide_group.get_damage_per_sec(guide_group.pushed_entity), guide_group.get_max_damage_per_sec())
+            modification_preview_menu.blit(font35.render("Цена", True, (0, 0, 0)), (10, 452))
+            if preview_group.pushed_entity.name in tower_costs and (preview_group.pushed_entity.name in received_towers or preview_group.pushed_entity.name in encountered_enemies):
+                modification_preview_menu.blit(font40.render(str(tower_costs[preview_group.pushed_entity.name]), True, (0, 0, 0)), (450, 450))
+                # draw_info((196, 460), tower_costs[guide_group.pushed_entity.name], max(tower_costs.values()), reversed_=True)
             else:
-                draw_info((196, 360), 0, 0)
+                draw_info((196, 460), 0, 0)
 
-            if guide_group.turn == "towers":
-                modification_guide_menu.blit(font35.render("Кд", True, (0, 0, 0)), (10, 402))
-                if guide_group.pushed_entity.name in towers_kd:
-                    draw_info((196, 410), towers_kd[guide_group.pushed_entity.name], max(towers_kd.values()), reversed_=True)
+            modification_preview_menu.blit(font35.render("Редкость", True, (0, 0, 0)), (10, 502))
+            if hasattr(preview_group.pushed_entity, "rarity"):    # просто слева автоматически не рисовалось
+                if preview_group.pushed_entity.rarity == "legendary":
+                    modification_preview_menu.blit(font40.render(f"{preview_group.pushed_entity.rarity}", True, (255, 210, 0)), (310, 497))
+                if preview_group.pushed_entity.rarity == "common":
+                    modification_preview_menu.blit(font40.render(f"{preview_group.pushed_entity.rarity}", True, (0, 200, 0)), (340, 497))
+                if preview_group.pushed_entity.rarity == "spell":
+                    modification_preview_menu.blit(font40.render(f"{preview_group.pushed_entity.rarity}", True, (0, 0, 200)), (400, 497))
+            else:
+                draw_info((196, 510), 0, 0)
+
+            modification_preview_menu.blit(line_, (0, 560))
+
+        if preview_group.turn == "enemies":
+            modification_preview_menu.blit(font35.render("Скорость", True, (0, 0, 0)), (10, 402))
+            if hasattr(preview_group.pushed_entity, "speed") and (preview_group.pushed_entity.name in received_towers or preview_group.pushed_entity.name in encountered_enemies):
+                draw_info((196, 410), preview_group.pushed_entity.speed, preview_group.get_max_speed())
+            else:
+                draw_info((196, 410), 0, 0)
+
+            modification_preview_menu.blit(font35.render("Дальность", True, (0, 0, 0)), (10, 452))
+            if hasattr(preview_group.pushed_entity, "attack_range") and (preview_group.pushed_entity.name in received_towers or preview_group.pushed_entity.name in encountered_enemies):
+                if preview_group.pushed_entity.attack_range == 0:
+                    modification_preview_menu.blit(font40.render("Рукопашная", True, (0, 0, 0)), (257, 447))
                 else:
-                    draw_info((196, 410), 0, 0)
+                    draw_info((196, 460), preview_group.pushed_entity.attack_range, preview_group.get_max_attack_range())
+            else:
+                draw_info((196, 460), 0, 0)
 
-                modification_guide_menu.blit(font35.render("Цена", True, (0, 0, 0)), (10, 452))
-                if guide_group.pushed_entity.name in tower_costs:
-                    modification_guide_menu.blit(font40.render(str(tower_costs[guide_group.pushed_entity.name]), True, (0, 0, 0)), (450, 450))
-                    # draw_info((196, 460), tower_costs[guide_group.pushed_entity.name], max(tower_costs.values()), reversed_=True)
-                else:
-                    draw_info((196, 460), 0, 0)
+            modification_preview_menu.blit(line_, (0, 510))
 
-                modification_guide_menu.blit(font35.render("Редкость", True, (0, 0, 0)), (10, 502))
-                if hasattr(guide_group.pushed_entity, "rarity"):    # просто слева автоматически не рисовалось
-                    if guide_group.pushed_entity.rarity == "legendary":
-                        modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (255, 210, 0)), (310, 497))
-                    if guide_group.pushed_entity.rarity == "common":
-                        modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (0, 200, 0)), (340, 497))
-                    if guide_group.pushed_entity.rarity == "spell":
-                        modification_guide_menu.blit(font40.render(f"{guide_group.pushed_entity.rarity}", True, (0, 0, 200)), (400, 497))
-                else:
-                    draw_info((196, 510), 0, 0)
-
-                modification_guide_menu.blit(line_, (0, 560))
-
-            if guide_group.turn == "enemies":
-                modification_guide_menu.blit(font35.render("Скорость", True, (0, 0, 0)), (10, 402))
-                if hasattr(guide_group.pushed_entity, "speed"):
-                    draw_info((196, 410), guide_group.pushed_entity.speed, guide_group.get_max_speed())
-
-                modification_guide_menu.blit(font35.render("Дальность", True, (0, 0, 0)), (10, 452))
-                if hasattr(guide_group.pushed_entity, "attack_range"):
-                    if guide_group.pushed_entity.attack_range == 0:
-                        modification_guide_menu.blit(font40.render("Рукопашная", True, (0, 0, 0)), (257, 447))
-                    else:
-                        draw_info((196, 460), guide_group.pushed_entity.attack_range, guide_group.get_max_attack_range())
-
-                modification_guide_menu.blit(line_, (0, 510))
-
-        guide_group.custom_draw(entity_guide_menu, offset_pos=offset)
+        preview_group.custom_draw(entity_preview_menu, offset_pos=menu_offset)
 
         if back_button.click(screen, mouse_pos, (1000, 750)):
             game_state, last_game_state = last_game_state, game_state
             scroll_offset = 0
 
         if change_guide_turn_button.click(screen, mouse_pos, (1280, 90)):
-            if guide_group.turn == "enemies":
-                guide_group.turn = "towers"
+            if preview_group.turn == "enemies":
+                preview_group.turn = "towers"
                 change_guide_turn_button.image = image.load("images/other/city_coin.png").convert_alpha()
             else:
-                guide_group.turn = "enemies"
+                preview_group.turn = "enemies"
                 change_guide_turn_button.image = image.load("images/other/evil_coin.png").convert_alpha()
-            guide_group.pushed_entity = list(filter(guide_group.filter_by_turn, guide_group.guide_entity))[0]
+            preview_group.pushed_entity = list(filter(preview_group.filter_by_turn, preview_group.guide_entity))[0]
 
-    if game_state != "main_menu" and game_state != "main_settings_menu" and game_state != "level_select" and game_state != "guide_menu" and game_state != "yes_no_window":
+    if game_state != "main_menu" and game_state != "main_settings_menu" and game_state != "level_select" and game_state != "manual_menu" and game_state != "yes_no_window":
         screen.blit(level.image, (0, 0))
         if level.cheat:
             # screen.blit(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110))
@@ -2293,7 +2287,7 @@ def menu_positioning():
                 add_to_slots(i-1, *blocked_slots)
             if tower_select_buttons[i-1].windowed:      # + offset_pos не забудьте
                 select_menu.blit(tower_window, (20 + 154 * column, 30 + (line * 154) + scroll_offset))
-            if tower_select_buttons[i-1].on_hover(mouse_pos, (20 + 154 * column, 30 + (line * 154) + scroll_offset), offset_pos=(250, 150)):
+            if tower_select_buttons[i-1].check_hover(mouse_pos, (20 + 154 * column, 30 + (line * 154) + scroll_offset), offset_pos=(250, 150)):
                 screen.blit(font40.render(tower_select_buttons[i-1].unit_inside, True, (255, 255, 255)), (1285, 200))
                 screen.blit(font40.render("Цена:" + str(tower_costs[tower_select_buttons[i-1].unit_inside]), True, (255, 255, 255)), (1285, 280))   # пока [:-1] == название без цифры в конце
 
@@ -2339,7 +2333,7 @@ def menu_positioning():
 
         if unlock_all_button.click(screen, mouse_pos, (600, 420)):
             unlock_all_button.ok = True
-            guide_group.clear_()
+            preview_group.clear_()
 
             for tower in not_received_towers:
                 received_towers.append(tower)
@@ -2385,7 +2379,7 @@ all_sprites_group = ModGroup()
 clouds_group = sprite.Group()
 alert_group = sprite.Group()
 level_group = sprite.Group()
-guide_group = GuideGroup()
+preview_group = PreviewGroup()
 
 pause_button = Button("text", font40, "||",)
 restart_button = Button("text", font60, "Перезапустить")
@@ -2478,7 +2472,7 @@ while running:
     clock.tick(75)
     display.update()
     for e in event.get():
-        if e.type == MOUSEWHEEL and (game_state == "level_select" or game_state == "tower_select" or game_state == "guide_menu"):
+        if e.type == MOUSEWHEEL and (game_state == "level_select" or game_state == "tower_select" or game_state == "manual_menu"):
             scroll_offset += e.y * 50
             # scroll_pos = mouse_pos    # пока что забью
         if e.type == KEYDOWN:
@@ -2571,10 +2565,5 @@ while running:
                                     if hasattr(obj, "bullet"):
                                         obj.bullet.kill()
                                     obj.kill()
-
-# with open("save.txt", "w", encoding="utf-8") as file:
-#     new_game = True
-#     file.write("new_game = " + str(new_game) + "\n")
-#     file.write("unlocked_levels = " + str(unlocked_levels))
 if not error_:
     save_data()
