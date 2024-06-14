@@ -108,8 +108,8 @@ targets = {}
 
 # level_number, level_time, time_to_spawn, start_money, waves: dict, allowed_enemies: tuple, allowed_cords=(192, 320, 448, 576, 704
 #
-levels_config = {1: [1, 22500, 750, 50, level_1_waves, ("popusk", "josky")],
-                 2: [2, 22500, 575, 50, level_2_waves, ("josky", "sigma", "sportik", "popusk")],
-                 3: [3, 22500, 500, 50, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk")],
-                 4: [4, 22500, 225, 50, level_4_waves, ("telezhnik", "rojatel", "sigma", "armorik", "zeleniy_strelok", "drobik")],
-                 5: [5, 31500, 225, 50, level_5_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik")]}
+levels_config = {"1": [1, 22500, 750, 50, level_1_waves, ("popusk", "josky")],
+                 "2": [2, 22500, 575, 50, level_2_waves, ("josky", "sigma", "sportik", "popusk")],
+                 "3": [3, 22500, 500, 50, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk")],
+                 "4": [4, 22500, 225, 50, level_4_waves, ("telezhnik", "rojatel", "sigma", "armorik", "zeleniy_strelok", "drobik")],
+                 "5": [5, 31500, 225, 50, level_5_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik")]}
