@@ -351,7 +351,7 @@ class Level:
 
     @staticmethod
     def spawn():
-        UI((1500, 800), "shovel", "lopata")
+        UI((1500, 800), "shovel", "lopata", False)
         selected_towers.clear()
 
         Cloud((1000, 100))
@@ -454,6 +454,7 @@ class Tower(sprite.Sprite):
         self.have_barrier = False
         self.barrier = None
         self.stack = False
+        self.free_placement = False
 
         self.time_indicator = 1
         self.anim_tasks = []     # можно было и диктом, но я как то не захотел
@@ -478,7 +479,7 @@ class Tower(sprite.Sprite):
 
         if self.name == 'boomchick':  
             self.hp = 200
-            self.atk = 10  # типа по кому попадёт получит 40 а остальные по 20
+            self.atk = 10  # типа по кому попадёт получит 20 а остальные по 10
             self.bullet_speed_x = 4
             self.bullet_speed_y = 0
             self.attack_cooldown = self.basic_attack_cooldown = 150
@@ -600,7 +601,7 @@ class Tower(sprite.Sprite):
             self.knight_hp = 1500                 # nuka_kusni
             self.horse_hp = 1500  # уменьшить отхилл рыцарю
             self.hp = self.knight_hp + self.horse_hp
-            self.atk = 20  # надо сделать атаку на 2 клетки вперёд, а не на одну
+            self.atk = 20
             self.taran_atk = 400
             self.attack_cooldown = self.basic_attack_cooldown = 150
             self.damage_type = ''
@@ -608,7 +609,7 @@ class Tower(sprite.Sprite):
 
         if self.name == "knight":
             self.hp = 1500
-            self.atk = 20  # надо сделать атаку на 1 клетки вперёд, а не на две
+            self.atk = 20
             self.attack_cooldown = self.basic_attack_cooldown = 150
             self.damage_type = ''
             self.rarity = "legendary"
@@ -656,10 +657,12 @@ class Tower(sprite.Sprite):
         if self.name == 'gnome_cannon2':
             self.max_hp = 2500   # сделать чтобы хиллилась каждую секунду
             self.hp = 2500
+            self.heal = 10
             self.atk = 150
             self.bullet_speed_x = 10
             self.bullet_speed_y = 0
             self.attack_cooldown = self.basic_attack_cooldown = 450
+            self.healing_cooldown = self.basic_healing_cooldown = 75
             self.damage_type = ''
             self.stack = "gnome_cannon"
             self.rarity = "legendary"
@@ -667,10 +670,12 @@ class Tower(sprite.Sprite):
         if self.name == 'gnome_cannon3':
             self.max_hp = 2500
             self.hp = 2500
+            self.heal = 10
             self.atk = 150
             self.bullet_speed_x = 10
             self.bullet_speed_y = 0
             self.attack_cooldown = self.basic_attack_cooldown = 375
+            self.healing_cooldown = self.basic_healing_cooldown = 75
             self.damage_type = ''
             self.stack = "gnome_cannon"
             self.rarity = "legendary"
@@ -724,15 +729,18 @@ class Tower(sprite.Sprite):
         if self.name == 'perec':
             self.hp = 0
             self.atk = 700
+            self.free_placement = True
             self.damage_type = ''
             self.rarity = "spell"
 
         if self.name == 'vodka':
             self.hp = 0  # надо сделать предел усиления (3 сек)
+            self.free_placement = True
             self.rarity = "spell"
 
         if self.name == 'easy_money':
             self.hp = 0
+            self.free_placement = True
             self.rarity = "spell"
 
         if self.name == 'vistrel':
@@ -740,11 +748,13 @@ class Tower(sprite.Sprite):
             self.atk = 30
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
+            self.free_placement = True
             self.damage_type = ''
             self.rarity = "spell"
 
         if self.name == 'tp_back':
             self.hp = 0
+            self.free_placement = True
             self.rarity = "spell"
 
         # СТАТЫ конец
@@ -869,9 +879,16 @@ class Tower(sprite.Sprite):
                 if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.x >= self.rect.x and enemy.alive and enemy.rect.x - self.rect.x <= 256:
                     return enemy
 
-        if self.name == "drachun" or self.name == "tolkan" or self.name == "knight_on_horse" or self.name == "knight":
+        if self.name == "drachun" or self.name == "tolkan" or self.name == "knight":
             for enemy in enemies_group:
                 if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256 and enemy.alive:
+                    return enemy
+            else:
+                self.time_indicator = 1
+
+        if self.name == "knight_on_horse":
+            for enemy in enemies_group:
+                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 384 and enemy.alive:
                     return enemy
             else:
                 self.time_indicator = 1
@@ -990,7 +1007,10 @@ class Tower(sprite.Sprite):
             else:
                 self.push = self.ottalkivanie_solo
 
-        if self.name == "knight_on_horse" or self.name == "knight":
+        if self.name == "knight_on_horse":
+            Bullet("big_pike", self.rect.centerx + 192, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self)
+
+        if self.name == "knight":
             Bullet("pike", self.rect.centerx + 128, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self)
 
         if self.name == "gnome_flamethrower":
@@ -1120,6 +1140,13 @@ class Tower(sprite.Sprite):
                 self.spawn_something_cooldown = self.basic_spawn_something_cooldown
                 self.add_anim_task("give", self.spawn_something)
 
+        if hasattr(self, "healing_cooldown"):
+            if self.healing_cooldown >= 0:
+                self.healing_cooldown -= 1
+            else:
+                self.healing_cooldown = self.basic_healing_cooldown
+                if self.hp <= (self.max_hp - self.heal):
+                    self.hp += self.heal
         
 
     def update(self):
@@ -1681,7 +1708,12 @@ class Buff(sprite.Sprite):
                         or tower.name == "gnome_cannon2"\
                         or tower.name == "gnome_cannon3":
 
-                        tower.basic_attack_cooldown //= 2
+                        if tower.basic_attack_cooldown // 2 <= 225:
+                            tower.basic_attack_cooldown //= 2
+                            self.max_buff = False
+                        else:
+                            tower.basic_attack_cooldown -= 225
+                            self.max_buff = True
                         tower.time_indicator *= 2
                         if tower.name == 'kopitel':
                             tower.basic_spawn_something_cooldown //= 2
@@ -1697,7 +1729,12 @@ class Buff(sprite.Sprite):
             if nekusaemiy not in self.buffed_towers:
                 if self.rect.collidepoint(nekusaemiy.rect.centerx, nekusaemiy.rect.centery):
                     if nekusaemiy.name == 'spike' or nekusaemiy.name == 'pukish':
-                        nekusaemiy.basic_attack_cooldown //= 2
+                        if nekusaemiy.basic_attack_cooldown // 2 <= 225:
+                            nekusaemiy.basic_attack_cooldown //= 2
+                            self.max_buff = False
+                        else:
+                            nekusaemiy.basic_attack_cooldown -= 225
+                            self.max_buff = True
                         nekusaemiy.time_indicator *= 2
                         nekusaemiy.add(self.buffed_towers)
 
@@ -1728,7 +1765,10 @@ class Buff(sprite.Sprite):
                         or tower.name == "gnome_cannon1"\
                         or tower.name == "gnome_cannon2"\
                         or tower.name == "gnome_cannon3":
-                    tower.basic_attack_cooldown *= 2
+                    if self.max_buff == False:
+                        tower.basic_attack_cooldown *= 2
+                    else:
+                        tower.basic_attack_cooldown += 225
                     tower.time_indicator //= 2
                     if tower.name == 'kopitel':
                         tower.basic_spawn_something_cooldown *= 2
@@ -1765,7 +1805,7 @@ class Buff(sprite.Sprite):
 
 
 class UI(sprite.Sprite):
-    def __init__(self, pos, path, unit_inside, kd_time=0):
+    def __init__(self, pos, path, unit_inside, free_placement, kd_time=0):
         super().__init__(ui_group, all_sprites_group)
         self.image = image.load(f"images/{path}/images_inside/{unit_inside}_inside.png").convert_alpha()
         self.pos = pos
@@ -1775,6 +1815,7 @@ class UI(sprite.Sprite):
         self.rect3 = self.image3.get_rect(topleft=self.default_pos)
         self.path = path
         self.unit_inside = unit_inside
+        self.free_placement = free_placement
         self.is_move = False
         self.kd_time = 0
         self.default_kd_time = kd_time
@@ -1922,7 +1963,7 @@ def is_free(new_tower):
         is_free_list.append(tower.rect.collidepoint(new_tower.rect.centerx, new_tower.rect.centery) is False)
     for nekusaemiy in nekusaemie_group:
         is_free_list.append(nekusaemiy.rect.collidepoint(new_tower.rect.centerx, new_tower.rect.centery) is False)
-    if all(is_free_list):
+    if all(is_free_list) or new_tower.free_placement:
         is_free_list.clear()
         return True
     is_free_list.clear()
@@ -1972,7 +2013,7 @@ def random_add_to_slots(*blocked_slots_):    # жестко пофиксить
 def add_to_slots(en, *blocked_slots_):    # жестко пофиксить
     if len(select_towers_preview_group.remember_entities) <= 6 or en.in_slot:
         if not en.in_slot:
-            UI((94, first_empty_slot(blocked_slots_)), "towers", en.name, towers_kd[en.name])
+            UI((94, first_empty_slot(blocked_slots_)), "towers", en.name, en.free_placement, towers_kd[en.name])
             en.in_slot = True
             select_towers_preview_group.remember_entities.append(en)
         elif en.in_slot:
