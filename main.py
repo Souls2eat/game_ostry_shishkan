@@ -565,6 +565,20 @@ class Tower(sprite.Sprite):
             self.add(nekusaemie_group)
             self.rarity = "legendary"
 
+        if self.name == 'electric':
+            self.hp = 200
+            self.atk = 3  # типо дальней атакой он наносит 45 урона в 1 цель за 4 секунды(3 сек кд и 1 сек он всё выпускает)
+            self.atk2 = 45  # а ближней он наносит 45 урона сплешом за 3 секунды
+            self.bullet_speed_x = 5
+            self.bullet_speed_y = 0
+            self.attack_cooldown = self.basic_attack_cooldown = 225
+            self.attack_cooldown_burst = self.basic_attack_cooldown_burst = 5
+            self.ammo = self.basic_ammo = 15
+            self.target_phase = None
+            self.bursting = False
+            self.damage_type = ''
+            self.rarity = "common"
+
         if self.name == 'urag_anus':
             self.hp = 700
             self.atk = 0
@@ -729,6 +743,10 @@ class Tower(sprite.Sprite):
             self.damage_type = ''
             self.rarity = "spell"
 
+        if self.name == 'tp_back':
+            self.hp = 0
+            self.rarity = "spell"
+
         # СТАТЫ конец
 
     def add_anim_task(self, anim, func):
@@ -777,6 +795,12 @@ class Tower(sprite.Sprite):
         if self.name == "easy_money":
             level.money += 30
 
+        if self.name == "tp_back":
+            for enemy in enemies_group:
+                if enemy.rect.centerx <= 1024:
+                    enemy.real_x = 1536
+
+
         self.kill()     # + потом анимация смерти
 
     def is_additional_attack_allow(self):
@@ -796,7 +820,7 @@ class Tower(sprite.Sprite):
                 or self.name == 'gnome_cannon2'\
                 or self.name == 'gnome_cannon3':
             for enemy in enemies_group:
-                if enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
+                if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
                     return enemy
 
         if self.name == 'parasitelniy':
@@ -812,6 +836,16 @@ class Tower(sprite.Sprite):
             for enemy in enemies_group:
                 if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
                     self.target_phase = 'center'
+                    return enemy
+                
+        if self.name == "electric":
+            for enemy in enemies_group:
+                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256 and enemy.alive:
+                    self.target_phase = 'close'
+                    return enemy
+            for enemy in enemies_group:
+                if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x > self.rect.x + 256 and enemy.alive:
+                    self.target_phase = 'far'
                     return enemy
 
         if self.name == "urag_anus":
@@ -858,7 +892,7 @@ class Tower(sprite.Sprite):
         if targets[id(self)]:
             if targets[id(self)].rect.x < self.rect.x:
                 targets[id(self)] = None
-            if self.name == 'thunder' and self.target_phase == 'center':
+            if (self.name == 'thunder' and self.target_phase == 'center') or (self.name == 'electric' and self.target_phase == 'far'):
                 targets[id(self)] = None
 
         if targets[id(self)]:
@@ -905,6 +939,12 @@ class Tower(sprite.Sprite):
                     Bullet("mini_kamen", self.rect.centerx - 8, self.rect.centery - 8,  self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y * -1, 'hrom', self)
             elif self.target_phase == 'center': # я мог бы просто написать else, но пусть лучше так
                 Bullet("big_kamen", self.rect.centerx - 8, self.rect.centery - 8, self.damage_type, self.atk*3, self.bullet_speed_x, 0, 'hrom', self)
+
+        if self.name == "electric":
+            if self.target_phase == 'close':
+                Bullet("electric_kulak", self.rect.right + 64, self.rect.centery, self.damage_type, self.atk2, 0, 0, 'drachun_gulag', self)
+            elif self.target_phase == 'far': # я мог бы просто написать else, но пусть лучше так
+                self.bursting = True
 
         if self.name == "urag_anus":
             if targets[id(self)].rect.centerx+128 < 1500:
@@ -962,6 +1002,17 @@ class Tower(sprite.Sprite):
         #             self.attack_cooldown = self.basic_attack_cooldown
         #             for j in range(i+1):
         #                 Bullet("spear_ma", self.rect.centerx, self.rect.y+(j*8), self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
+
+    def burst_attack(self):
+        if self.name == 'electric':
+            if self.target_phase == 'far':
+                if self.ammo > 0:
+                    Bullet("electric_bullet", self.rect.centerx, self.rect.centery+randint(-16, 16), None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "default", self)
+                    self.ammo -= 1
+                else:
+                    self.ammo = self.basic_ammo
+                    self.attack_cooldown = self.basic_attack_cooldown
+                    self.bursting = False
 
     def additional_attack(self):
         if self.name == "pukish":
@@ -1069,12 +1120,23 @@ class Tower(sprite.Sprite):
                 self.spawn_something_cooldown = self.basic_spawn_something_cooldown
                 self.add_anim_task("give", self.spawn_something)
 
+        
+
     def update(self):
         self.cooldown()
         self.animation()
 
         if self.hp <= 0:
             self.dead()
+
+        if hasattr(self, "bursting"):
+            if self.bursting == True:
+                if self.attack_cooldown_burst > 0:
+                    self.attack_cooldown_burst -= 1
+                else:
+                    self.attack_cooldown_burst = self.basic_attack_cooldown_burst
+                    self.burst_attack()
+            
 
         if hasattr(self, "horse_hp"):
             if self.horse_hp <= 0:
@@ -1210,7 +1272,7 @@ class Enemy(sprite.Sprite):
             self.speed = 0.25
             self.attack_cooldown = self.basic_attack_cooldown = 5
             self.attack_cooldown2 = self.basic_attack_cooldown2 = 750
-            self.ammo = 30                     # хапххапхап ammo надо
+            self.ammo = self.basic_ammo = 30                     # хапххапхап ammo надо
             self.attack_range = 640
 
         # СТАТЫ конец
@@ -1241,7 +1303,7 @@ class Enemy(sprite.Sprite):
                 Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery+randint(-16, 16), None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
                 self.ammo -= 1
             else:
-                self.ammo = 30
+                self.ammo = self.basic_ammo
                 self.attack_cooldown2 = self.basic_attack_cooldown2
 
         if self.name == 'drobik':

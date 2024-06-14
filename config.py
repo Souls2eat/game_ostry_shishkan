@@ -63,11 +63,13 @@ tower_costs = {
     "go_bleen1": 5,
     "knight_on_horse": 35,
     "gnome_cannon1": 40,
+    "electric": 30,
     "bomb": 35,
     "perec": 30,
     "vodka": 15,
     "easy_money": 0,
     "vistrel": 0,
+    "tp_back": 20,
 
 }
 
@@ -92,11 +94,13 @@ towers_kd = {
     "go_bleen1": 15,
     "knight_on_horse": 900,
     "gnome_cannon1": 1275,
+    "electric": 375,
     "bomb": 1875,
     "perec": 1500,
     "vodka": 1500,
     "easy_money": 4500,
-    "vistrel": 225
+    "vistrel": 225,
+    "tp_back": 5625
     
 }
 
