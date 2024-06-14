@@ -387,6 +387,12 @@ class Level:
                     button.ok = False
             if "select_towers_preview_group" not in without:
                 select_towers_preview_group.remember_entities_empty()
+            if "buffs_group" not in without:
+                for buff in buffs_group:
+                    buff.kill()
+            if "parasites_group":
+                for p in parasites_group:
+                    p.kill()
 
         else:
             for enemy in enemies_group:
@@ -406,6 +412,10 @@ class Level:
             for button in buttons_group:
                 button.ok = False
             select_towers_preview_group.remember_entities_empty()
+            for buff in buffs_group:
+                buff.kill()
+            for p in parasites_group:
+                p.kill()
 
     @staticmethod
     def spawn():
