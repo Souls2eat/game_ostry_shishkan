@@ -616,14 +616,14 @@ class Tower(sprite.Sprite):
             self.damage_type = ''
             self.rarity = "common"
 
-        if self.name == 'struyniy':  # пока что он слишком имба под баффом но мы что-нибудь придумаем
+        if self.name == 'struyniy':  # пока что он слишком имба под баффом но мы что-нибудь придумаем. хотя мб нет
             self.hp = 200
-            self.atk = 5
+            self.atk = 2
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
-            self.attack_cooldown = self.basic_attack_cooldown = 750
+            self.attack_cooldown = self.basic_attack_cooldown = 1125
             self.attack_cooldown_burst = self.basic_attack_cooldown_burst = 3
-            self.ammo = self.basic_ammo = 9
+            self.ammo = self.basic_ammo = 27
             self.bursting = False
             self.damage_type = ''
             self.rarity = "common"
@@ -1636,7 +1636,7 @@ class Bullet(sprite.Sprite):
                     if self.name == 'boom':
                         Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.damage, 0, 0, 'explosion', self.parent)
                     if self.name == 'struya':
-                        enemy.real_x += 64
+                        enemy.real_x += 32
                     self.kill()
                 if self.name == 'yas' and self in bullets_group:
                     enemy.hp -= enemy.hp
