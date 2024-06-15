@@ -616,6 +616,18 @@ class Tower(sprite.Sprite):
             self.damage_type = ''
             self.rarity = "common"
 
+        if self.name == 'struyniy':  # пока что он слишком имба под баффом но мы что-нибудь придумаем
+            self.hp = 200
+            self.atk = 5
+            self.bullet_speed_x = 5
+            self.bullet_speed_y = 0
+            self.attack_cooldown = self.basic_attack_cooldown = 750
+            self.attack_cooldown_burst = self.basic_attack_cooldown_burst = 3
+            self.ammo = self.basic_ammo = 9
+            self.bursting = False
+            self.damage_type = ''
+            self.rarity = "common"
+
         if self.name == 'parasitelniy':
             self.hp = 2500
             self.max_hp = 2500
@@ -688,7 +700,7 @@ class Tower(sprite.Sprite):
             self.ottalkivanie_solo = self.push = 384
             self.ottalkivanie_ne_solo = 128
             self.za_towerom = False
-            self.basic_attack_cooldown = 750
+            self.basic_attack_cooldown = 1500
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.rarity = "common"
@@ -895,7 +907,8 @@ class Tower(sprite.Sprite):
                 or self.name == "zeus"\
                 or self.name == 'gnome_cannon1'\
                 or self.name == 'gnome_cannon2'\
-                or self.name == 'gnome_cannon3':
+                or self.name == 'gnome_cannon3'\
+                or self.name == 'struyniy':
             for enemy in enemies_group:
                 if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
                     return enemy
@@ -1030,6 +1043,10 @@ class Tower(sprite.Sprite):
             elif self.target_phase == 'far': # я мог бы просто написать else, но пусть лучше так
                 self.bursting = True
 
+        if self.name == "struyniy":
+            self.bursting = True
+            self.attack_cooldown = self.basic_attack_cooldown
+
         if self.name == "urag_anus":
             if targets[id(self)].rect.centerx+128 < 1500:
                 self.uragan = Parasite('uragan', targets[id(self)].rect.centerx+128, self.rect.centery, '', self.atk, self, self)
@@ -1100,6 +1117,14 @@ class Tower(sprite.Sprite):
                     self.ammo = self.basic_ammo
                     self.attack_cooldown = self.basic_attack_cooldown
                     self.bursting = False
+        
+        if self.name == 'struyniy':
+            if self.ammo > 0:
+                Bullet("struya", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "struya", self)
+                self.ammo -= 1
+            else:
+                self.ammo = self.basic_ammo
+                self.bursting = False
 
     def additional_attack(self):
         if self.name == "pukish":
@@ -1606,10 +1631,12 @@ class Bullet(sprite.Sprite):
                     self.kill()
                     break
             if sprite.collide_rect(enemy, self) and enemy.hp > 0:
-                if self.name == 'default' or self.name == 'hrom' or self.name == 'boom':
+                if self.name == 'default' or self.name == 'hrom' or self.name == 'boom' or self.name == 'struya':
                     self.dealing_damage(enemy)
                     if self.name == 'boom':
                         Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.damage, 0, 0, 'explosion', self.parent)
+                    if self.name == 'struya':
+                        enemy.real_x += 64
                     self.kill()
                 if self.name == 'yas' and self in bullets_group:
                     enemy.hp -= enemy.hp
@@ -1772,7 +1799,9 @@ class Buff(sprite.Sprite):
                             or tower.name == "urag_anus"\
                             or tower.name == "gnome_cannon1"\
                             or tower.name == "gnome_cannon2"\
-                            or tower.name == "gnome_cannon3":
+                            or tower.name == "gnome_cannon3"\
+                            or tower.name == "electric"\
+                            or tower.name == "struyniy":
 
                         if tower.basic_attack_cooldown // 2 <= 225:
                             tower.basic_attack_cooldown //= 2
@@ -1830,7 +1859,9 @@ class Buff(sprite.Sprite):
                         or tower.name == "urag_anus"\
                         or tower.name == "gnome_cannon1"\
                         or tower.name == "gnome_cannon2"\
-                        or tower.name == "gnome_cannon3":
+                        or tower.name == "gnome_cannon3"\
+                        or tower.name == "electric"\
+                        or tower.name == "struyniy":
                     if not self.max_buff:
                         tower.basic_attack_cooldown *= 2
                     else:
