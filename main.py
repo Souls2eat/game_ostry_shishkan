@@ -266,10 +266,11 @@ class GlobalMap(sprite.Group):
 
     def custom_draw(self, surf):
         for level_ in self.levels:
-            surf.blit(level_.image, level_.rect)
-            if len(str(level_.number)) < 2:
+            if int(level_.number) <= unlocked_levels:
+                surf.blit(level_.image, level_.rect)
+            if len(str(level_.number)) < 2 and int(level_.number) <= unlocked_levels:
                 surf.blit(font60.render(f"{str(level_.number)}", True, (0, 0, 0)), (level_.rect.x + 30, level_.rect.y + 6))
-            elif len(str(level_.number)) < 99:
+            elif len(str(level_.number)) < 99 and int(level_.number) <= unlocked_levels:
                 surf.blit(font60.render(f"{str(level_.number)}", True, (0, 0, 0)), (level_.rect.x + 12, level_.rect.y + 6))
 
     def check_hover(self):
@@ -2669,14 +2670,14 @@ level_money = TextSprite(font40.render("300", True, (0, 0, 0)), (88, 53), ("run"
 GlobalMapLevel("1", (100, 714))     # !!! все буквы русские !!!
 GlobalMapLevel("2", (250, 544))
 GlobalMapLevel("3", (500, 500))
-GlobalMapLevel("3а", (700, 700))
+# GlobalMapLevel("3а", (700, 700))
 GlobalMapLevel("4", (750, 400))
 GlobalMapLevel("5", (1000, 400))
 GlobalMapLevel("6", (1200, 300))
-GlobalMapLevel("6а", (1000, 100))
-GlobalMapLevel("6б", (750, 100))
-GlobalMapLevel("6в", (500, 100))
-GlobalMapLevel("6г", (250, 200))
+# GlobalMapLevel("6а", (1000, 100))
+# GlobalMapLevel("6б", (750, 100))
+# GlobalMapLevel("6в", (500, 100))
+# GlobalMapLevel("6г", (250, 200))
 GlobalMapLevel("7", (1400, 200))
 GlobalMapLevel("8", (1650, 200))
 
