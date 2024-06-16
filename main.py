@@ -285,8 +285,8 @@ class GlobalMap(BasePreviewGroup):
                 level.refresh()
                 last_game_state = game_state
                 game_state = "tower_select"
-                if self.pushed_entity.number == "2":    # закоментить потом
-                    game_state = "new_bg"               # закоментить потом
+                # if self.pushed_entity.number == "2":    # закоментить потом
+                #     game_state = "new_bg"               # закоментить потом
                 self.pushed_entity = None
                 # screen.blit(new_bg, (0, 0))
 
@@ -530,7 +530,8 @@ class Tower(sprite.Sprite):
         self.rect = self.image.get_rect(topleft=pos)
         self.pos = pos
         self.name = unit
-        self.upgrade_level = upgrades[self.name][-1]
+        if self.name in upgrades:
+            self.upgrade_level = upgrades[self.name][-1]
         if self.name == "shovel":
             self.render_layer = 9
         else:
@@ -563,8 +564,12 @@ class Tower(sprite.Sprite):
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.rarity = "common"
-            if self.upgrade_level == "2a":
-                pass
+            if self.upgrade_level == "2a" or self.upgrade_level == '3a':
+                self.atk_big = 20
+                self.attack_count = 0
+                self.fire_form = False
+                self.fire_form_duration = self.basic_fire_form_duration = 225
+                self.fire_form_cooldown = self.basic_fire_form_cooldown = 525
                 # новый функционал
 
         if self.name == 'boomchick':  
@@ -1060,7 +1065,18 @@ class Tower(sprite.Sprite):
 
     def shoot(self):
         if self.name == "fire_mag":
-            Bullet("firebol", self.rect.right - 10, self.rect.y + 45, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
+            if self.upgrade_level == '2a' or self.upgrade_level == '3a':
+                if not self.fire_form:
+                    if self.attack_count < 2:
+                        Bullet("fireball", self.rect.right - 10, self.rect.y + 45, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
+                        self.attack_count += 1
+                    else:
+                        self.attack_count = 0
+                        Bullet("fireball_big", self.rect.right - 10, self.rect.y + 45, self.damage_type, self.atk_big, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
+                else:
+                    Bullet("fireball_big", self.rect.right - 10, self.rect.y + 45, self.damage_type, self.atk_big, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
+            else:
+                Bullet("fireball", self.rect.right - 10, self.rect.y + 25, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
 
         if self.name == "boomchick":
             Bullet("yellow_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'boom', self)
@@ -1295,6 +1311,25 @@ class Tower(sprite.Sprite):
                 if self.hp <= (self.max_hp - self.heal):
                     self.hp += self.heal
 
+        if self.name == 'fire_mag' and self.upgrade_level == '3a':  # надо чтобы миша сюда ещё и анимацию привязал, а то мне страшно туда лезть
+            if not self.fire_form:
+                if self.fire_form_cooldown > 0:
+                    self.fire_form_cooldown -= 1
+                else:
+                    self.fire_form_duration = self.basic_fire_form_duration
+                    self.fire_form = True
+                    self.time_indicator *= 2
+                    self.basic_attack_cooldown //= 2
+            else:
+                if self.fire_form_duration > 0:
+                    self.fire_form_duration -= 1
+                else:
+                    self.fire_form_cooldown = self.basic_fire_form_cooldown
+                    self.fire_form = False
+                    self.time_indicator //= 2
+                    self.basic_attack_cooldown *= 2
+
+
     def update(self):
         self.cooldown()
         self.animation()
@@ -1404,6 +1439,14 @@ class Enemy(sprite.Sprite):
             self.atk = 115
             self.speed = 1
             self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.attack_range = 0
+
+        if self.name == 'klonik':
+            self.hp = 200
+            self.atk = 100
+            self.speed = 0.5
+            self.attack_cooldown = self.basic_attack_cooldown = 75
+            self.klonirovanie_cooldown = self.basic_klonirovanie_cooldown = 1125
             self.attack_range = 0
 
         if self.name == "zeleniy_strelok":
@@ -1536,7 +1579,13 @@ class Enemy(sprite.Sprite):
         self.rect = self.image.get_rect(topleft=self.pos)
 
     def additional_cooldowns(self):
-        pass
+        if self.name == 'klonik':
+            if self.klonirovanie_cooldown > 0:
+                self.klonirovanie_cooldown -= 1
+            else:
+                self.klonirovanie_cooldown = self.basic_klonirovanie_cooldown
+                self.klon = Enemy('klonik', (self.rect.x+randint(64, 192), self.rect.y))
+                self.klon.hp = self.hp
 
     def dead(self):
         if self.name == 'rojatel':
@@ -1821,8 +1870,8 @@ class Parasite(sprite.Sprite):
             for enemy in enemies_group:
                 if self.rect.collidepoint(enemy.rect.centerx, enemy.rect.centery):
                     enemy.angle = atan2(self.rect.centery - enemy.rect.centery, self.rect.centerx - enemy.rect.centerx)
-                    enemy.x_vel = cos(enemy.angle) * enemy.speed * 6
-                    enemy.y_vel = sin(enemy.angle) * enemy.speed * 6
+                    enemy.x_vel = cos(enemy.angle) * enemy.speed * 12
+                    enemy.y_vel = sin(enemy.angle) * enemy.speed * 12
                     # enemy.rect.x += enemy.x_vel
                     # enemy.rect.y += enemy.y_vel
                     enemy.real_x += enemy.x_vel
@@ -1940,12 +1989,20 @@ class Buff(sprite.Sprite):
                         nekusaemiy.time_indicator *= 2
                         nekusaemiy.add(self.buffed_towers)
 
-    def check_tower(self):
+    def check_life(self):
         if self.name == 'mat':
             for tower in towers_group:
                 if tower.name == 'matricayshon':
                     if self.rect2.collidepoint(tower.rect.centerx, tower.rect.centery):
                         self.mozhet_zhit = True
+                
+        if self.name == 'vodkamat':
+            if self.lifetime > 0:
+                self.lifetime -= 1
+            else:
+                self.mozhet_zhit = False
+
+    def check_tower(self):
         if not self.mozhet_zhit:
             self.kill()
             for tower in self.buffed_towers:
@@ -2000,13 +2057,8 @@ class Buff(sprite.Sprite):
 
     def update(self):
         self.delat_buff()
+        self.check_life()
         self.check_tower()
-
-        if self.name == 'vodkamat':
-            if self.lifetime > 0:
-                self.lifetime -= 1
-            else:
-                self.mozhet_zhit = False
 
 
 class UI(sprite.Sprite):
@@ -2906,6 +2958,8 @@ while running:
                 Enemy("rojatel", (1508, 704))
             if e.key == K_KP_2:
                 Enemy("drobik", (1508, 704))
+            if e.key == K_KP_3:
+                Enemy("klonik", (1508, 704))
 
             if e.key == K_a:
                 scroll_offset += 600

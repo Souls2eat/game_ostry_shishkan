@@ -33,6 +33,7 @@ enemy_costs = {
     "sportik": 3,
     "armorik": 4,
     "rojatel": 3,
+    "klonik": 3,
     "zeleniy_strelok": 5,
     "drobik": 4,
     "telezhnik": 6,
@@ -48,7 +49,7 @@ tower_costs = {
     "matricayshon": 30,
     "barrier_mag": 30,
     "parasitelniy": 20,
-    "pukish": 35,
+    "pukish": 30,
     "spike": 20,
     "terpila": 20,
     "thunder": 30,
@@ -62,6 +63,8 @@ tower_costs = {
     "gnome_cannon1": 40,
     "electric": 30,
     "struyniy": 30,
+    "pen": 20,
+    "gribnik": 30,
     "bomb": 35,
     "perec": 30,
     "vodka": 15,
@@ -116,8 +119,8 @@ levels_config = {
     "1": [1, 22500, 750, 50, level_1_waves, ("popusk", "josky")],
     "2": [2, 22500, 575, 50, level_2_waves, ("josky", "sigma", "sportik", "popusk")],
     "3": [3, 22500, 500, 50, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk")],
-    "4": [4, 22500, 225, 50, level_4_waves, ("telezhnik", "rojatel", "sigma", "armorik", "zeleniy_strelok", "drobik")],
-    "5": [5, 31500, 225, 50, level_5_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik")]
+    "4": [4, 22500, 225, 50, level_4_waves, ("telezhnik", "rojatel", "sigma", "armorik", "zeleniy_strelok", "drobik", "klonik")],
+    "5": [5, 31500, 225, 50, level_5_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik", "klonik")]
 }
 
 upgrade_costs = {
