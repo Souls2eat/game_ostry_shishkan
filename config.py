@@ -65,12 +65,18 @@ tower_costs = {
     "gnome_cannon1": 40,
     "electric": 30,
     "struyniy": 30,
+    "pen": 15,
+    "gribnik": 30,
     "bomb": 35,
     "perec": 30,
     "vodka": 15,
     "easy_money": 0,
     "vistrel": 0,
     "tp_back": 20,
+    "thunder_kamen": 0,
+    "grib1": 0,
+    "grib2": 0,
+    "grib3": 0,
 
 }
 
@@ -97,6 +103,8 @@ towers_kd = {
     "gnome_cannon1": 1275,
     "electric": 375,
     "struyniy": 750,
+    "pen": 525,
+    "gribnik": 375,
     "bomb": 1875,
     "perec": 1500,
     "vodka": 1500,
