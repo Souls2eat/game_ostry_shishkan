@@ -78,3 +78,11 @@ towers_give = {
 towers_hide = {
     "pukish": [image.load(f"images/towers/pukish/hide/pukish{i}.png") for i in range(1, 5)],
 }
+
+coins = {
+    "city_coin": image.load("images/coins/city_coin.png"),
+    "evil_coin": image.load("images/coins/evil_coin.png"),
+    "forest_coin": image.load("images/coins/forest_coin.png"),
+    "mountain_coin": image.load("images/coins/mountain_coin.png"),
+    "snow_coin": image.load("images/coins/snow_coin.png")
+}

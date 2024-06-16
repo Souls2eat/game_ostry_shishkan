@@ -563,7 +563,7 @@ class Tower(sprite.Sprite):
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = ''
             self.rarity = "common"
-            if self.upgrade_level == "2а":   # русские буквы!!!
+            if self.upgrade_level == "2a":
                 pass
                 # новый функционал
 
@@ -2454,7 +2454,7 @@ def menu_positioning():
         screen.blit(modification_preview_menu, (830, 120))
         modification_preview_menu.blit(modification_preview_menu_copy, (0, 0))
         modification_preview_menu.blit(line_, (0, 275))
-        scroll_offset_min_max(-750, 0)
+        scroll_offset_min_max(-900, 0)                          # одна линия -150
 
         preview_group.move_element_by_scroll()
         preview_group.go_animation()
