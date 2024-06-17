@@ -87,13 +87,13 @@ class ModGroup(sprite.Group):
 
 
 class BasePreviewGroup:
-    def __init__(self, *supported_entities):
+    def __init__(self, *supported_objects):
         self.entities = []
         self.scroll_pos = 0
         self.hovered_entity = None
         self.pushed_entity = None
-        self.supported_entities = supported_entities
-        self.turn = self.supported_entities[0]
+        self.supported_objects = supported_objects
+        self.turn = self.supported_objects[0]
 
     def add(self, *entity):
         for en in entity:
@@ -144,23 +144,16 @@ class BasePreviewGroup:
                 return True
         return False
 
-    def filter_by_turn(self, en):   # переписать мб
-        if self.turn == "tower":
-            return isinstance(en, Tower)
-        if self.turn == "enemy":
-            return isinstance(en, Enemy)
-        if self.turn == "upgrade":
-            return isinstance(en, UpgradeTowerButton)
-        if self.turn == "level":
-            return isinstance(en, GlobalMapLevelButton)
+    def filter_by_turn(self, en):
+        return isinstance(en, self.turn)  # noqa
 
     def __len__(self):
         return len(self.entities)
 
 
 class PreviewGroup(BasePreviewGroup):
-    def __init__(self, *supported_entities):
-        super().__init__(*supported_entities)
+    def __init__(self, *supported_objects):
+        super().__init__(*supported_objects)
         self.remember_entities = []
 
     def set_default_pushed_entity(self):
@@ -237,7 +230,7 @@ class PreviewGroup(BasePreviewGroup):
         return 0
 
     def entity_create(self, columns, indent=30):
-        if "tower" in self.supported_entities:
+        if Tower in self.supported_objects:
             for i, tower_name in enumerate([*received_towers, *not_received_towers]):
                 line = int(i / columns)
                 column = (i % columns)
@@ -246,7 +239,7 @@ class PreviewGroup(BasePreviewGroup):
                     entity.blackik.kill()
                 buffs_group.empty()
                 self.add(entity)
-        if "enemy" in self.supported_entities:
+        if Enemy in self.supported_objects:
             for i, enemy_name in enumerate([*encountered_enemies, *not_encountered_enemies]):
                 line = int((i / columns))
                 column = (i % columns)
@@ -263,7 +256,7 @@ class PreviewGroup(BasePreviewGroup):
 
 class GlobalMap(BasePreviewGroup):
     def __init__(self):
-        super().__init__("level")
+        super().__init__(GlobalMapLevelButton)
 
     def custom_draw(self, surf):
         for level_ in self.entities:
@@ -293,13 +286,13 @@ class GlobalMap(BasePreviewGroup):
 
 class TowerUpgradesGroup(BasePreviewGroup):
     def __init__(self):
-        super().__init__("upgrade")
+        super().__init__(UpgradeTowerButton)
 
     def custom_draw(self, surf, offset_pos=(0, 0)):
         for upgrade in filter(self.filter_by_turn, self.entities):
             upgrade.rect = upgrade.image.get_rect(topleft=(upgrade.pos[0] + offset_pos[0], upgrade.pos[1] + offset_pos[1]))
 
-            if preview_group.turn == "tower":
+            if preview_group.turn == Tower:
                 if upgrade.number in upgrades[preview_group.pushed_entity.name]:
                     upgrade.set_active(True)
                 else:
@@ -2501,7 +2494,7 @@ def menu_positioning():
         preview_group.custom_draw(entity_preview_menu, offset_pos=(250, 120))
         preview_group.set_default_pushed_entity()
 
-        if preview_group.turn == "tower" and preview_group.pushed_entity.name in received_towers:
+        if preview_group.turn == Tower and preview_group.pushed_entity.name in received_towers:
             modification_preview_menu.blit(upgrade_path, (0, 0))
             tower_upgrades_group.check_click(entity_preview_menu, offset_pos=(830, 120))
             tower_upgrades_group.custom_draw(modification_preview_menu, offset_pos=(830, 120))
@@ -2524,7 +2517,7 @@ def menu_positioning():
             else:
                 draw_info((196, 360), 0, 0)
 
-            if preview_group.turn == "tower":
+            if preview_group.turn == Tower:
                 modification_preview_menu.blit(font35.render("Кд", True, (0, 0, 0)), (10, 402))
                 if preview_group.pushed_entity.name in towers_kd and (preview_group.pushed_entity.name in received_towers or preview_group.pushed_entity.name in encountered_enemies):
                     draw_info((196, 410), towers_kd[preview_group.pushed_entity.name], max(towers_kd.values()), reversed_=True)
@@ -2551,7 +2544,7 @@ def menu_positioning():
 
                 modification_preview_menu.blit(line_, (0, 560))
 
-            if preview_group.turn == "enemy":
+            if preview_group.turn == Enemy:
                 modification_preview_menu.blit(font35.render("Скорость", True, (0, 0, 0)), (10, 402))
                 if hasattr(preview_group.pushed_entity, "speed") and (preview_group.pushed_entity.name in received_towers or preview_group.pushed_entity.name in encountered_enemies):
                     draw_info((196, 410), preview_group.pushed_entity.speed, preview_group.get_max_speed())
@@ -2595,11 +2588,11 @@ def menu_positioning():
             scroll_offset = 0
 
         if change_preview_turn_button.click(screen, (1280, 90)):
-            if preview_group.turn == "enemy":
-                preview_group.turn = "tower"
+            if preview_group.turn == Enemy:
+                preview_group.turn = Tower
                 change_preview_turn_button.image = image.load("images/coins/city_coin.png").convert_alpha()
             else:
-                preview_group.turn = "enemy"
+                preview_group.turn = Enemy
                 change_preview_turn_button.image = image.load("images/coins/evil_coin.png").convert_alpha()
             preview_group.pushed_entity = list(filter(preview_group.filter_by_turn, preview_group.entities))[0]
 
@@ -2786,8 +2779,8 @@ all_sprites_group = ModGroup()
 clouds_group = sprite.Group()
 alert_group = sprite.Group()
 level_group = sprite.Group()
-preview_group = PreviewGroup("tower", "enemy")
-select_towers_preview_group = PreviewGroup("tower")
+preview_group = PreviewGroup(Tower, Enemy)
+select_towers_preview_group = PreviewGroup(Tower)
 global_map = GlobalMap()
 tower_upgrades_group = TowerUpgradesGroup()
 
