@@ -1,16 +1,16 @@
-unlocked_levels = 5
-received_towers = fire_mag, pukish, boomchick, davalka, kopitel, matricayshon, parasitelniy, spike, easy_money, vistrel, tp_back, perec, yascerica, thunder, pen, tolkan, zeus, terpila, vodka, electric, urag_anus, knight_on_horse, barrier_mag, big_mechman, drachun, gnome_cannon1, struyniy, gribnik, bomb
-not_received_towers = []
-encountered_enemies = popusk, sigma, josky, zeleniy_strelok, sportik, rojatel, mega_strelok, slabiy, armorik, telezhnik, drobik
-not_encountered_enemies = []
+unlocked_levels = 1
+received_towers = fire_mag, pukish, boomchick, davalka, kopitel, matricayshon, parasitelniy, spike, easy_money, vistrel
+not_received_towers = terpila, thunder, yascerica, zeus, barrier_mag, urag_anus, big_mechman, drachun, tolkan, knight_on_horse, gnome_cannon1, electric, struyniy, gribnik, pen, bomb, perec, vodka, tp_back
+encountered_enemies = popusk, sigma
+not_encountered_enemies = josky, zeleniy_strelok, sportik, rojatel, mega_strelok, slabiy, armorik, telezhnik, drobik
 -----
-city_coin = 2
-forest_coin = 5
+city_coin = 0
+forest_coin = 0
 evil_coin = 0
-mountain_coin = 10
+mountain_coin = 0
 snow_coin = 0
 -----
-fire_mag = 1, 2a, 3a
+fire_mag = 1
 pukish = 1
 boomchick = 1
 davalka = 1

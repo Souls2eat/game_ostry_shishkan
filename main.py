@@ -261,17 +261,17 @@ class GlobalMap(BasePreviewGroup):
     def custom_draw(self, surf):
         for level_ in self.entities:
             # draw.rect(screen, (0, 255, 0), level_.rect, 5)
-            if int(level_.number) <= unlocked_levels:
+            if level_.number in unlocked_levels:
                 surf.blit(level_.image, level_.rect)
-            if len(str(level_.number)) < 2 and int(level_.number) <= unlocked_levels:
+            if len(str(level_.number)) < 2 and level_.number in unlocked_levels:
                 surf.blit(font60.render(f"{str(level_.number)}", True, (0, 0, 0)), (level_.rect.x + 30, level_.rect.y + 6))
-            elif len(str(level_.number)) < 99 and int(level_.number) <= unlocked_levels:
+            elif len(str(level_.number)) < 99 and level_.number in unlocked_levels:
                 surf.blit(font60.render(f"{str(level_.number)}", True, (0, 0, 0)), (level_.rect.x + 12, level_.rect.y + 6))
 
     def start_clicked_level(self):
         global scroll_offset, continue_level, last_game_state, game_state, level, unlocked_levels
         if self.pushed_entity:
-            if self.pushed_entity.number in levels_config and unlocked_levels >= int(self.pushed_entity.number):  # исправить unlocked_levels
+            if self.pushed_entity.number in levels_config and self.pushed_entity.number in unlocked_levels:  # исправить unlocked_levels
                 level = Level(*levels_config[self.pushed_entity.number])
                 scroll_offset = 0
                 continue_level = True
@@ -483,6 +483,7 @@ class Level:
         if len(not_encountered_enemies) >= 1:
             for enemy_ in levels_config[str(self.current_level)][5]:
                 if enemy_ not in encountered_enemies:
+                    print(enemy_)
                     encountered_enemies.append(enemy_)
                     not_encountered_enemies.remove(enemy_)
                     Alert("Новые враги известны", (100, 200), 75)
@@ -490,7 +491,8 @@ class Level:
             Alert("Все враги известны", (100, 200), 75)
 
         preview_group.refresh(3)
-        unlocked_levels = self.current_level + 1
+        if str(self.current_level + 1) not in unlocked_levels:
+            unlocked_levels.append(str(self.current_level + 1))
         save_data()
 
     def update(self):
@@ -2349,27 +2351,27 @@ def upload_data(default=False):
     if default:
         load_file = "saves/default_save.txt"
 
-    with open(load_file, "r", encoding="utf-8") as file_:
-        unlocked_levels = int(file_.readline().strip().split()[2])                          # считать значение
-        received_towers = str(*file_.readline().strip().split(" = ")[1:]).split(", ")       # считать список
-        not_received_towers = str(*file_.readline().strip().split(" = ")[1:]).split(", ")
+    with open(load_file, "r", encoding="utf-8") as file:
+        unlocked_levels = str(*file.readline().strip().split(" = ")[1:]).split(", ")
+        received_towers = str(*file.readline().strip().split(" = ")[1:]).split(", ")       # считать список
+        not_received_towers = str(*file.readline().strip().split(" = ")[1:]).split(", ")
         if not_received_towers[0] == "[]":
             not_received_towers = []
-        encountered_enemies = str(*file_.readline().strip().split(" = ")[1:]).split(", ")
-        not_encountered_enemies = str(*file_.readline().strip().split(" = ")[1:]).split(", ")
+        encountered_enemies = str(*file.readline().strip().split(" = ")[1:]).split(", ")
+        not_encountered_enemies = str(*file.readline().strip().split(" = ")[1:]).split(", ")
         if not_encountered_enemies[0] == "[]":
             not_encountered_enemies = []
 
-        _ = file_.readline().strip()                                                        # считать строку с дефисами
+        _ = file.readline().strip()                                                        # считать строку с дефисами
 
         for i in range(5):
-            line = file_.readline().strip().split()
+            line = file.readline().strip().split()
             your_coins[line[0]] = int(line[2])
 
-        _ = file_.readline().strip()
+        _ = file.readline().strip()
 
         for i in range(len(received_towers) + len(not_received_towers)):
-            line = file_.readline().strip().split(" = ")
+            line = file.readline().strip().split(" = ")
             if str(*line[1:]).split(", ")[0] == "[]":
                 result = []
             else:
@@ -2379,7 +2381,7 @@ def upload_data(default=False):
 
 def save_data():
     with open("saves/current_save.txt", "w", encoding="utf-8") as file:
-        file.write(f"unlocked_levels = {unlocked_levels}\n")
+        file.write(f"unlocked_levels = " + str(unlocked_levels).replace("['", "").replace("']", "").replace("'", "") + "\n")
         file.write(f"received_towers = " + str(received_towers).replace("['", "").replace("']", "").replace("'", "") + "\n")
         file.write(f"not_received_towers = " + str(not_received_towers).replace("['", "").replace("']", "").replace("'", "") + "\n")
         file.write(f"encountered_enemies = " + str(encountered_enemies).replace("['", "").replace("']", "").replace("'", "") + "\n")
@@ -2667,7 +2669,8 @@ def menu_positioning():
     if game_state == "level_complited":
         screen.blit(menu, (480, 250))
         screen.blit(font60.render("Уровень пройден", True, (193, 8, 42)), (544, 280))
-        unlocked_levels = level.current_level + 1
+        if str(level.current_level + 1) not in unlocked_levels:
+            unlocked_levels.append(str(level.current_level + 1))    # переписать
         if next_level_button.click(screen, (496, 360)):
             level.refresh()
             level = Level(*levels_config[str(level.current_level + 1)])
@@ -2744,7 +2747,7 @@ def menu_positioning():
                 encountered_enemies.append(enemy_)
             not_encountered_enemies.clear()
 
-            unlocked_levels = 5
+            unlocked_levels = ["1", "2", "3", "4", "5"]
             preview_group.refresh(3)
             print("all_unlocked")
 
@@ -2831,7 +2834,7 @@ UpgradeTowerButton("3b", (384, 172))
 
 
 # --- from save
-unlocked_levels = 0
+unlocked_levels = []
 received_towers = []
 not_received_towers = []
 encountered_enemies = []
