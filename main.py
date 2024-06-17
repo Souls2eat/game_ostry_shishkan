@@ -1329,7 +1329,6 @@ class Tower(sprite.Sprite):
                     self.time_indicator //= 2
                     self.basic_attack_cooldown *= 2
 
-
     def update(self):
         self.cooldown()
         self.animation()
@@ -2325,21 +2324,6 @@ def first_empty_slot(blocked_slots_):
             fill_pos.add(ui.rect.y)
 
     return min(ui_pos_list - fill_pos)
-
-
-def level_box_button_creator(button_number):
-    if button_number <= unlocked_levels:
-        return Button("img", "menu", "level_box")
-    else:
-        return Button("img", "menu", "level_box_closed", True)
-
-
-def tower_select_button_creator(tower_name):
-    return Button("img", f"towers/{tower_name}/wait", tower_name + str(1), windowed=True)
-
-
-def enemy_select_button_creator(enemy_name):
-    return Button("img", f"enemies", enemy_name, windowed=True)      # пока не юзается
 
 
 def scroll_offset_min_max(min_offset, max_offset):
