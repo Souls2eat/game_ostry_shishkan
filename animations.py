@@ -27,6 +27,7 @@ towers_wait = {
     "gnome_flamethrower": [image.load(f"images/towers/gnome_flamethrower/wait/gnome_flamethrower{i}.png") for i in range(1, 5)],
     "electric": [image.load(f"images/towers/electric/wait/electric{i}.png") for i in range(1, 5)],
     "struyniy": [image.load(f"images/towers/struyniy/wait/struyniy{i}.png") for i in range(1, 5)],
+    "dark_druid": [image.load(f"images/towers/dark_druid/wait/dark_druid{i}.png") for i in range(1, 5)],
     "pen": [image.load(f"images/towers/pen/wait/pen{i}.png") for i in range(1, 5)],
     "gribnik": [image.load(f"images/towers/gribnik/wait/gribnik{i}.png") for i in range(1, 5)],
     "grib1": [image.load(f"images/towers/grib1/wait/grib1{i}.png") for i in range(1, 5)],
@@ -64,6 +65,7 @@ towers_attack = {
     "gnome_flamethrower": [image.load(f"images/towers/gnome_flamethrower/attack/gnome_flamethrower{i}.png") for i in range(1, 5)],
     "electric": [image.load(f"images/towers/electric/attack/electric{i}.png") for i in range(1, 5)],
     "struyniy": [image.load(f"images/towers/struyniy/attack/struyniy{i}.png") for i in range(1, 5)],
+    "dark_druid": [image.load(f"images/towers/dark_druid/attack/dark_druid{i}.png") for i in range(1, 5)],
     "gribnik": [image.load(f"images/towers/gribnik/attack/gribnik{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/attack/go_bleen1{i}.png") for i in range(1, 3)],
 
