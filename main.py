@@ -881,11 +881,17 @@ class Tower(sprite.Sprite):
 
         if self.name == 'matricayshon':
             self.hp = 666
-            for i in range(9):  # надо сделать предел усиления (3 сек)
+            for i in range(9):
                 self.buff_x = 1 + (i % 3) * 128 - 128
                 self.buff_y = 1 + (i // 3) * 128 - 128
-                self.buff = Buff("mat", self.rect.x + self.buff_x, self.rect.y + self.buff_y)
+                self.buff = Buff("mat", self.rect.x + self.buff_x, self.rect.y + self.buff_y, self)
             self.rarity = "legendary"
+
+        if self.name == 'bolotnik':
+            self.hp = 200
+            for i in range(5):
+                self.debuff_x = 1 + i * 128
+                self.debuff = Buff('boloto', self.rect.x + self.debuff_x, self.rect.y, self)
 
         if self.name == 'pen':
             self.hp = 200
@@ -923,6 +929,14 @@ class Tower(sprite.Sprite):
             self.bullet_speed_y = 0
             self.free_placement = True
             self.damage_type = ''
+            self.rarity = "spell"
+
+        if self.name == 'molniya':
+            self.hp = 0
+            self.atk = 1000
+            self.free_placement = True
+            self.damage_type = ''
+            self.moiniya_popala = False
             self.rarity = "spell"
 
         if self.name == 'tp_back':
@@ -995,11 +1009,23 @@ class Tower(sprite.Sprite):
         if self.name == "vistrel":
             Bullet("vistrel_bullet", 384, self.rect.centery-10, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
 
+        if self.name == 'molniya':
+            for i in range(3):
+                for enemy in enemies_group:
+                    if enemy.alive() and self not in enemy.parasite_parents:
+                        enemy.parasite_parents.add(self)
+                        self.moiniya_popala = True
+                        Parasite('mol', enemy.rect.x, enemy.rect.y, self.damage_type, self.atk, enemy, self)
+                        break
+                if not self.moiniya_popala:
+                    Parasite('mol', randint(384, 1536), randint(192, 832), self.damage_type, self.atk, self, self)
+                self.moiniya_popala = False
+
         if self.name == "vodka":
             for i in range(9):
                 self.buff_x = 1 + (i % 3) * 128 - 128
                 self.buff_y = 1 + (i // 3) * 128 - 128
-                self.buff = Buff("vodkamat", self.rect.x + self.buff_x, self.rect.y + self.buff_y)
+                self.buff = Buff("vodkamat", self.rect.x + self.buff_x, self.rect.y + self.buff_y, self)
 
         if self.name == "easy_money":
             level.money += 30
@@ -1166,6 +1192,18 @@ class Tower(sprite.Sprite):
                     self.attack_cooldown = self.basic_attack_cooldown
                     self.add_anim_task("attack", self.shoot)
 
+    def dealing_damage(self, enemy):
+        if hasattr(enemy, 'armor') and enemy.armor > 0:
+            if self.atk <= enemy.armor:
+                enemy.armor -= self.atk
+            else:
+                enemy.hp -= (self.atk - enemy.armor)
+                enemy.armor = 0
+        else:
+            enemy.hp -= self.atk
+        enemy.damaged = True
+        enemy.check_hp()
+
     def shoot(self):
         if self.name == "fire_mag":
             if self.upgrade_level == '2a' or self.upgrade_level == '3a':
@@ -1249,7 +1287,7 @@ class Tower(sprite.Sprite):
         if self.name == 'spike':    # fix?
             for enemy in enemies_group:
                 if enemy.rect.colliderect:
-                    enemy.hp -= self.atk
+                    self.dealing_damage(enemy)
             targets[id(self)] = None
 
         if self.name == "big_mechman":
@@ -1548,6 +1586,7 @@ class Enemy(sprite.Sprite):
         if self.name == 'armorik':
             self.hp = 300
             self.armor = 300
+            self.have_armor = True
             self.atk = 100
             self.atk2 = 135
             self.speed = 0.5
@@ -1606,6 +1645,7 @@ class Enemy(sprite.Sprite):
         if self.name == "telezhnik":
             self.hp = 370
             self.armor = 30
+            self.have_armor = True
             self.atk = 70
             self.atk2 = 100
             self.bullet_speed_x = -5
@@ -1706,17 +1746,19 @@ class Enemy(sprite.Sprite):
         pass    # не убирать, а то сломается справочник
 
     def armor_check(self):
-        if hasattr(self, "armor"):
+        if hasattr(self, "armor") and self.have_armor:
             if self.armor <= 0:
                 if self.name == 'armorik':
                     self.atk = self.atk2
                     self.basic_attack_cooldown = self.basic_attack_cooldown2
                     self.speed = self.speed2
+                    self.have_armor = False
                     self.image = image.load(f"images/enemies/{self.name}_zloy.png").convert_alpha()
 
                 elif self.name == 'telezhnik':
                     self.atk = self.atk2
                     self.speed = self.speed2
+                    self.have_armor = False
                     self.attack_range = self.attack_range2
                     self.image = image.load(f"images/enemies/{self.name}_zloy.png").convert_alpha()
 
@@ -1750,7 +1792,7 @@ class Enemy(sprite.Sprite):
 
         for parasite in parasites_group:
             if parasite.owner == self and parasite.name == 'ogonek_parasite' and parasite.parent.upgrade_level == '3b':
-                Buff('fire_luja', (384 + ((self.rect.centerx+1 - 384) // 128) * 128), (192 + ((self.rect.y - 192) // 128) * 128))
+                Buff('fire_luja', (384 + ((self.rect.centerx+1 - 384) // 128) * 128), (192 + ((self.rect.y - 192) // 128) * 128), self)
                 break
 
         self.alive = False
@@ -2264,20 +2306,26 @@ class Parasite(sprite.Sprite):
 
 
 class Buff(sprite.Sprite):
-    def __init__(self, name, x, y):
+    def __init__(self, name, x, y, parent):
         super().__init__(all_sprites_group, buffs_group)
         self.image = image.load(f"images/buffs/{name}.png").convert_alpha()
         self.rect = self.image.get_rect(topleft=(x, y))
         self.render_layer = 3
         self.rect.x = x
         self.rect.y = y
-        self.rect2 = Rect(self.rect.x-128, self.rect.y-128, 384, 384) 
         self.name = name
-        self.buffed_towers = sprite.Group()
+        self.parent = parent
+        if self.name == 'mat':
+            self.rect2 = Rect(self.rect.x - 128, self.rect.y - 128, 384, 384)
+        elif self.name == 'boloto':
+            self.rect2 = Rect(self.rect.x - 512, self.rect.y, 640, 128)
+
+
         self.max_buff = None
 
         if self.name == 'mat' or self.name == 'vodkamat':
             self.gender = 'tower_buff'
+            self.buffed_towers = sprite.Group()
         else:
             self.gender = 'field_debuff'
 
@@ -2296,17 +2344,27 @@ class Buff(sprite.Sprite):
             self.attack_cooldown = self.basic_attack_cooldown = 75
             self.lifetime = 375
 
+        if self.name == 'boloto':
+            self.debuffed_enemies = sprite.Group()
+
         self.buff_collision()  # в апдейт не надо сувать
     
     def buff_collision(self):
         if self.name == 'mat' or self.name == 'vodkamat':
             for buff in buffs_group:
-                if self.rect.collidepoint(buff.rect.centerx, buff.rect.centery) and self != buff:
+                if self.rect.collidepoint(buff.rect.centerx, buff.rect.centery) and self != buff and (buff.name == 'mat' or buff.name == 'vodkamat'):
                     if self.name == 'vodkamat':
                         buff.mozhet_zhit = False
                         buff.check_tower()
                     else:
                         self.kill()
+
+        elif self.name == 'boloto':
+            for buff in buffs_group:
+                if self.rect.collidepoint(buff.rect.centerx, buff.rect.centery) and self != buff and self.name == buff.name:
+                    for enemy in buff.debuffed_enemies:
+                        enemy.speed *= 2
+                    buff.kill()
         
         elif self.name == 'fire_luja':
             for buff in buffs_group:
@@ -2368,6 +2426,19 @@ class Buff(sprite.Sprite):
                         nekusaemiy.time_indicator *= 2
                         nekusaemiy.add(self.buffed_towers)
 
+    def delat_debuff(self):
+        if self.name == 'boloto':
+            for enemy in enemies_group:
+                if enemy not in self.debuffed_enemies:
+                    if self.rect.collidepoint(enemy.rect.centerx, enemy.rect.centery):
+                        enemy.speed /= 2
+                        enemy.add(self.debuffed_enemies)
+                else:
+                    if not self.rect.collidepoint(enemy.rect.centerx, enemy.rect.centery):
+                        enemy.speed *= 2
+                        enemy.remove(self.debuffed_enemies)
+            self.mozhet_zhit = False
+
     def check_life(self):
         if self.name == 'mat':
             for tower in towers_group:
@@ -2380,6 +2451,23 @@ class Buff(sprite.Sprite):
                 self.lifetime -= 1
             else:
                 self.mozhet_zhit = False
+
+        if self.name == 'boloto':
+            for tower in towers_group:
+                if tower.name == 'bolotnik':
+                    if self.rect2.collidepoint(tower.rect.centerx, tower.rect.centery):
+                        self.mozhet_zhit = True
+            if self.mozhet_zhit == False:
+                if not hasattr(self, 'lifetime'):
+                    self.lifetime = 225
+                self.mozhet_zhit = True
+            if hasattr(self, 'lifetime'):
+                if self.lifetime > 0:
+                    self.lifetime -= 1
+                else:
+                    self.mozhet_zhit = False
+                    for enemy in self.debuffed_enemies:
+                        enemy.speed *= 2
 
     def check_tower(self):
         if not self.mozhet_zhit:
@@ -2429,7 +2517,7 @@ class Buff(sprite.Sprite):
             #         nekusaemiy.time_indicator //= 2
 
             if self.name == 'vodkamat':
-                Buff('mat', self.rect.x, self.rect.y)
+                Buff('mat', self.rect.x, self.rect.y, self)
 
         if self.name == 'mat':
             self.mozhet_zhit = False
@@ -2461,6 +2549,7 @@ class Buff(sprite.Sprite):
             self.check_life()
             self.check_tower()
         else:
+            self.delat_debuff()
             self.check_life()
             if hasattr(self, 'atk'):
                 self.attack()

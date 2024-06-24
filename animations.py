@@ -33,12 +33,14 @@ towers_wait = {
     "grib1": [image.load(f"images/towers/grib1/wait/grib1{i}.png") for i in range(1, 5)],
     "grib2": [image.load(f"images/towers/grib2/wait/grib2{i}.png") for i in range(1, 5)],
     "grib3": [image.load(f"images/towers/grib3/wait/grib3{i}.png") for i in range(1, 5)],
+    "bolotnik": [image.load(f"images/towers/bolotnik/wait/bolotnik{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/wait/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/wait/perec{i}.png") for i in range(1, 5)],
     "vodka": [image.load(f"images/towers/vodka/wait/vodka{i}.png") for i in range(1, 5)],
     "easy_money": [image.load(f"images/towers/easy_money/wait/easy_money{i}.png") for i in range(1, 5)],
     "vistrel": [image.load(f"images/towers/vistrel/wait/vistrel{i}.png") for i in range(1, 5)],
+    "molniya": [image.load(f"images/towers/molniya/wait/molniya{i}.png") for i in range(1, 5)],
     "tp_back": [image.load(f"images/towers/tp_back/wait/tp_back{i}.png") for i in range(1, 5)],
 
 }
