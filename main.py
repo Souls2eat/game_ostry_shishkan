@@ -716,6 +716,14 @@ class Tower(sprite.Sprite):
             self.have_parasite = sprite.Group()
             self.rarity = "common"
 
+        if self.name == 'nekr':
+            self.hp = 200
+            self.atk = 30  # я хз надо ли некру писать атк(атака сейчас нигде не используется, оставил чтобы не ломать справочник), можно сделать чтобы его призывники наследовали атаку, а можно и чтобы у них в ините она прописывалась, хз короч, потом решим
+            self.attack_cooldown = self.basic_attack_cooldown = 750  # потом отбалансим. кстати можно его не через атаку сделать а через spawn_something, но это потом, пока что делаю через shoot
+            self.summons = 3
+            self.damage_type = ''
+            self.rarity = "common"
+
         if self.name == 'spike':  
             self.hp = 1
             self.atk = 20
@@ -1012,13 +1020,13 @@ class Tower(sprite.Sprite):
         if self.name == 'molniya':
             for i in range(3):
                 for enemy in enemies_group:
-                    if enemy.alive() and self not in enemy.parasite_parents:
+                    if enemy.alive and self not in enemy.parasite_parents:
                         enemy.parasite_parents.add(self)
                         self.moiniya_popala = True
-                        Parasite('mol', enemy.rect.x, enemy.rect.y, self.damage_type, self.atk, enemy, self)
+                        Parasite('mol', enemy.rect.centerx, enemy.rect.bottom - 450, self.damage_type, self.atk, enemy, self)
                         break
                 if not self.moiniya_popala:
-                    Parasite('mol', randint(384, 1536), randint(192, 832), self.damage_type, self.atk, self, self)
+                    Parasite('mol', randint(384, 1536), randint(-258, 382), self.damage_type, self.atk, self, self)
                 self.moiniya_popala = False
 
         if self.name == "vodka":
@@ -1093,6 +1101,7 @@ class Tower(sprite.Sprite):
                 or self.name == 'gnome_cannon2'\
                 or self.name == 'gnome_cannon3'\
                 or self.name == 'struyniy'\
+                or self.name == 'nekr'\
                 or self.name == 'gribnik':
             for enemy in enemies_group:
                 if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
@@ -1243,6 +1252,10 @@ class Tower(sprite.Sprite):
             Parasite('sosun', targets[id(self)].rect.centerx+self.parasix, targets[id(self)].rect.centery+self.parasiy, '', self.atk, targets[id(self)], self) # bug? no, juk.
             targets[id(self)].parasite_parents.add(self)
             targets[id(self)] = None
+
+        if self.name == "nekr":
+            for i in range(self.summons):
+                Creep('nekr_skelet', (self.rect.x + (45*i), self.rect.y), self)
 
         if self.name == "thunder":
             if self.target_phase == 'side':
@@ -1682,6 +1695,9 @@ class Enemy(sprite.Sprite):
         for tower in towers_group:
             if -64 < tower.rect.centery - self.rect.centery < 64 and -64 < self.rect.centerx - tower.rect.centerx < self.attack_range + 64 and self.rect.x < 1472:
                 return True, tower
+        for creep in creeps_group:
+            if -64 < creep.rect.centery - self.rect.centery < 64 and -64 < self.rect.centerx - creep.rect.centerx < self.attack_range + 64 and self.rect.x < 1472:
+                return True, creep
         return False, None
 
     def preparing_to_attack(self):
@@ -1835,6 +1851,86 @@ class Enemy(sprite.Sprite):
         self.movement()
 
 
+class Creep(sprite.Sprite):
+    def __init__(self, name, pos, parent):
+        super().__init__(all_sprites_group, creeps_group)
+        self.image = image.load(f"images/creeps/{name}.png").convert_alpha()
+        self.pos = pos
+        self.rect = self.image.get_rect(topleft=self.pos)
+        self.real_x = float(self.rect.x)
+        self.real_y = float(self.rect.y)
+        self.render_layer = 5
+        self.name = name
+        self.parent = parent
+        self.stop = False
+        self.alive = True
+        self.have_barrier = False
+        self.barrier = None
+        self.target = None
+
+
+        if self.name == 'nekr_skelet':
+            self.hp = 100
+            self.atk = 30
+            self.speed = 0.5
+            self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.attack_range = 0
+
+    def is_should_stop_to_attack(self):
+        for enemy in enemies_group:
+            if -64 < enemy.rect.centery - self.rect.centery < 64 and -64 < enemy.rect.centerx - self.rect.centerx < self.attack_range + 64 and self.rect.centerx > 384:
+                return True, enemy
+        return False, None
+    
+    def preparing_to_attack(self):
+        if self.attack_cooldown > 0:
+            self.attack_cooldown -= 1
+        else:
+            self.attack_cooldown = self.basic_attack_cooldown
+            if self.stop:
+                if self.attack_range == 0:
+                    self.melee_attack()
+                if self.attack_range > 0:
+                    self.shoot()
+
+    def melee_attack(self):
+        if self.target:
+            self.dealing_damage(self.target)
+
+    def shoot(self):
+        pass
+
+    def dealing_damage(self, enemy):
+        if hasattr(enemy, 'armor') and enemy.armor > 0:
+            if self.atk <= enemy.armor:
+                enemy.armor -= self.atk
+            else:
+                enemy.hp -= (self.atk - enemy.armor)
+                enemy.armor = 0
+        else:
+            enemy.hp -= self.atk
+        enemy.damaged = True
+        enemy.check_hp()
+
+    def movement(self):
+        if not self.stop:
+            self.real_x += self.speed
+        self.rect.x = int(self.real_x)
+        self.rect.y = int(self.real_y)
+
+    def check_hp(self):
+        if self.hp <= 0 or self.parent not in all_sprites_group or self.rect.x > 1700:
+            self.alive = False
+            self.kill()
+
+    def update(self):
+        self.stop, self.target = self.is_should_stop_to_attack()
+
+        self.preparing_to_attack()
+        self.movement()
+        self.check_hp()
+
+
 class Bullet(sprite.Sprite):
     def __init__(self, bullet_sprite, x, y, damage_type, damage, speed_x, speed_y, name, parent):
         super().__init__(all_sprites_group, bullets_group)
@@ -1954,6 +2050,16 @@ class Bullet(sprite.Sprite):
                             tower.hp -= self.damage
                             tower.check_hp()
                             self.kill()
+            for creep in creeps_group:
+                if self.rect.colliderect(creep.rect):
+                    if creep.barrier:
+                        creep.barrier.hp -= self.damage
+                        self.kill()
+                    else:
+                        creep.hp -= self.damage
+                        creep.check_hp()
+                        self.kill()
+
 
         if self.name == "yas":
             if self.sumon != "baza":
@@ -2139,6 +2245,10 @@ class Parasite(sprite.Sprite):
             if self.parent not in all_sprites_group:
                 self.lifetime = 375
 
+        if self.name == 'mol':
+            if self.owner != self.parent:
+                self.dealing_damage(self.owner)
+            self.lifetime = 75
     
     def dead(self):
         self.kill()
@@ -2154,25 +2264,25 @@ class Parasite(sprite.Sprite):
                 self.owner.parasite_parents.remove(self.parent)
 
     def prisasivanie(self):  # если честно то это по сути delat_chtoto но для паразитов, когда-нибудь сделаем по-человечески
-        if self.name != 'ogonek_parasite':
+        if self.name != 'ogonek_parasite' and self.name != 'mol':
             if self.parent not in all_sprites_group:
                 if self.name == 'raven' and (self.owner != self.parent or (hasattr(self, 'lifetime') and self.lifetime > 0)):
                     pass
                 else:
                     self.dead()
-
-        if self.owner not in all_sprites_group:
-            if self.name == 'raven':
-                if self.parent not in all_sprites_group:
-                    if hasattr(self, 'lifetime') and self.lifetime > 0 and self.owner == self.parent:
-                        pass
+        if self.name != 'mol':
+            if self.owner not in all_sprites_group:
+                if self.name == 'raven':
+                    if self.parent not in all_sprites_group:
+                        if hasattr(self, 'lifetime') and self.lifetime > 0 and self.owner == self.parent:
+                            pass
+                        else:
+                            self.dead()
                     else:
-                        self.dead()
+                        self.owner = self.parent
+                        self.rest_time = 9999
                 else:
-                    self.owner = self.parent
-                    self.rest_time = 9999
-            else:
-                self.dead()
+                    self.dead()
 
         if self.name == 'barrier' and self.hp <= 0:
             self.kill()
@@ -2394,6 +2504,7 @@ class Buff(sprite.Sprite):
                             or tower.name == "gnome_cannon3"\
                             or tower.name == "electric"\
                             or tower.name == "gribnik"\
+                            or tower.name == "nekr"\
                             or tower.name == "struyniy":
 
                         if tower.basic_attack_cooldown // 2 <= 225:
@@ -2493,6 +2604,7 @@ class Buff(sprite.Sprite):
                         or tower.name == "gnome_cannon3"\
                         or tower.name == "electric"\
                         or tower.name == "gribnik"\
+                        or tower.name == "nekr"\
                         or tower.name == "struyniy":
                     if not self.max_buff:
                         tower.basic_attack_cooldown *= 2
@@ -3276,6 +3388,7 @@ def menu_positioning():
 bullets_group = sprite.Group()
 parasites_group = sprite.Group()
 buffs_group = sprite.Group()
+creeps_group = sprite.Group()
 enemies_group = sprite.Group()
 towers_group = sprite.Group()
 nekusaemie_group = sprite.Group()

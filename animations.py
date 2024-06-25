@@ -34,6 +34,7 @@ towers_wait = {
     "grib2": [image.load(f"images/towers/grib2/wait/grib2{i}.png") for i in range(1, 5)],
     "grib3": [image.load(f"images/towers/grib3/wait/grib3{i}.png") for i in range(1, 5)],
     "bolotnik": [image.load(f"images/towers/bolotnik/wait/bolotnik{i}.png") for i in range(1, 5)],
+    "nekr": [image.load(f"images/towers/nekr/wait/nekr{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/wait/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/wait/perec{i}.png") for i in range(1, 5)],
@@ -69,6 +70,7 @@ towers_attack = {
     "struyniy": [image.load(f"images/towers/struyniy/attack/struyniy{i}.png") for i in range(1, 5)],
     "dark_druid": [image.load(f"images/towers/dark_druid/attack/dark_druid{i}.png") for i in range(1, 5)],
     "gribnik": [image.load(f"images/towers/gribnik/attack/gribnik{i}.png") for i in range(1, 5)],
+    "nekr": [image.load(f"images/towers/nekr/attack/nekr{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/attack/go_bleen1{i}.png") for i in range(1, 3)],
 
 }
