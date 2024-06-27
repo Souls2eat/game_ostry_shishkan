@@ -175,6 +175,7 @@ class PreviewGroup(BasePreviewGroup):
     def remember_entities_empty(self):
         for tower in self.remember_entities:
             tower.in_slot = False
+            tower.kill()
         self.remember_entities.clear()
 
     def custom_draw(self, surf, offset_pos=(0, 0)):
@@ -237,7 +238,8 @@ class PreviewGroup(BasePreviewGroup):
                 entity = Tower(tower_name, (indent + column * (128 + indent - 4), indent + (line * (128 + indent - 4))))  # 50, 100
                 if hasattr(entity, "blackik"):
                     entity.blackik.kill()
-                buffs_group.empty()
+                for b in buffs_group:
+                    b.kill()
                 self.add(entity)
         if Enemy in self.supported_objects:
             for i, enemy_name in enumerate([*encountered_enemies, *not_encountered_enemies]):
@@ -261,18 +263,18 @@ class GlobalMap(BasePreviewGroup):
     def custom_draw(self, surf):
         for level_ in self.entities:
             # draw.rect(screen, (0, 255, 0), level_.rect, 5)
-            if level_.number in unlocked_levels:
+            if level_.parent in passed_levels:
                 surf.blit(level_.image, level_.rect)
-            if len(str(level_.number)) < 2 and level_.number in unlocked_levels:
+            if len(str(level_.number)) < 2 and level_.parent in passed_levels:
                 surf.blit(font60.render(f"{str(level_.number)}", True, (0, 0, 0)), (level_.rect.x + 30, level_.rect.y + 6))
-            elif len(str(level_.number)) < 99 and level_.number in unlocked_levels:
+            elif len(str(level_.number)) < 99 and level_.parent in passed_levels:
                 surf.blit(font60.render(f"{str(level_.number)}", True, (0, 0, 0)), (level_.rect.x + 12, level_.rect.y + 6))
 
     def start_clicked_level(self):
-        global scroll_offset, continue_level, last_game_state, game_state, level, unlocked_levels
+        global scroll_offset, continue_level, last_game_state, game_state, level, passed_levels
         if self.pushed_entity:
-            if self.pushed_entity.number in levels_config and self.pushed_entity.number in unlocked_levels:  # исправить unlocked_levels
-                level = Level(*levels_config[self.pushed_entity.number])
+            if self.pushed_entity.number in levels and self.pushed_entity.parent in passed_levels:  # исправить unlocked_levels
+                level = levels[self.pushed_entity.number]
                 scroll_offset = 0
                 continue_level = True
                 level.refresh()
@@ -316,7 +318,7 @@ class TowerUpgradesGroup(BasePreviewGroup):
 
 class TextSprite(sprite.Sprite):
     def __init__(self, sprite_, pos, active_game_states=()):
-        super().__init__(all_sprites_group)
+        super().__init__(all_sprites_group, text_sprites_group)
         self.image = sprite_
         self.rect = self.image.get_rect(topleft=pos)
         self.render_layer = 2
@@ -327,8 +329,11 @@ class TextSprite(sprite.Sprite):
 
 
 class Level:
-    def __init__(self, level_number, level_time, time_to_spawn, start_money, waves: dict, allowed_enemies: tuple, allowed_cords=(192, 320, 448, 576, 704), blocked_slots=()):
-        self.image = image.load(f"images/maps/map{level_number}.png").convert_alpha()
+    def __init__(self, level_number, level_time, time_to_spawn, start_money, waves: dict, allowed_enemies: tuple, allowed_cords=(192, 320, 448, 576, 704), blocked_slots=(), level_image="default"):
+        if level_image == "default":
+            self.image = image.load(f"images/maps/map{level_number}.png").convert_alpha()
+        else:
+            self.image = image.load(f"images/maps/map{level_image}.png").convert_alpha()
         self.current_level = level_number
         self.money = self.start_money = start_money
         self.state = "not_run"
@@ -370,62 +375,23 @@ class Level:
         Enemy(enemy_name, (1600, enemy_y_cord))
 
     @staticmethod
-    def clear(*without):
-        if without:
-            if "enemies_group" not in without:
-                for enemy in enemies_group:
-                    enemy.kill()
-            if "towers_group" not in without:
-                for tower in towers_group:
-                    tower.kill()
-                    if hasattr(tower, "bullet"):
-                        tower.bullet.kill()
-            if "nekusaemie_group" not in without:
-                for nekusaemiy in nekusaemie_group:
-                    nekusaemiy.kill()
-            if "bullets_group" not in without:
-                for bullet in bullets_group:
-                    bullet.kill()
-            if "ui_group" not in without:
-                for ui in ui_group:
-                    ui.kill()
-            if "clouds_group" not in without:
-                for cloud in clouds_group:
-                    cloud.kill()
-            if "buttons_group" not in without:
-                for button in buttons_group:
-                    button.ok = False
-            if "select_towers_preview_group" not in without:
-                select_towers_preview_group.remember_entities_empty()
-            if "buffs_group" not in without:
-                for buff in buffs_group:
-                    buff.kill()
-            if "parasites_group":
-                for p in parasites_group:
-                    p.kill()
-
-        else:
-            for enemy in enemies_group:
-                enemy.kill()
-            for tower in towers_group:
-                tower.kill()
-                if hasattr(tower, "bullet"):
-                    tower.bullet.kill()
-            for nekusaemiy in nekusaemie_group:
-                nekusaemiy.kill()
-            for bullet in bullets_group:
-                bullet.kill()
-            for cloud in clouds_group:
-                cloud.kill()
-            for ui in ui_group:
-                ui.kill()
+    def clear(*dont_clear_groups):
+        if buttons_group not in dont_clear_groups:
             for button in buttons_group:
                 button.ok = False
-            select_towers_preview_group.remember_entities_empty()
-            for buff in buffs_group:
-                buff.kill()
-            for p in parasites_group:
-                p.kill()
+        select_towers_preview_group.remember_entities_empty()
+        if ui_group not in dont_clear_groups:
+            for ui in ui_group:
+                ui.kill()
+
+        for sprite_ in all_sprites_group:
+            if dont_clear_groups:
+                for group in dont_clear_groups:
+                    if sprite_ not in group and sprite_ not in text_sprites_group:
+                        sprite_.kill()
+            else:
+                if sprite_ not in text_sprites_group:
+                    sprite_.kill()
 
     @staticmethod
     def spawn():
@@ -449,7 +415,7 @@ class Level:
         self.clear()
 
     def give_reward(self):
-        global unlocked_levels
+        global passed_levels
 
         random_coin = choice([c for c in your_coins.keys()])
         your_coins[random_coin] += 5
@@ -481,9 +447,8 @@ class Level:
             Alert("Все башни открыты", (100, 100), 75)
 
         if len(not_encountered_enemies) >= 1:
-            for enemy_ in levels_config[str(self.current_level)][5]:
+            for enemy_ in levels[self.current_level][5]:
                 if enemy_ not in encountered_enemies:
-                    print(enemy_)
                     encountered_enemies.append(enemy_)
                     not_encountered_enemies.remove(enemy_)
                     Alert("Новые враги известны", (100, 200), 75)
@@ -491,8 +456,10 @@ class Level:
             Alert("Все враги известны", (100, 200), 75)
 
         preview_group.refresh(3)
-        if str(self.current_level + 1) not in unlocked_levels:
-            unlocked_levels.append(str(self.current_level + 1))
+        if self.current_level not in passed_levels:
+            passed_levels.append(self.current_level)
+        # if str(self.current_level + 1) not in passed_levels:
+        #     passed_levels.append(str(self.current_level + 1))
         save_data()
 
     def update(self):
@@ -516,7 +483,10 @@ class Level:
                 return "level_complited"
         else:
             return "run"
-        
+
+    def __repr__(self):
+        return str((self.current_level, self.level_time, self.state))
+
 
 class Tower(sprite.Sprite):
     def __init__(self, unit, pos):
@@ -696,13 +666,13 @@ class Tower(sprite.Sprite):
                 self.ravens = 10
                 self.ravens_dead = 15
             for i in range(self.ravens):
-                if self.ravens%2 == 1:
-                    if i%2 == 0:
+                if self.ravens % 2 == 1:
+                    if i % 2 == 0:
                         Parasite('raven', self.rect.centerx - 26, self.rect.bottom - 16*(i+1), self.damage_type, self.atk, self, self)
                     else:
                         Parasite('raven', self.rect.centerx - 58, self.rect.bottom - 16*(i+1), self.damage_type, self.atk, self, self)
                 else:
-                    if i%2 == 0:
+                    if i % 2 == 0:
                         Parasite('raven', self.rect.centerx - 26, self.rect.bottom - 16*(i+1), self.damage_type, self.atk, self, self)
                     else:
                         Parasite('raven', self.rect.centerx - 58, self.rect.bottom - 16*i, self.damage_type, self.atk, self, self)
@@ -993,11 +963,11 @@ class Tower(sprite.Sprite):
             Tower('grib3', self.pos)
             for i in range(0, 8, 2):
                 if i < 4:
-                    self.grib = Tower('grib1', ((384 + ((self.rect.x - 384) // 128) * 128), (192 + ((self.rect.y+(128*(i-1)) - 192) // 128) * 128)))
+                    grib = Tower('grib1', ((384 + ((self.rect.x - 384) // 128) * 128), (192 + ((self.rect.y+(128*(i-1)) - 192) // 128) * 128)))
                 else:
-                    self.grib = Tower('grib1', ((384 + ((self.rect.x+(128*(i-5)) - 384) // 128) * 128), (192 + ((self.rect.y - 192) // 128) * 128)))
-                if not (1536 > self.grib.pos[0] >= 384 and 832 > self.grib.pos[1] >= 192) or not is_free(self.grib):
-                    self.grib.kill()
+                    grib = Tower('grib1', ((384 + ((self.rect.x+(128*(i-5)) - 384) // 128) * 128), (192 + ((self.rect.y - 192) // 128) * 128)))
+                if not (1536 > grib.pos[0] >= 384 and 832 > grib.pos[1] >= 192) or not is_free(grib):
+                    grib.kill()
 
         if self.name == 'dark_druid':
             self.kill()  # так надо
@@ -1005,13 +975,13 @@ class Tower(sprite.Sprite):
                 if self in enemy.parasite_parents:
                     enemy.parasite_parents.remove(self)
             for i in range(self.ravens_dead):
-                if self.ravens_dead%2 == 1:
-                    if i%2 == 0:
+                if self.ravens_dead % 2 == 1:
+                    if i % 2 == 0:
                         Parasite('raven', self.rect.right - 16, self.rect.bottom - 16*(i+1), self.damage_type, self.atk, self, self)
                     else:
                         Parasite('raven', self.rect.right - 48, self.rect.bottom - 16*(i+1), self.damage_type, self.atk, self, self)
                 else:
-                    if i%2 == 0:
+                    if i % 2 == 0:
                         Parasite('raven', self.rect.right - 16, self.rect.bottom - 16*(i+1), self.damage_type, self.atk, self, self)
                     else:
                         Parasite('raven', self.rect.right - 48, self.rect.bottom - 16*i, self.damage_type, self.atk, self, self)
@@ -1904,7 +1874,6 @@ class Creep(sprite.Sprite):
         self.barrier = None
         self.target = None
 
-
         if self.name == 'nekr_skelet':
             self.hp = 100
             self.atk = 30
@@ -2510,7 +2479,6 @@ class Buff(sprite.Sprite):
         elif self.name == 'boloto':
             self.rect2 = Rect(self.rect.x - 512, self.rect.y, 640, 128)
 
-
         self.max_buff = None
 
         if self.name == 'mat' or self.name == 'vodkamat':
@@ -2750,6 +2718,9 @@ class Buff(sprite.Sprite):
             if not self.mozhet_zhit:
                 self.kill()
 
+    def __repr__(self):
+        return f"Я {self.name}"
+
 
 class UI(sprite.Sprite):
     def __init__(self, pos, path, unit_inside, free_placement, kd_time=0):
@@ -2911,12 +2882,13 @@ class Button2:
 
 
 class GlobalMapLevelButton(Button2):
-    def __init__(self, number: str, pos):
+    def __init__(self, number: str, parent: str, pos: tuple):
         super().__init__()
         self.number = number
         self.pos = pos
         self.image = global_level
         self.rect = self.image.get_rect(topleft=self.pos)
+        self.parent = parent
         global_map.add(self)
 
 
@@ -3032,7 +3004,7 @@ def scroll_offset_min_max(min_offset, max_offset):
 
 def upload_data(default=False):
     global continue_level, \
-        unlocked_levels, \
+        passed_levels, \
         received_towers, \
         not_received_towers, \
         encountered_enemies, \
@@ -3048,7 +3020,7 @@ def upload_data(default=False):
         load_file = "saves/default_save.txt"
 
     with open(load_file, "r", encoding="utf-8") as file:
-        unlocked_levels = str(*file.readline().strip().split(" = ")[1:]).split(", ")
+        passed_levels = str(*file.readline().strip().split(" = ")[1:]).split(", ")
         received_towers = str(*file.readline().strip().split(" = ")[1:]).split(", ")       # считать список
         not_received_towers = str(*file.readline().strip().split(" = ")[1:]).split(", ")
         if not_received_towers[0] == "[]":
@@ -3077,7 +3049,7 @@ def upload_data(default=False):
 
 def save_data():
     with open("saves/current_save.txt", "w", encoding="utf-8") as file:
-        file.write(f"unlocked_levels = " + str(unlocked_levels).replace("['", "").replace("']", "").replace("'", "") + "\n")
+        file.write(f"passed_levels = " + str(passed_levels).replace("['", "").replace("']", "").replace("'", "") + "\n")
         file.write(f"received_towers = " + str(received_towers).replace("['", "").replace("']", "").replace("'", "") + "\n")
         file.write(f"not_received_towers = " + str(not_received_towers).replace("['", "").replace("']", "").replace("'", "") + "\n")
         file.write(f"encountered_enemies = " + str(encountered_enemies).replace("['", "").replace("']", "").replace("'", "") + "\n")
@@ -3117,7 +3089,7 @@ def menu_positioning():
             continue_level,\
             running,\
             last_game_state,\
-            unlocked_levels, \
+            passed_levels, \
             level,\
             scroll_offset
 
@@ -3303,7 +3275,7 @@ def menu_positioning():
             level.draw_level_time()
             # screen.blit(font40.render(str(level.level_time) + " осталось", True, (255, 255, 255)), (853, 110))    # циферки
         # screen.blit(font40.render(str(level.current_level) + " уровень", True, (255, 255, 255)), (893, 30))
-        level_num.update_text(font40.render(str(level.current_level) + " уровень", True, (255, 255, 255)))
+        level_num.update_text(font40.render(level.current_level + " уровень", True, (255, 255, 255)))
         # screen.blit(font40.render(str(level.money), True, (0, 0, 0)), (88, 53))
         level_money.update_text(font40.render(str(level.money), True, (0, 0, 0)))
 
@@ -3365,12 +3337,13 @@ def menu_positioning():
     if game_state == "level_complited":
         screen.blit(menu, (480, 250))
         screen.blit(font60.render("Уровень пройден", True, (193, 8, 42)), (544, 280))
-        if str(level.current_level + 1) not in unlocked_levels:
-            unlocked_levels.append(str(level.current_level + 1))    # переписать
-        if next_level_button.click(screen, (496, 360)):
-            level.refresh()
-            level = Level(*levels_config[str(level.current_level + 1)])
-            game_state = "tower_select"
+        # if str(level.current_level + 1) not in passed_levels:
+        #     passed_levels.append(str(level.current_level + 1))    # переписать
+
+        if to_map_button.click(screen, (669, 360)):     # 449
+            # level.refresh()
+            # level = Level(*levels_config[str(level.current_level + 1)])   # fix
+            game_state = "global_map"
         if restart_button.click(screen, (582, 440)):
             last_game_state = game_state
             level.refresh()
@@ -3403,7 +3376,7 @@ def menu_positioning():
             if len(select_towers_preview_group.remember_entities) == 7 - len(level.blocked_slots):
                 scroll_offset = 0
                 game_state = "run"
-                level.clear("ui_group")
+                level.clear(ui_group)
                 level.state = "not_run"
                 continue_level = True
                 select_towers_preview_group.remember_entities.clear()
@@ -3443,7 +3416,7 @@ def menu_positioning():
                 encountered_enemies.append(enemy_)
             not_encountered_enemies.clear()
 
-            unlocked_levels = ["1", "2", "3", "4", "5"]
+            passed_levels = ["0", "1", "2", "3", "4", "5", "6", "6а", "6б", "6в"]
             preview_group.refresh(3)
             print("all_unlocked")
 
@@ -3483,6 +3456,7 @@ preview_group = PreviewGroup(Tower, Enemy)
 select_towers_preview_group = PreviewGroup(Tower)
 global_map = GlobalMap()
 tower_upgrades_group = TowerUpgradesGroup()
+text_sprites_group = sprite.Group()
 
 pause_button = Button("text", font40, "||",)
 restart_button = Button("text", font60, "Перезапустить")
@@ -3493,7 +3467,7 @@ back_button = Button("text", font60, "Назад")
 quit_button = Button("text", font60, "Выход")
 new_game_button = Button("text", font60, "Новая игра",)
 level_select_button = Button("text", font60, "Выбрать уровень")
-next_level_button = Button("text", font60, "Следующий уровень")
+to_map_button = Button("text", font60, "На карту")
 cheat_button = Button("img", "menu", "cheat")
 start_level_button = Button("text", font60, "Начать")
 random_choice_button = Button("text", font50, "Случайно")
@@ -3509,19 +3483,19 @@ level_num = TextSprite(font40.render("0" + " уровень", True, (255, 255, 2
 level_money = TextSprite(font40.render("300", True, (0, 0, 0)), (88, 53), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
 
 
-GlobalMapLevelButton("1", (100, 714))     # !!! все буквы русские !!!
-GlobalMapLevelButton("2", (250, 544))
-GlobalMapLevelButton("3", (500, 500))
-# GlobalMapLevel("3а", (700, 700))
-GlobalMapLevelButton("4", (750, 400))
-GlobalMapLevelButton("5", (1000, 400))
-GlobalMapLevelButton("6", (1200, 300))
-# GlobalMapLevel("6а", (1000, 100))
-# GlobalMapLevel("6б", (750, 100))
-# GlobalMapLevel("6в", (500, 100))
-# GlobalMapLevel("6г", (250, 200))
-GlobalMapLevelButton("7", (1400, 200))
-GlobalMapLevelButton("8", (1650, 200))
+GlobalMapLevelButton("1", "0", (100, 714))     # !!! все буквы русские !!!
+GlobalMapLevelButton("2", "1", (250, 544))
+GlobalMapLevelButton("3", "2", (500, 500))
+GlobalMapLevelButton("3а", "3", (700, 700))
+GlobalMapLevelButton("4", "3", (750, 400))
+GlobalMapLevelButton("5", "4", (1000, 400))
+GlobalMapLevelButton("6", "5", (1200, 300))
+GlobalMapLevelButton("6а", "6", (1000, 100))
+GlobalMapLevelButton("6б", "6а", (750, 100))
+GlobalMapLevelButton("6в", "6б", (500, 100))
+GlobalMapLevelButton("6г", "6в", (250, 200))
+GlobalMapLevelButton("7", "6", (1400, 200))
+GlobalMapLevelButton("8", "7", (1650, 200))
 
 UpgradeTowerButton("1", (50, 104))
 UpgradeTowerButton("2a", (216, 36))
@@ -3531,7 +3505,7 @@ UpgradeTowerButton("3b", (384, 172))
 
 
 # --- from save
-unlocked_levels = []
+passed_levels = []
 received_towers = []
 not_received_towers = []
 encountered_enemies = []
@@ -3544,7 +3518,17 @@ snow_coins = 0
 upload_data()
 # ---
 
-level = Level(*levels_config["1"])
+levels = {
+    "1": Level("1", 22500, 750, 50, level_1_waves, ("popusk", "josky")),
+    "2": Level("2", 22500, 575, 50, level_2_waves, ("josky", "sigma", "sportik", "popusk")),
+    "3": Level("3", 22500, 500, 50, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik")),
+    "3а": Level("3а", 22500, 500, 50, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik"), level_image="3"),
+    "4": Level("4", 22500, 225, 50, level_4_waves, ("telezhnik", "rojatel", "sigma", "armorik", "zeleniy_strelok", "drobik", "klonik")),
+    "5": Level("5", 31500, 225, 50, level_5_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik", "klonik", "teleportik"))
+}
+
+# level = Level(*levels_config["1"])
+level = levels["1"]
 preview_group.entity_create(3)
 select_towers_preview_group.entity_create(6)
 
@@ -3647,6 +3631,8 @@ while running:
 
             if e.key == K_r:
                 level.give_reward()
+            if e.key == K_w:
+                game_state = "level_complited"
             if e.key == K_q:
                 running = False
         if e.type == QUIT:
