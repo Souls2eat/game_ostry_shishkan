@@ -1404,47 +1404,48 @@ class Tower(sprite.Sprite):
 
     def spawn_something(self):
         if self.name == 'kopitel':
+            bullet = None
             if self.nakopleno < self.max_nakopit:
                 joska_schitayu_y = 16 * self.nakopleno + 16
                 if self.upgrade_level == "2a" or self.upgrade_level == '3a':
                     if self.upgrade_level == "2a":
                         if self.nakopleno < self.max_nakopit-1:
-                            self.spear_or_sword = choice(["light_spear", "light_spear", "light_sword", "light_sword", "light_big_sword"])  # так надо    
+                            spear_or_sword = choice(["light_spear", "light_spear", "light_sword", "light_sword", "light_big_sword"])  # так надо
                         else:
-                            self.spear_or_sword = choice(["light_spear", "light_sword"])
-                        if self.spear_or_sword == 'light_big_sword':
+                            spear_or_sword = choice(["light_spear", "light_sword"])
+                        if spear_or_sword == 'light_big_sword':
                             self.nakopleno += 2
-                            pulya = Bullet(self.spear_or_sword, self.rect.centerx-28, self.rect.y+joska_schitayu_y, self.damage_type, self.atk_big, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                            bullet = Bullet(spear_or_sword, self.rect.centerx-28, self.rect.y+joska_schitayu_y, self.damage_type, self.atk_big, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
                         else:
                             self.nakopleno += 1
-                            pulya = Bullet(self.spear_or_sword, self.rect.centerx-28, self.rect.y+joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                            bullet = Bullet(spear_or_sword, self.rect.centerx-28, self.rect.y+joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
                     else:
-                        self.spear_or_sword = choice(["light_spear", "light_sword", "light_big_sword"])
+                        spear_or_sword = choice(["light_spear", "light_sword", "light_big_sword"])
                         self.nakopleno += 1
-                        if self.spear_or_sword == 'light_big_sword':
-                            pulya = Bullet(self.spear_or_sword, self.rect.centerx-28, self.rect.y+joska_schitayu_y, self.damage_type, self.atk_big, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                        if spear_or_sword == 'light_big_sword':
+                            bullet = Bullet(spear_or_sword, self.rect.centerx-28, self.rect.y+joska_schitayu_y, self.damage_type, self.atk_big, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
                         else:
-                            pulya = Bullet(self.spear_or_sword, self.rect.centerx-28, self.rect.y+joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                            bullet = Bullet(spear_or_sword, self.rect.centerx-28, self.rect.y+joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
                 elif self.upgrade_level == "2b" or self.upgrade_level == '3b':
                     if self.nakopleno == 0:
                         for i in range(3): # тут менять сколько пуль будет сначала спавниться
                             joska_schitayu_y = 16 * self.nakopleno + 16
-                            self.spear_or_sword = choice(["light_spear", "light_sword"])
+                            spear_or_sword = choice(["light_spear", "light_sword"])
                             self.nakopleno += 1
-                            pulya = Bullet(self.spear_or_sword, self.rect.centerx-28, self.rect.y+joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                            bullet = Bullet(spear_or_sword, self.rect.centerx-28, self.rect.y+joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
                             if i < 2:
-                                pulya.remove(bullets_group)
-                                self.spawned_things.append(pulya)
+                                bullet.remove(bullets_group)
+                                self.spawned_things.append(bullet)
                     else:
-                        self.spear_or_sword = choice(["light_spear", "light_sword"])
+                        spear_or_sword = choice(["light_spear", "light_sword"])
                         self.nakopleno += 1
-                        pulya = Bullet(self.spear_or_sword, self.rect.centerx-28, self.rect.y+joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                        bullet = Bullet(spear_or_sword, self.rect.centerx-28, self.rect.y+joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
                 else:
-                    self.spear_or_sword = choice(["light_spear", "light_sword"])
+                    spear_or_sword = choice(["light_spear", "light_sword"])
                     self.nakopleno += 1
-                    pulya = Bullet(self.spear_or_sword, self.rect.centerx-28, self.rect.y+joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
-                pulya.remove(bullets_group)
-                self.spawned_things.append(pulya)
+                    bullet = Bullet(spear_or_sword, self.rect.centerx-28, self.rect.y+joska_schitayu_y, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kopilka', self)
+                bullet.remove(bullets_group)
+                self.spawned_things.append(bullet)
 
         if self.name == 'barrier_mag':
             if self.best_x.barrier:
