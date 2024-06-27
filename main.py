@@ -707,16 +707,6 @@ class Tower(sprite.Sprite):
                     else:
                         Parasite('raven', self.rect.centerx - 58, self.rect.bottom - 16*i, self.damage_type, self.atk, self, self)
 
-        if self.name == 'electro_maga':
-            self.hp = 200
-            self.atk = 0
-            self.bullet_speed_x = 1
-            self.bullet_speed_y = 0
-            self.basic_attack_cooldown = 375
-            self.attack_cooldown = self.basic_attack_cooldown
-            self.damage_type = ''
-            self.rarity = "legendary"
-
         if self.name == 'parasitelniy':
             self.hp = 2500
             self.max_hp = 2500
@@ -730,7 +720,6 @@ class Tower(sprite.Sprite):
             self.hp = 200
             self.atk = 30  # я хз надо ли некру писать атк(атака сейчас нигде не используется, оставил чтобы не ломать справочник), можно сделать чтобы его призывники наследовали атаку, а можно и чтобы у них в ините она прописывалась, хз короч, потом решим
             self.attack_cooldown = self.basic_attack_cooldown = 750  # потом отбалансим. кстати можно его не через атаку сделать а через spawn_something, но это потом, пока что делаю через shoot
-            self.summons = 3
             self.damage_type = ''
             self.rarity = "common"
 
@@ -1112,8 +1101,7 @@ class Tower(sprite.Sprite):
                 or self.name == 'gnome_cannon3'\
                 or self.name == 'struyniy'\
                 or self.name == 'nekr'\
-                or self.name == 'gribnik'\
-                or self.name == 'electro_maga':
+                or self.name == 'gribnik':
             for enemy in enemies_group:
                 if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
                     return enemy
@@ -1265,8 +1253,30 @@ class Tower(sprite.Sprite):
             targets[id(self)] = None
 
         if self.name == "nekr":
-            for i in range(self.summons):
-                Creep('nekr_skelet', (self.rect.x + (45*i), self.rect.y), self)
+            if self.upgrade_level == "2a":
+                if self.rect.y+128 <= 704:
+                    Creep('nekr_skelet', (self.rect.x, self.rect.y + 128), self)
+                if self.rect.y-128 >= 192:
+                    Creep('nekr_skelet', (self.rect.x , self.rect.y - 128), self)
+                for i in range(3):
+                    Creep('nekr_skelet', (self.rect.x + (45*i), self.rect.y), self)
+            elif self.upgrade_level == "3a":
+                if self.rect.y+128 <= 704:
+                    Creep('nekr_skelet_strelok', (self.rect.x, self.rect.y + 128), self)
+                if self.rect.y-128 >= 192:
+                    Creep('nekr_skelet_strelok', (self.rect.x, self.rect.y - 128), self)
+                for i in range(5):
+                    Creep('nekr_skelet', (self.rect.x + (25*i), self.rect.y), self)
+            elif self.upgrade_level == "2b":
+                for i in range(3):
+                    Creep('nekr_zombie', (self.rect.x + (45*i), self.rect.y), self)
+            elif self.upgrade_level == "3b":
+                Creep('nekr_zombie_jirny', (self.rect.x + 90, self.rect.y), self)
+                for i in range(2):
+                    Creep('nekr_zombie', (self.rect.x + (45*i), self.rect.y), self)
+            else:
+                for i in range(3):
+                    Creep('nekr_skelet', (self.rect.x + (45*i), self.rect.y), self)
 
         if self.name == "thunder":
             if self.target_phase == 'side':
@@ -1296,9 +1306,6 @@ class Tower(sprite.Sprite):
 
         if self.name == "zeus":
             Bullet("Laser", self.rect.centerx + 640, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, 0, 'ls', self)
-
-        if self.name == 'electro_maga':
-            Bullet('electro_maga_sfera', self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'es', self)
 
         if self.name == "yascerica":
             if self.blackik.sumon == "baza":
@@ -1864,6 +1871,7 @@ class Enemy(sprite.Sprite):
         self.check_hp()
         self.movement()
 
+
 class Creep(sprite.Sprite):
     def __init__(self, name, pos, parent):
         super().__init__(all_sprites_group, creeps_group)
@@ -1888,6 +1896,37 @@ class Creep(sprite.Sprite):
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 0
+            if self.parent.upgrade_level == '2a':
+                self.speed = 1
+            if self.parent.upgrade_level == '3a':
+                self.speed = 1.5
+
+        if self.name == 'nekr_zombie':
+            self.hp = 200
+            self.atk = 40
+            self.speed = 0.5
+            self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.attack_range = 0
+
+        if self.name == 'nekr_zombie_jirny':
+            self.hp = 500
+            self.atk = 100
+            self.speed = 0.5
+            self.attack_cooldown = self.basic_attack_cooldown = 120
+            self.attack_range = 0
+
+        if self.name == 'nekr_skelet_strelok':
+            self.hp = 100
+            self.atk = 50
+            self.speed = 0.5
+            self.bullet_speed_x = 5
+            self.bullet_speed_y = 0
+            self.attack_cooldown = self.basic_attack_cooldown = 120
+            self.attack_range = 256
+            if self.parent.upgrade_level == '2a':
+                self.speed = 1
+            if self.parent.upgrade_level == '3a':
+                self.speed = 1.5
 
     def is_should_stop_to_attack(self):
         for enemy in enemies_group:
@@ -1911,7 +1950,8 @@ class Creep(sprite.Sprite):
             self.dealing_damage(self.target)
 
     def shoot(self):
-        pass
+        if self.name == 'nekr_skelet_strelok':
+            Bullet('bone_arrow', self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "default", self)
 
     def dealing_damage(self, enemy):
         if hasattr(enemy, 'armor') and enemy.armor > 0:
@@ -1967,9 +2007,6 @@ class Bullet(sprite.Sprite):
             self.off = 15
         if self.name == "fire":
             self.off = 61
-        if self.name == 'razlet':
-            self.pushl = 128
-            self.off = 20
 
         if self.name == 'yas':
             self.sumon = 'baza'     # ready
@@ -2045,7 +2082,7 @@ class Bullet(sprite.Sprite):
         enemy.check_hp()
 
     def check_collision(self):
-        if self.name != "zeleniy_strelok_bullet" and self.name != 'anti_hrom' and self.name != 'explosion' and self.name != 'razlet' and not self.penned:
+        if self.name != "zeleniy_strelok_bullet" and self.name != 'anti_hrom' and self.name != 'explosion' and not self.penned:
             for tower in towers_group:
                 if tower.name == 'pen' and self.rect.colliderect(tower.rect):
                     self.speed_x *= 1.5
@@ -2123,19 +2160,12 @@ class Bullet(sprite.Sprite):
                             self.kill()
                             break
 
-        if self.name == 'ls' or self.name == 'explosion' or self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux" or self.name == 'razlet':
+        if self.name == 'ls' or self.name == 'explosion' or self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux":
             for enemy in enemies_group:
                 if sprite.collide_rect(enemy, self) and enemy.hp > 0 and self not in enemy.only_one_hit_bullets:
                     self.dealing_damage(enemy)
                     if self.name == "tolkan_bux":
                         enemy.real_x += self.parent.push
-                    if self.name == 'razlet':
-                        if (enemy.rect.x >= self.rect.x and enemy.rect.centery == self.rect.centery) or enemy.rect.centery == 768 or enemy.rect.centery == 256:  #  тут же
-                            enemy.real_x += self.pushl
-                        elif enemy.rect.centery > self.rect.centery and enemy.rect.centery != 768:  # ниже
-                            enemy.real_y += self.pushl
-                        elif enemy.rect.centery < self.rect.centery and enemy.rect.centery != 256:  # выше
-                            enemy.real_y -= self.pushl
                     enemy.only_one_hit_bullets.add(self)
             if self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux":
                 targets[id(self.parent)] = None
@@ -2172,7 +2202,7 @@ class Bullet(sprite.Sprite):
                         break
         for enemy in enemies_group:
             if sprite.collide_rect(enemy, self) and enemy.hp > 0:
-                if self.name == 'default' or self.name == 'hrom' or self.name == 'boom' or self.name == 'struya' or self.name == 'spore' or self.name == 'es':
+                if self.name == 'default' or self.name == 'hrom' or self.name == 'boom' or self.name == 'struya' or self.name == 'spore':
                     self.dealing_damage(enemy)
                     if self.name == 'boom':
                         Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.damage, 0, 0, 'explosion', self.parent)
@@ -2182,13 +2212,12 @@ class Bullet(sprite.Sprite):
                         self.parent.parasix = randint(-32, 32)
                         self.parent.parasiy = randint(-48, 48)
                         Parasite('grib_parasite', enemy.rect.centerx+self.parent.parasix, enemy.rect.centery+self.parent.parasiy, '', 0, enemy, self.parent)
-                    elif self.name == 'es':
-                        Bullet('electro_maga_explosion', self.rect.centerx, self.rect.centery, self.damage_type, 0, 0, 0, 'razlet', self.parent)
                     if self.bullet_sprite == 'fireball' and (self.parent.upgrade_level == '2b' or self.parent.upgrade_level == '3b'):
                         self.parent.parasix = randint(-32, 32)
                         self.parent.parasiy = randint(-48, 48)
                         Parasite('ogonek_parasite', enemy.rect.centerx+self.parent.parasix, enemy.rect.centery+self.parent.parasiy, '', self.parent.atk_dot, enemy, self.parent)
                     self.kill()
+                    
                 break
 
     def check_parent(self):
@@ -2204,7 +2233,7 @@ class Bullet(sprite.Sprite):
         #     if self.parent.attack_cooldown > 0:
         #         self.parent.attack_cooldown -= 1
 
-        if self.name == 'ls' or self.name == 'explosion' or self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux" or self.name == "fire" or self.name == 'razlet':
+        if self.name == 'ls' or self.name == 'explosion' or self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux" or self.name == "fire":
             if self.off <= 0:
                 self.kill()
             else:
@@ -2529,8 +2558,7 @@ class Buff(sprite.Sprite):
                             or tower.name == "electric"\
                             or tower.name == "gribnik"\
                             or tower.name == "nekr"\
-                            or tower.name == "struyniy"\
-                            or tower.name == 'electro_maga':
+                            or tower.name == "struyniy":
 
                         if tower.basic_attack_cooldown // 2 <= 225:
                             tower.basic_attack_cooldown //= 2
@@ -2630,8 +2658,7 @@ class Buff(sprite.Sprite):
                         or tower.name == "electric"\
                         or tower.name == "gribnik"\
                         or tower.name == "nekr"\
-                        or tower.name == "struyniy"\
-                        or tower.name == 'electro_maga':
+                        or tower.name == "struyniy":
                     if not self.max_buff:
                         tower.basic_attack_cooldown *= 2
                     else:
@@ -3125,7 +3152,7 @@ def menu_positioning():
         screen.blit(modification_preview_menu, (830, 120))
         modification_preview_menu.blit(modification_preview_menu_copy, (0, 0))
         modification_preview_menu.blit(line_, (0, 275))
-        scroll_offset_min_max(-900, 0)                          # одна линия -150
+        scroll_offset_min_max(-1200, 0)                          # одна линия -150
 
         preview_group.move_element_by_scroll()
         preview_group.go_animation()
