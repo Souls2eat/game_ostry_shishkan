@@ -714,11 +714,11 @@ class Tower(sprite.Sprite):
 
         if self.name == 'pukish':
             self.hp = 1
-            self.atk = 15
+            self.atk = 18
             self.atk2 = 2
             self.bullet_speed_x = 2
             self.bullet_speed_y = 0
-            self.attack_cooldown = self.basic_attack_cooldown = 150
+            self.attack_cooldown = self.basic_attack_cooldown = 180
             self.attack_cooldown2 = self.basic_attack_cooldown2 = 15
             self.damage_type = ''
             self.hiding = False
@@ -1304,7 +1304,7 @@ class Tower(sprite.Sprite):
             Bullet("red_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
 
         if self.name == "pukish":
-            Bullet("gas", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'gas', self)
+            Bullet("gas", self.rect.centerx+38, self.rect.centery+8, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'gas', self)
 
         if self.name == 'spike':    # fix?
             for enemy in enemies_group:
