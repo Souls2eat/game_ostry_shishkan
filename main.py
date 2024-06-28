@@ -550,18 +550,18 @@ class Tower(sprite.Sprite):
 
         if self.name == 'kopitel':
             self.hp = 200
-            self.atk = 20
+            self.atk = 32  # я так сделал чтобы анимации ахуенно ложились
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.basic_spawn_something_cooldown = self.spawn_something_cooldown = 75
+            self.basic_spawn_something_cooldown = self.spawn_something_cooldown = 120
             self.spawned_things = []
-            self.basic_attack_cooldown = self.attack_cooldown = 75
+            self.basic_attack_cooldown = self.attack_cooldown = 120
             self.damage_type = ''
             self.nakopleno = 0
             self.max_nakopit = 7
             self.rarity = "common"
             if self.upgrade_level == "2a" or self.upgrade_level == '3a':
-                self.atk_big = 60
+                self.atk_big = 96
 
         if self.name == 'thunder':
             self.hp = 200
@@ -1074,7 +1074,6 @@ class Tower(sprite.Sprite):
     def find_target(self):
         if self.name == "fire_mag"\
                 or self.name == "boomchick"\
-                or self.name == 'kopitel'\
                 or self.name == "zeus"\
                 or self.name == 'gnome_cannon1'\
                 or self.name == 'gnome_cannon2'\
@@ -1085,6 +1084,11 @@ class Tower(sprite.Sprite):
                 or self.name == 'electro_maga':
             for enemy in enemies_group:
                 if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
+                    return enemy
+                
+        if self.name == 'kopitel':
+            for enemy in enemies_group:
+                if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive and self.nakopleno > 0:
                     return enemy
 
         if self.name == 'parasitelniy':
@@ -1497,8 +1501,13 @@ class Tower(sprite.Sprite):
             if self.spawn_something_cooldown >= 0:
                 self.spawn_something_cooldown -= 1
             else:
-                self.spawn_something_cooldown = self.basic_spawn_something_cooldown
-                self.add_anim_task("give", self.spawn_something)
+                if self.name == 'kopitel':
+                    if self.nakopleno < self.max_nakopit:
+                        self.spawn_something_cooldown = self.basic_spawn_something_cooldown
+                        self.add_anim_task("give", self.spawn_something)
+                else:
+                    self.spawn_something_cooldown = self.basic_spawn_something_cooldown
+                    self.add_anim_task("give", self.spawn_something)
 
         if hasattr(self, "healing_cooldown"):
             if self.healing_cooldown >= 0:
@@ -2007,7 +2016,7 @@ class Bullet(sprite.Sprite):
             self.gazirovannie_group = sprite.Group()
             self.enemies_in_group = 0
 
-        if self.bullet_sprite == 'light_sword' or self.bullet_sprite == 'light_spear' and self.parent.upgrade_level == '3b':
+        if (self.bullet_sprite == 'light_sword' or self.bullet_sprite == 'light_spear') and self.parent.upgrade_level == '3b':
             if self.bullet_sprite == 'light_sword':
                 self.damage *= 2
             else:
