@@ -15,7 +15,7 @@ display.set_icon(icon)
 mouse.set_visible(False)
 screen.fill((255, 255, 255))
 
-menu = image.load("images/menu/pause_menu.png").convert_alpha()
+pause_menu = image.load("images/menu/pause_menu.png").convert_alpha()
 main_menu = image.load("images/menu/main_menu.png").convert_alpha()
 additional_menu = image.load("images/menu/additional_menu.png").convert_alpha()
 preview_menu = image.load("images/menu/preview_menu.png").convert_alpha()
@@ -265,25 +265,29 @@ class GlobalMap(BasePreviewGroup):
             # draw.rect(screen, (0, 255, 0), level_.rect, 5)
             if level_.parent in passed_levels:
                 surf.blit(level_.image, level_.rect)
-            if len(str(level_.number)) < 2 and level_.parent in passed_levels:
-                surf.blit(font60.render(f"{str(level_.number)}", True, (0, 0, 0)), (level_.rect.x + 30, level_.rect.y + 6))
-            elif len(str(level_.number)) < 99 and level_.parent in passed_levels:
-                surf.blit(font60.render(f"{str(level_.number)}", True, (0, 0, 0)), (level_.rect.x + 12, level_.rect.y + 6))
+                if not level_.chest:
+                    if len(str(level_.number)) < 2:
+                        surf.blit(font60.render(f"{str(level_.number)}", True, (0, 0, 0)), (level_.rect.x + 30, level_.rect.y + 6))
+                    elif len(str(level_.number)) < 99:
+                        surf.blit(font60.render(f"{str(level_.number)}", True, (0, 0, 0)), (level_.rect.x + 12, level_.rect.y + 6))
+                else:
+                    surf.blit(levels[level_.number].image, level_.rect)
 
     def start_clicked_level(self):
         global scroll_offset, continue_level, last_game_state, game_state, level, passed_levels
         if self.pushed_entity:
-            if self.pushed_entity.number in levels and self.pushed_entity.parent in passed_levels:  # исправить unlocked_levels
-                level = levels[self.pushed_entity.number]
-                scroll_offset = 0
-                continue_level = True
-                level.refresh()
-                last_game_state = game_state
-                game_state = "tower_select"
-                # if self.pushed_entity.number == "2":    # закоментить потом
-                #     game_state = "new_bg"               # закоментить потом
-                self.pushed_entity = None
-                # screen.blit(new_bg, (0, 0))
+            if self.pushed_entity.number in levels and self.pushed_entity.parent in passed_levels:
+                if not self.pushed_entity.chest:
+                    level = levels[self.pushed_entity.number]
+                    scroll_offset = 0
+                    continue_level = True
+                    level.refresh()
+                    last_game_state = game_state
+                    game_state = "tower_select"
+                else:
+                    chest = levels[self.pushed_entity.number]
+                    chest.opening()
+            self.pushed_entity = None
 
 
 class TowerUpgradesGroup(BasePreviewGroup):
@@ -420,46 +424,44 @@ class Level:
         random_coin = choice([c for c in your_coins.keys()])
         your_coins[random_coin] += 5
 
-        if len(not_received_towers) > 3:
-            Alert("+ 3 башни открыто", (100, 100), 75)
-            for i in range(3):
-                new_tower = choice(not_received_towers)
-                not_received_towers.remove(new_tower)
-                received_towers.append(new_tower)
-        elif len(not_received_towers) == 3:
-            Alert("Последние 3 башни открыты", (100, 100), 75)
-            for i in range(3):
-                new_tower = choice(not_received_towers)
-                not_received_towers.remove(new_tower)
-                received_towers.append(new_tower)
-        elif len(not_received_towers) >= 2:
-            Alert("Последние 2 башни открыты", (100, 100), 75)
-            for i in range(2):
-                new_tower = choice(not_received_towers)
-                not_received_towers.remove(new_tower)
-                received_towers.append(new_tower)
-        elif len(not_received_towers) >= 1:
-            Alert("Последняя башня открыта", (100, 100), 75)
-            new_tower = choice(not_received_towers)
-            not_received_towers.remove(new_tower)
-            received_towers.append(new_tower)
-        else:
-            Alert("Все башни открыты", (100, 100), 75)
-
-        if len(not_encountered_enemies) >= 1:
-            for enemy_ in levels[self.current_level][5]:
-                if enemy_ not in encountered_enemies:
-                    encountered_enemies.append(enemy_)
-                    not_encountered_enemies.remove(enemy_)
-                    Alert("Новые враги известны", (100, 200), 75)
-        else:
-            Alert("Все враги известны", (100, 200), 75)
+        # if len(not_received_towers) > 3:
+        #     Alert("+ 3 башни открыто", (100, 100), 75)
+        #     for i in range(3):
+        #         new_tower = choice(not_received_towers)
+        #         not_received_towers.remove(new_tower)
+        #         received_towers.append(new_tower)
+        # elif len(not_received_towers) == 3:
+        #     Alert("Последние 3 башни открыты", (100, 100), 75)
+        #     for i in range(3):
+        #         new_tower = choice(not_received_towers)
+        #         not_received_towers.remove(new_tower)
+        #         received_towers.append(new_tower)
+        # elif len(not_received_towers) >= 2:
+        #     Alert("Последние 2 башни открыты", (100, 100), 75)
+        #     for i in range(2):
+        #         new_tower = choice(not_received_towers)
+        #         not_received_towers.remove(new_tower)
+        #         received_towers.append(new_tower)
+        # elif len(not_received_towers) >= 1:
+        #     Alert("Последняя башня открыта", (100, 100), 75)
+        #     new_tower = choice(not_received_towers)
+        #     not_received_towers.remove(new_tower)
+        #     received_towers.append(new_tower)
+        # else:
+        #     Alert("Все башни открыты", (100, 100), 75)
+        #
+        # if len(not_encountered_enemies) >= 1:
+        #     for enemy_ in levels[self.current_level][5]:
+        #         if enemy_ not in encountered_enemies:
+        #             encountered_enemies.append(enemy_)
+        #             not_encountered_enemies.remove(enemy_)
+        #             Alert("Новые враги известны", (100, 200), 75)
+        # else:
+        #     Alert("Все враги известны", (100, 200), 75)
 
         preview_group.refresh(3)
         if self.current_level not in passed_levels:
             passed_levels.append(self.current_level)
-        # if str(self.current_level + 1) not in passed_levels:
-        #     passed_levels.append(str(self.current_level + 1))
         save_data()
 
     def update(self):
@@ -475,7 +477,7 @@ class Level:
             else:
                 self.time_to_spawn = self.start_time_to_spawn
                 self.random_spawn_enemies()
-            if self.level_time > 0:
+            if self.level_time > 0 or len(enemies_group) > 0:
                 self.level_time -= 1
                 return "run"
             else:
@@ -486,6 +488,20 @@ class Level:
 
     def __repr__(self):
         return str((self.current_level, self.level_time, self.state))
+
+
+class Chest:
+    def __init__(self, *rewards):
+        self.image = image.load("images/maps/chest.png")
+        self.rewards = rewards
+        self.open = False
+
+    def opening(self):
+        global game_state
+        self.open = True
+        self.image = image.load("images/maps/chest_open.png")
+        passed_levels.append(global_map.pushed_entity.number)
+        game_state = "reward"
 
 
 class Tower(sprite.Sprite):
@@ -714,11 +730,11 @@ class Tower(sprite.Sprite):
 
         if self.name == 'pukish':
             self.hp = 1
-            self.atk = 18
+            self.atk = 15
             self.atk2 = 2
             self.bullet_speed_x = 2
             self.bullet_speed_y = 0
-            self.attack_cooldown = self.basic_attack_cooldown = 180
+            self.attack_cooldown = self.basic_attack_cooldown = 150
             self.attack_cooldown2 = self.basic_attack_cooldown2 = 15
             self.damage_type = ''
             self.hiding = False
@@ -932,6 +948,8 @@ class Tower(sprite.Sprite):
             self.rarity = "spell"
 
         # СТАТЫ конец
+        self.image2 = font30.render(str(self.hp), True, (0, 0, 0))
+        self.rect2 = self.image.get_rect(topleft=(self.rect.x + 32, self.rect.y - 32))
 
     def add_anim_task(self, anim, func):
         if len(self.anim_tasks) == 0:
@@ -1304,7 +1322,7 @@ class Tower(sprite.Sprite):
             Bullet("red_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
 
         if self.name == "pukish":
-            Bullet("gas", self.rect.centerx+38, self.rect.centery+8, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'gas', self)
+            Bullet("gas", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'gas', self)
 
         if self.name == 'spike':    # fix?
             for enemy in enemies_group:
@@ -1531,9 +1549,14 @@ class Tower(sprite.Sprite):
                     self.time_indicator //= 2
                     self.basic_attack_cooldown *= 2
 
+    def draw2(self, surf):
+        surf.blit(self.image2, self.rect2)
+
     def update(self):
         self.cooldown()
         self.animation()
+        self.image2 = font30.render(str(self.hp), True, (0, 0, 0))
+        self.rect2 = self.image.get_rect(topleft=(self.rect.x + 32, self.rect.y - 32))
 
         if self.hp <= 0:
             self.dead()
@@ -1574,6 +1597,7 @@ class Enemy(sprite.Sprite):
         self.image = image.load(f"images/enemies/{name}.png").convert_alpha()
         self.pos = pos
         self.rect = self.image.get_rect(topleft=self.pos)
+        self.rect2 = self.image.get_rect(topleft=(self.rect.x + 32, self.rect.y - 32))
         self.real_x = float(self.rect.x)
         self.real_y = float(self.rect.y)
         self.render_layer = 5
@@ -1705,6 +1729,7 @@ class Enemy(sprite.Sprite):
             self.attack_range = 640
 
         # СТАТЫ конец
+        self.image2 = font30.render(str(self.hp), True, (0, 0, 0))
 
     def is_should_stop_to_attack(self):
         for tower in towers_group:
@@ -1849,6 +1874,8 @@ class Enemy(sprite.Sprite):
 
         self.damaged = False
 
+    def draw2(self, surf):
+        surf.blit(self.image2, self.rect2)
 
     def update(self):
         self.stop, self.target = self.is_should_stop_to_attack()
@@ -1864,6 +1891,8 @@ class Enemy(sprite.Sprite):
         self.additional_cooldowns()
         self.check_hp()
         self.movement()
+        self.image2 = font30.render(str(self.hp), True, (0, 0, 0))
+        self.rect2 = self.image.get_rect(topleft=(self.rect.x + 32, self.rect.y - 32))
 
 
 class Creep(sprite.Sprite):
@@ -2891,9 +2920,10 @@ class Button2:
 
 
 class GlobalMapLevelButton(Button2):
-    def __init__(self, number: str, parent: str, pos: tuple):
+    def __init__(self, number: str, parent: str, pos: tuple, chest=False):
         super().__init__()
         self.number = number
+        self.chest = chest
         self.pos = pos
         self.image = global_level
         self.rect = self.image.get_rect(topleft=self.pos)
@@ -3024,9 +3054,9 @@ def upload_data(default=False):
         mountain_coins, \
         snow_coins
 
-    load_file = "saves/current_save.txt"
+    load_file = "saves/current_save.save"
     if default:
-        load_file = "saves/default_save.txt"
+        load_file = "saves/default_save.save"
 
     with open(load_file, "r", encoding="utf-8") as file:
         passed_levels = str(*file.readline().strip().split(" = ")[1:]).split(", ")
@@ -3057,7 +3087,7 @@ def upload_data(default=False):
 
 
 def save_data():
-    with open("saves/current_save.txt", "w", encoding="utf-8") as file:
+    with open("saves/current_save.save", "w", encoding="utf-8") as file:
         file.write(f"passed_levels = " + str(passed_levels).replace("['", "").replace("']", "").replace("'", "") + "\n")
         file.write(f"received_towers = " + str(received_towers).replace("['", "").replace("']", "").replace("'", "") + "\n")
         file.write(f"not_received_towers = " + str(not_received_towers).replace("['", "").replace("']", "").replace("'", "") + "\n")
@@ -3134,7 +3164,7 @@ def menu_positioning():
 
     if game_state == "yes_no_window":
         screen.blit(main_menu, (0, 0))
-        screen.blit(menu, (480, 250))
+        screen.blit(pause_menu, (480, 250))
         screen.blit(font60.render("Начать новую игру?", True, (255, 255, 255)), (507, 280))
 
         if accept_button.click(screen, (620, 485)):
@@ -3247,7 +3277,10 @@ def menu_positioning():
                 upgrade_cost = int(up_cost[0])
                 upgrade_coin_name = up_cost[1]
 
-                modification_preview_menu.blit(font60.render(str(your_coins[upgrade_coin_name]), True, (0, 0, 0)), (385, 290))
+                if your_coins[upgrade_coin_name] < 10:
+                    modification_preview_menu.blit(font60.render(str(your_coins[upgrade_coin_name]), True, (0, 0, 0)), (385, 290))
+                else:                                                                                        # больше 100 не будет
+                    modification_preview_menu.blit(font60.render(str(your_coins[upgrade_coin_name]), True, (0, 0, 0)), (350, 290))
                 modification_preview_menu.blit(coins[upgrade_coin_name], (430, 300))
 
                 if tower_upgrades_group.pushed_entity.number not in upgrades[preview_group.pushed_entity.name] and tower_upgrades_group.possible_upgrade_path():
@@ -3275,7 +3308,13 @@ def menu_positioning():
                 change_preview_turn_button.image = image.load("images/coins/evil_coin.png").convert_alpha()
             preview_group.pushed_entity = list(filter(preview_group.filter_by_turn, preview_group.entities))[0]
 
-    if game_state != "main_menu" and game_state != "main_settings_menu" and game_state != "level_select" and game_state != "manual_menu" and game_state != "yes_no_window" and game_state != "global_map":
+    if game_state != "main_menu"\
+            and game_state != "main_settings_menu"\
+            and game_state != "level_select"\
+            and game_state != "manual_menu"\
+            and game_state != "yes_no_window"\
+            and game_state != "global_map"\
+            and game_state != "reward":
         screen.blit(level.image, (0, 0))
         if level.cheat:
             # screen.blit(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110))
@@ -3313,7 +3352,7 @@ def menu_positioning():
             game_state = "paused"
 
     if game_state == "paused":
-        screen.blit(menu, (480, 250))
+        screen.blit(pause_menu, (480, 250))
         if resume_button.click(screen, (614, 280)):
             last_game_state = game_state
             if level.state == "run":
@@ -3344,7 +3383,7 @@ def menu_positioning():
                 game_state, last_game_state = last_game_state, game_state
 
     if game_state == "level_complited":
-        screen.blit(menu, (480, 250))
+        screen.blit(pause_menu, (480, 250))
         screen.blit(font60.render("Уровень пройден", True, (193, 8, 42)), (544, 280))
         # if str(level.current_level + 1) not in passed_levels:
         #     passed_levels.append(str(level.current_level + 1))    # переписать
@@ -3375,6 +3414,11 @@ def menu_positioning():
         select_towers_preview_group.go_animation()
         select_towers_preview_group.custom_draw(select_menu)
 
+        if clear_button.click(screen, (1250, 470), col=(0, 0, 0)):
+            select_towers_preview_group.remember_entities_empty()
+            for ui in ui_group:
+                ui.kill()
+
         if random_choice_button.click(screen, (1248, 550), col=(0, 0, 0)):
             if len(select_towers_preview_group.remember_entities) == 7 - len(level.blocked_slots):
                 level.clear()
@@ -3401,7 +3445,7 @@ def menu_positioning():
         if last_game_state == "main_menu" or last_game_state == "level_select":
             screen.blit(main_menu, (0, 0))
             screen.blit(game_name, (416, 10))
-        screen.blit(menu, (480, 250))
+        screen.blit(pause_menu, (480, 250))
 
         if back_button.click(screen, (709, 520)):
             game_state = last_game_state
@@ -3425,12 +3469,12 @@ def menu_positioning():
                 encountered_enemies.append(enemy_)
             not_encountered_enemies.clear()
 
-            passed_levels = ["0", "1", "2", "3", "4", "5", "6", "6а", "6б", "6в"]
+            passed_levels = ["0", "1", "2", "3", "4", "5", "6", "6а"]
             preview_group.refresh(3)
             print("all_unlocked")
 
     if game_state == "death":
-        screen.blit(menu, (480, 250))
+        screen.blit(pause_menu, (480, 250))
         screen.blit(font60.render("Вы проиграли", True, (193, 8, 42)), (590, 280))
         if settings_button.click(screen, (642, 360)):
             last_game_state = game_state
@@ -3444,8 +3488,10 @@ def menu_positioning():
             last_game_state = game_state
             game_state = "main_menu"
 
-    if game_state == "new_bg":
-        screen.blit(new_bg, (0, 0))
+    if game_state == "reward":
+        screen.blit(game_map, (0 + scroll_offset, 0))
+        global_map.custom_draw(screen)
+        screen.blit(pause_menu, (480, 250))
     # -------
 
 
@@ -3486,6 +3532,7 @@ accept_button = Button("text", font60, "Да")
 deny_button = Button("text", font60, "Нет")
 unlock_all_button = Button("text", font60, "Открыть всё")
 buy_upgrade_button = Button("text", font60, "Купить")
+clear_button = Button("text", font50, "Очистить")
 
 TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death", "cheat", "settings_menu"))
 level_num = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
@@ -3500,7 +3547,7 @@ GlobalMapLevelButton("4", "3", (750, 400))
 GlobalMapLevelButton("5", "4", (1000, 400))
 GlobalMapLevelButton("6", "5", (1200, 300))
 GlobalMapLevelButton("6а", "6", (1000, 100))
-GlobalMapLevelButton("6б", "6а", (750, 100))
+GlobalMapLevelButton("6б", "6а", (750, 100), chest=True)
 GlobalMapLevelButton("6в", "6б", (500, 100))
 GlobalMapLevelButton("6г", "6в", (250, 200))
 GlobalMapLevelButton("7", "6", (1400, 200))
@@ -3529,11 +3576,12 @@ upload_data()
 
 levels = {
     "1": Level("1", 22500, 750, 50, level_1_waves, ("popusk", "josky")),
-    "2": Level("2", 22500, 575, 50, level_2_waves, ("josky", "sigma", "sportik", "popusk")),
-    "3": Level("3", 22500, 500, 50, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik")),
-    "3а": Level("3а", 22500, 500, 50, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik"), level_image="3"),
-    "4": Level("4", 22500, 225, 50, level_4_waves, ("telezhnik", "rojatel", "sigma", "armorik", "zeleniy_strelok", "drobik", "klonik")),
-    "5": Level("5", 31500, 225, 50, level_5_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik", "klonik", "teleportik"))
+    "2": Level("2", 22500, 575, 50, level_2_waves, ("josky", "sigma", "sportik", "popusk"), level_image="1"),
+    "3": Level("3", 22500, 500, 50, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik"), level_image="1"),
+    "3а": Level("3а", 22500, 500, 50, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik"), level_image="1"),
+    "4": Level("4", 22500, 225, 50, level_4_waves, ("telezhnik", "rojatel", "sigma", "armorik", "zeleniy_strelok", "drobik", "klonik"), level_image="1"),
+    "5": Level("5", 31500, 225, 50, level_5_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik", "klonik", "teleportik"), level_image="1"),
+    "6б": Chest("6а", "награда")
 }
 
 # level = Level(*levels_config["1"])
