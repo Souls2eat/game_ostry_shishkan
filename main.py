@@ -16,6 +16,9 @@ mouse.set_visible(False)
 screen.fill((255, 255, 255))
 
 pause_menu = image.load("images/menu/pause_menu.png").convert_alpha()
+pause_menu_copy = pause_menu.__copy__()
+pause_menu_w = image.load("images/menu/pause_menu_w.png").convert_alpha()
+pause_menu_w_copy = pause_menu_w.__copy__()
 main_menu = image.load("images/menu/main_menu.png").convert_alpha()
 additional_menu = image.load("images/menu/additional_menu.png").convert_alpha()
 preview_menu = image.load("images/menu/preview_menu.png").convert_alpha()
@@ -52,6 +55,8 @@ game_state = "main_menu"
 last_game_state = game_state
 buttons_group = []
 scroll_offset = 0
+coin_indent_x = 0
+count_of_reward_coins = 0
 current_scroll_offset_state = game_state
 continue_level = False
 free_money = default_free_money = 750
@@ -256,9 +261,54 @@ class PreviewGroup(BasePreviewGroup):
         return len(self.remember_entities)
 
 
+class RewardsPreviewGroup(BasePreviewGroup):
+    def __init__(self):
+        super().__init__(Tower)
+        self.rewards = []
+
+    def new_reward(self, tower_name):
+        if tower_name not in self.rewards:
+            self.rewards.append(tower_name)
+            if tower_name not in received_towers:
+                received_towers.append(tower_name)
+
+    def clear_rewards(self):
+        for reward in self.entities:
+            reward.kill()
+        self.entities.clear()
+        self.rewards.clear()
+
+    def entity_create(self, columns, indent=30):
+        for i, tower_name in enumerate(self.rewards):
+            indent_x = (640 - (columns * 128)) // (columns + 1)
+            column = (i % columns)
+            entity = Tower(tower_name, (indent_x + (column * (128 + indent_x)), indent))
+            if hasattr(entity, "blackik"):
+                entity.blackik.kill()
+            for b in buffs_group:
+                b.kill()
+            self.add(entity)
+
+    def custom_draw(self, surf):
+        for tower in self.entities:
+            surf.blit(tower.image, tower.rect)
+            if hasattr(tower, "rarity"):
+                if tower.rarity == "legendary":
+                    surf.blit(tower_window_legendary, tower.rect)
+                if tower.rarity == "common":
+                    surf.blit(tower_window_common, tower.rect)
+                if tower.rarity == "spell":
+                    surf.blit(tower_window_spell, tower.rect)
+
+    def go_animation(self):
+        for tower in self.entities:
+            tower.animation()
+
+
 class GlobalMap(BasePreviewGroup):
     def __init__(self):
         super().__init__(GlobalMapLevelButton)
+        self.chest = None
 
     def custom_draw(self, surf):
         for level_ in self.entities:
@@ -271,22 +321,28 @@ class GlobalMap(BasePreviewGroup):
                     elif len(str(level_.number)) < 99:
                         surf.blit(font60.render(f"{str(level_.number)}", True, (0, 0, 0)), (level_.rect.x + 12, level_.rect.y + 6))
                 else:
-                    surf.blit(levels[level_.number].image, level_.rect)
+                    # surf.blit(levels[level_.number].image, level_.rect)
+                    if level_.level:
+                        surf.blit(level_.level.image, level_.rect)
+                    if level_.chest:
+                        surf.blit(level_.chest.image, level_.rect)
 
-    def start_clicked_level(self):
+    def use_clicked_object(self):
         global scroll_offset, continue_level, last_game_state, game_state, level, passed_levels
         if self.pushed_entity:
-            if self.pushed_entity.number in levels and self.pushed_entity.parent in passed_levels:
-                if not self.pushed_entity.chest:
-                    level = levels[self.pushed_entity.number]
+            if self.pushed_entity.parent in passed_levels:
+                if self.pushed_entity.level:
+                    # level = levels[self.pushed_entity.number]
+                    level = self.pushed_entity.level
                     scroll_offset = 0
                     continue_level = True
                     level.refresh()
                     last_game_state = game_state
                     game_state = "tower_select"
-                else:
-                    chest = levels[self.pushed_entity.number]
-                    chest.opening()
+                if self.pushed_entity.chest:
+                    if not self.pushed_entity.chest.open:
+                        self.chest = self.pushed_entity.chest
+                        self.chest.opening()
             self.pushed_entity = None
 
 
@@ -491,17 +547,26 @@ class Level:
 
 
 class Chest:
-    def __init__(self, *rewards):
-        self.image = image.load("images/maps/chest.png")
-        self.rewards = rewards
-        self.open = False
+    def __init__(self, parent_number: str, rewards: dict):
+        self.rewards = rewards      # башни/коины
+        if parent_number not in passed_levels:
+            self.image = image.load("images/maps/chest.png")
+            self.open = False
+        else:
+            self.open = True
+            self.image = image.load("images/maps/chest_open.png")
 
     def opening(self):
         global game_state
         self.open = True
         self.image = image.load("images/maps/chest_open.png")
-        passed_levels.append(global_map.pushed_entity.number)
-        game_state = "reward"
+        if global_map.pushed_entity.number not in passed_levels:
+            passed_levels.append(global_map.pushed_entity.number)
+        game_state = "reward_first_stage"
+
+    def refresh(self):
+        self.open = False
+        self.image = image.load("images/maps/chest.png")
 
 
 class Tower(sprite.Sprite):
@@ -2920,10 +2985,11 @@ class Button2:
 
 
 class GlobalMapLevelButton(Button2):
-    def __init__(self, number: str, parent: str, pos: tuple, chest=False):
+    def __init__(self, number: str, parent: str, pos: tuple, level=None, chest=None):   # noqa
         super().__init__()
         self.number = number
         self.chest = chest
+        self.level = level
         self.pos = pos
         self.image = global_level
         self.rect = self.image.get_rect(topleft=self.pos)
@@ -3130,7 +3196,9 @@ def menu_positioning():
             last_game_state,\
             passed_levels, \
             level,\
-            scroll_offset
+            scroll_offset, \
+            coin_indent_x, \
+            count_of_reward_coins
 
     if game_state == "main_menu":
         screen.blit(main_menu, (0, 0))
@@ -3170,6 +3238,10 @@ def menu_positioning():
         if accept_button.click(screen, (620, 485)):
             upload_data(default=True)
             preview_group.refresh(3)
+
+            for level_ in global_map.entities:
+                if level_.chest:
+                    level_.chest.refresh()
 
             last_game_state = game_state
             game_state = "global_map"
@@ -3334,13 +3406,13 @@ def menu_positioning():
         scroll_offset_min_max(-1600, 0)
         screen.blit(game_map, (0 + scroll_offset, 0))
 
-        global_map.check_hover(screen)
+        # global_map.check_hover(screen)        # если нужно при наведении что то делать
         global_map.check_click(screen)
-        global_map.start_clicked_level()
+        global_map.use_clicked_object()
         global_map.move_element_by_scroll(vector="x")
         global_map.custom_draw(screen)
 
-        if back_button.click(screen, (30 + scroll_offset, 20), col=(200, 0, 0)):
+        if back_button.click(screen, (30, 20), col=(200, 0, 0)):
             last_game_state = game_state
             game_state = "main_menu"
 
@@ -3488,10 +3560,39 @@ def menu_positioning():
             last_game_state = game_state
             game_state = "main_menu"
 
-    if game_state == "reward":
+    if game_state == "reward_first_stage":
+        count_of_reward_coins = 0
+        for i, (k, v) in enumerate(global_map.chest.rewards.items()):
+            if k in [*received_towers, *not_received_towers]:
+                rewards_preview_group.new_reward(k)
+            if k in coins:
+                your_coins[k] += v
+                count_of_reward_coins += 1
+
+        coin_indent_x = (640 - (count_of_reward_coins * 64)) // (count_of_reward_coins + 1)
+        rewards_preview_group.entity_create(len(rewards_preview_group.rewards), indent=80)
+        game_state = "reward_second_stage"
+
+    if game_state == "reward_second_stage":
         screen.blit(game_map, (0 + scroll_offset, 0))
         global_map.custom_draw(screen)
-        screen.blit(pause_menu, (480, 250))
+        screen.blit(pause_menu_w, (480, 250))
+        pause_menu_w.blit(pause_menu_w_copy, (0, 0))
+        pause_menu_w.blit(font60.render("Награда", True, (0, 0, 0)), (195, 0))
+
+        for i, (k, v) in enumerate(global_map.chest.rewards.items()):
+            if k in coins:
+                column = (i % count_of_reward_coins)
+                pause_menu_w.blit(coins[k], (coin_indent_x + (column * (64 + coin_indent_x)) + (column * 22.5), 230))
+                pause_menu_w.blit(font60.render(str(v), True, (0, 0, 0)), (coin_indent_x + (column * (64 + coin_indent_x)) - ((2 - column) * 22.5), 225))
+
+        rewards_preview_group.custom_draw(pause_menu_w)
+        rewards_preview_group.go_animation()
+
+        if take_button.click(screen, (680, 540), col=(0, 0, 0)):
+            last_game_state = game_state
+            game_state = "global_map"
+            rewards_preview_group.clear_rewards()
     # -------
 
 
@@ -3512,6 +3613,7 @@ select_towers_preview_group = PreviewGroup(Tower)
 global_map = GlobalMap()
 tower_upgrades_group = TowerUpgradesGroup()
 text_sprites_group = sprite.Group()
+rewards_preview_group = RewardsPreviewGroup()
 
 pause_button = Button("text", font40, "||",)
 restart_button = Button("text", font60, "Перезапустить")
@@ -3533,32 +3635,11 @@ deny_button = Button("text", font60, "Нет")
 unlock_all_button = Button("text", font60, "Открыть всё")
 buy_upgrade_button = Button("text", font60, "Купить")
 clear_button = Button("text", font50, "Очистить")
+take_button = Button("text", font60, "Забрать")
 
 TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death", "cheat", "settings_menu"))
 level_num = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
 level_money = TextSprite(font40.render("300", True, (0, 0, 0)), (88, 53), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
-
-
-GlobalMapLevelButton("1", "0", (100, 714))     # !!! все буквы русские !!!
-GlobalMapLevelButton("2", "1", (250, 544))
-GlobalMapLevelButton("3", "2", (500, 500))
-GlobalMapLevelButton("3а", "3", (700, 700))
-GlobalMapLevelButton("4", "3", (750, 400))
-GlobalMapLevelButton("5", "4", (1000, 400))
-GlobalMapLevelButton("6", "5", (1200, 300))
-GlobalMapLevelButton("6а", "6", (1000, 100))
-GlobalMapLevelButton("6б", "6а", (750, 100), chest=True)
-GlobalMapLevelButton("6в", "6б", (500, 100))
-GlobalMapLevelButton("6г", "6в", (250, 200))
-GlobalMapLevelButton("7", "6", (1400, 200))
-GlobalMapLevelButton("8", "7", (1650, 200))
-
-UpgradeTowerButton("1", (50, 104))
-UpgradeTowerButton("2a", (216, 36))
-UpgradeTowerButton("3a", (384, 36))
-UpgradeTowerButton("2b", (216, 172))
-UpgradeTowerButton("3b", (384, 172))
-
 
 # --- from save
 passed_levels = []
@@ -3574,18 +3655,43 @@ snow_coins = 0
 upload_data()
 # ---
 
-levels = {
-    "1": Level("1", 22500, 750, 50, level_1_waves, ("popusk", "josky")),
-    "2": Level("2", 22500, 575, 50, level_2_waves, ("josky", "sigma", "sportik", "popusk"), level_image="1"),
-    "3": Level("3", 22500, 500, 50, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik"), level_image="1"),
-    "3а": Level("3а", 22500, 500, 50, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik"), level_image="1"),
-    "4": Level("4", 22500, 225, 50, level_4_waves, ("telezhnik", "rojatel", "sigma", "armorik", "zeleniy_strelok", "drobik", "klonik"), level_image="1"),
-    "5": Level("5", 31500, 225, 50, level_5_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik", "klonik", "teleportik"), level_image="1"),
-    "6б": Chest("6а", "награда")
-}
 
-# level = Level(*levels_config["1"])
-level = levels["1"]
+# levels = {
+#     "1": Level("1", 22500, 750, 50, level_1_waves, ("popusk", "josky")),
+#     "2": Level("2", 22500, 575, 50, level_2_waves, ("josky", "sigma", "sportik", "popusk"), level_image="1"),
+#     "3": Level("3", 22500, 500, 50, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik"), level_image="1"),
+#     "3а": Level("3а", 22500, 500, 50, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik"), level_image="1"),
+#     "4": Level("4", 22500, 225, 50, level_4_waves, ("telezhnik", "rojatel", "sigma", "armorik", "zeleniy_strelok", "drobik", "klonik"), level_image="1"),
+#     "5": Level("5", 31500, 225, 50, level_5_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik", "klonik", "teleportik"), level_image="1"),
+#     "6б": Chest(parent_number="6б", rewards={"city_coin": 5, "evil_coin": 2, "zeus": "unlock"})
+# }
+
+# level = levels["1"]
+
+
+GlobalMapLevelButton("1", "0", (100, 714), level=Level("1", 22500, 750, 50, level_waves["1"], level_allowed_enemies["1"]))     # !!! все буквы русские !!!
+GlobalMapLevelButton("2", "1", (250, 544), level=Level("2", 22500, 575, 50, level_waves["2"], level_allowed_enemies["2"], level_image="1"))
+GlobalMapLevelButton("3", "2", (500, 500), level=Level("3", 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="1"))
+GlobalMapLevelButton("3а", "3", (700, 700), chest=Chest(parent_number="3а", rewards=chests_rewards["3а"]))
+GlobalMapLevelButton("4", "3", (750, 400), level=Level("4", 22500, 225, 50, level_waves["4"], level_allowed_enemies["4"], level_image="1"))
+GlobalMapLevelButton("5", "4", (1000, 400), level=Level("5", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="1"))
+GlobalMapLevelButton("6", "5", (1200, 300))
+GlobalMapLevelButton("6а", "6", (1000, 100))
+GlobalMapLevelButton("6б", "6а", (750, 100), chest=Chest(parent_number="6б", rewards=chests_rewards["6б"]))
+GlobalMapLevelButton("6в", "6б", (500, 100))
+GlobalMapLevelButton("6г", "6в", (250, 200))
+GlobalMapLevelButton("7", "6", (1400, 200))
+GlobalMapLevelButton("8", "7", (1650, 200))
+
+level = global_map.entities[0].level
+
+UpgradeTowerButton("1", (50, 104))
+UpgradeTowerButton("2a", (216, 36))
+UpgradeTowerButton("3a", (384, 36))
+UpgradeTowerButton("2b", (216, 172))
+UpgradeTowerButton("3b", (384, 172))
+
+
 preview_group.entity_create(3)
 select_towers_preview_group.entity_create(6)
 
@@ -3688,6 +3794,10 @@ while running:
 
             if e.key == K_r:
                 level.give_reward()
+            if e.key == K_o:
+                for ent in global_map.entities:
+                    if ent.chest:
+                        ent.chest.refresh()
             if e.key == K_w:
                 game_state = "level_complited"
             if e.key == K_q:

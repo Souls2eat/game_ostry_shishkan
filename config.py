@@ -1,29 +1,52 @@
-level_1_waves = {       # время волны : поинты спавна на волну
-    18000: 10,
-    8000: 20,
+level_waves = {
+    "1": {
+        18000: 10,
+        8000: 20,
+    },
+    "2": {
+        18000: 30,
+        8000: 40,
+    },
+    "3": {
+        18000: 30,
+        8000: 40,
+    },
+    "4": {
+        18000: 40,
+        12000: 50,
+        6000: 50
+    },
+    "5": {
+        25000: 40,
+        22000: 60,
+        12000: 60,
+        6000: 60
+    },
 }
 
-level_2_waves = {
-    18000: 20,
-    10000: 30,
-    3500: 30
+level_allowed_enemies = {
+    "1": ("popusk", "josky"),
+    "2": ("josky", "sigma", "sportik", "popusk"),
+    "3": ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik"),
+    "4": ("telezhnik", "rojatel", "sigma", "armorik", "zeleniy_strelok", "drobik", "klonik"),
+    "5": ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik", "klonik", "teleportik")
+
 }
 
-level_3_waves = {
-    18000: 30,
-    8000: 40,
-}
+chests_rewards = {
+    "6б": {
+        "forest_coin": 2,
+        "mountain_coin": 1,
+        "zeus": "unlock",
+        "thunder": "unlock",
+    },
+    "3а": {
+        "evil_coin": 1,
+        "snow_coin": 2,
+        "terpila": "unlock",
+        "zeus": "unlock",
 
-level_4_waves = {
-    18000: 40,
-    12000: 50,
-    6000: 50
-}
-level_5_waves = {
-    25000: 40,
-    22000: 60,
-    12000: 60,
-    6000: 60
+    }
 }
 
 enemy_costs = {

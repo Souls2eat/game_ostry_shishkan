@@ -1,16 +1,16 @@
-passed_levels = 0, 1, 2, 3, 4, 5, 6, 6а
+passed_levels = 0, 1, 2, 3, 4, 5, 6, 6а, 3а, 6б
 received_towers = fire_mag, pukish, boomchick, davalka, kopitel, matricayshon, parasitelniy, spike, easy_money, vistrel, terpila, thunder, yascerica, zeus, barrier_mag, urag_anus, big_mechman, drachun, tolkan, knight_on_horse, gnome_cannon1, electric, struyniy, dark_druid, gribnik, pen, bolotnik, nekr, electro_maga, bomb, perec, molniya, vodka, tp_back
 not_received_towers = []
 encountered_enemies = popusk, sigma, josky, zeleniy_strelok, sportik, rojatel, mega_strelok, slabiy, armorik, telezhnik, drobik
 not_encountered_enemies = []
 -----
-city_coin = 0
-forest_coin = 0
-evil_coin = 0
-mountain_coin = 0
-snow_coin = 0
+city_coin = 25
+forest_coin = 30
+evil_coin = 20
+mountain_coin = 15
+snow_coin = 24
 -----
-fire_mag = 1
+fire_mag = 1, 2a
 pukish = 1
 boomchick = 1
 davalka = 1
