@@ -35,14 +35,16 @@ tower_window_common = image.load("images/tower_select_windows/tower_select_windo
 tower_window_spell = image.load("images/tower_select_windows/tower_select_window_spell.png").convert_alpha()
 line_ = image.load("images/other/line.png").convert_alpha()
 unknown_entity = image.load("images/buttons_states/unknown_entity.png").convert_alpha()
-game_map = image.load("images/maps/game_map.png").convert_alpha()
-global_level = image.load("images/maps/global_level.png").convert_alpha()
+game_map = image.load("images/maps/global_map/game_map.png").convert_alpha()
+global_level = image.load("images/maps/global_map/global_level.png").convert_alpha()
 ok = image.load("images/buttons_states/ok.png").convert_alpha()
 upgrade_tower_red = image.load("images/buttons_states/upgrade_tower_red.png").convert_alpha()
 upgrade_tower_green = image.load("images/buttons_states/upgrade_tower_green.png").convert_alpha()
 upgrade_tower_select = image.load("images/buttons_states/upgrade_tower_select.png").convert_alpha()
 upgrade_path = image.load("images/other/upgrade_path.png").convert_alpha()
 new_bg = image.load("images/other/new_bg.png").convert_alpha()
+map_secret_3 = image.load("images/maps/global_map/secrets/map_3_secret.png").convert_alpha()
+map_secret_6 = image.load("images/maps/global_map/secrets/map_6_secret.png").convert_alpha()
 
 font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
 font35 = font.Font("fonts/ofont.ru_Nunito.ttf", 35)
@@ -327,6 +329,13 @@ class GlobalMap(BasePreviewGroup):
                     if level_.chest:
                         surf.blit(level_.chest.image, level_.rect)
 
+    @staticmethod
+    def hiding_map_secrets():
+        if "3" not in passed_levels:
+            screen.blit(map_secret_3, (564 + scroll_offset, 541))
+        if "6" not in passed_levels:
+            screen.blit(map_secret_6, (274 + scroll_offset, 75))
+
     def use_clicked_object(self):
         global scroll_offset, continue_level, last_game_state, game_state, level, passed_levels
         if self.pushed_entity:
@@ -391,9 +400,9 @@ class TextSprite(sprite.Sprite):
 class Level:
     def __init__(self, level_number, level_time, time_to_spawn, start_money, waves: dict, allowed_enemies: tuple, allowed_cords=(192, 320, 448, 576, 704), blocked_slots=(), level_image="default"):
         if level_image == "default":
-            self.image = image.load(f"images/maps/map{level_number}.png").convert_alpha()
+            self.image = image.load(f"images/maps/levels/map{level_number}.png").convert_alpha()
         else:
-            self.image = image.load(f"images/maps/map{level_image}.png").convert_alpha()
+            self.image = image.load(f"images/maps/levels/map{level_image}.png").convert_alpha()
         self.current_level = level_number
         self.money = self.start_money = start_money
         self.state = "not_run"
@@ -415,12 +424,15 @@ class Level:
         draw.rect(screen, (233, 126, 72), (self.x, self.y, self.w, self.h))
         draw.rect(screen, (55, 127, 236), (self.x, self.y, self.w * ratio, self.h))
         draw.rect(screen, (0, 0, 0), (self.x, self.y, self.w, self.h), 4)
-        for wave_time in self.waves:
+        for wave in self.waves:
+            wave_description = wave[:1]
+            wave_time = int(wave[1:])
             mark_ratio = wave_time / self.start_level_time
-            screen.blit(amogus, (self.x + int(mark_ratio * self.w), self.y - 30))
+            if wave_description == "v":
+                screen.blit(amogus, (self.x + int(mark_ratio * self.w), self.y - 30))
 
-    def wave_spawn_enemies(self, wave_time):
-        waves_points = self.waves[wave_time]
+    def wave_spawn_enemies(self, wave_time, wave_description):
+        waves_points = self.waves[wave_description + str(wave_time)]
         enemy_x_cord = 1600
         while waves_points > 0:
             enemy_name = choice(self.allowed_enemies)
@@ -522,9 +534,13 @@ class Level:
 
     def update(self):
         all_sprites_group.update()
-        for wave_time in self.waves:
+        for wave in self.waves:
+            wave_time = int(wave[1:])
+            wave_description = wave[:1]
             if self.level_time == wave_time:
-                self.wave_spawn_enemies(wave_time)
+                self.wave_spawn_enemies(wave_time, wave_description)
+                if wave_description == "a":
+                    Alert("БомБом", (750, 450), 225)
         if self.state == "not_run":
             self.state = self.spawn()
         if not self.cheat:
@@ -550,23 +566,23 @@ class Chest:
     def __init__(self, parent_number: str, rewards: dict):
         self.rewards = rewards      # башни/коины
         if parent_number not in passed_levels:
-            self.image = image.load("images/maps/chest.png")
+            self.image = image.load("images/maps/global_map/chest.png")
             self.open = False
         else:
             self.open = True
-            self.image = image.load("images/maps/chest_open.png")
+            self.image = image.load("images/maps/global_map/chest_open.png")
 
     def opening(self):
         global game_state
         self.open = True
-        self.image = image.load("images/maps/chest_open.png")
+        self.image = image.load("images/maps/global_map/chest_open.png")
         if global_map.pushed_entity.number not in passed_levels:
             passed_levels.append(global_map.pushed_entity.number)
         game_state = "reward_first_stage"
 
     def refresh(self):
         self.open = False
-        self.image = image.load("images/maps/chest.png")
+        self.image = image.load("images/maps/global_map/chest.png")
 
 
 class Tower(sprite.Sprite):
@@ -3410,6 +3426,7 @@ def menu_positioning():
         global_map.check_click(screen)
         global_map.use_clicked_object()
         global_map.move_element_by_scroll(vector="x")
+        global_map.hiding_map_secrets()
         global_map.custom_draw(screen)
 
         if back_button.click(screen, (30, 20), col=(200, 0, 0)):
@@ -3656,32 +3673,19 @@ upload_data()
 # ---
 
 
-# levels = {
-#     "1": Level("1", 22500, 750, 50, level_1_waves, ("popusk", "josky")),
-#     "2": Level("2", 22500, 575, 50, level_2_waves, ("josky", "sigma", "sportik", "popusk"), level_image="1"),
-#     "3": Level("3", 22500, 500, 50, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik"), level_image="1"),
-#     "3а": Level("3а", 22500, 500, 50, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik"), level_image="1"),
-#     "4": Level("4", 22500, 225, 50, level_4_waves, ("telezhnik", "rojatel", "sigma", "armorik", "zeleniy_strelok", "drobik", "klonik"), level_image="1"),
-#     "5": Level("5", 31500, 225, 50, level_5_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik", "klonik", "teleportik"), level_image="1"),
-#     "6б": Chest(parent_number="6б", rewards={"city_coin": 5, "evil_coin": 2, "zeus": "unlock"})
-# }
-
-# level = levels["1"]
-
-
-GlobalMapLevelButton("1", "0", (100, 714), level=Level("1", 22500, 750, 50, level_waves["1"], level_allowed_enemies["1"]))     # !!! все буквы русские !!!
-GlobalMapLevelButton("2", "1", (250, 544), level=Level("2", 22500, 575, 50, level_waves["2"], level_allowed_enemies["2"], level_image="1"))
-GlobalMapLevelButton("3", "2", (500, 500), level=Level("3", 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="1"))
+GlobalMapLevelButton("1", "0", (100, 714), level=Level("1", 22500, 750, 50, level_waves["1"], level_allowed_enemies["1"], level_image="2"))     # !!! все буквы русские !!!
+GlobalMapLevelButton("2", "1", (250, 544), level=Level("2", 22500, 575, 50, level_waves["2"], level_allowed_enemies["2"], level_image="2"))
+GlobalMapLevelButton("3", "2", (500, 500), level=Level("3", 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="2"))
 GlobalMapLevelButton("3а", "3", (700, 700), chest=Chest(parent_number="3а", rewards=chests_rewards["3а"]))
-GlobalMapLevelButton("4", "3", (750, 400), level=Level("4", 22500, 225, 50, level_waves["4"], level_allowed_enemies["4"], level_image="1"))
-GlobalMapLevelButton("5", "4", (1000, 400), level=Level("5", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="1"))
-GlobalMapLevelButton("6", "5", (1200, 300))
-GlobalMapLevelButton("6а", "6", (1000, 100))
+GlobalMapLevelButton("4", "3", (750, 400), level=Level("4", 22500, 225, 50, level_waves["4"], level_allowed_enemies["4"], level_image="2"))
+GlobalMapLevelButton("5", "4", (1000, 400), level=Level("5", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))
+GlobalMapLevelButton("6", "5", (1200, 300), level=Level("6", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # на 6 поменять
+GlobalMapLevelButton("6а", "6", (1000, 100), level=Level("6а", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))  # поменять
 GlobalMapLevelButton("6б", "6а", (750, 100), chest=Chest(parent_number="6б", rewards=chests_rewards["6б"]))
-GlobalMapLevelButton("6в", "6б", (500, 100))
-GlobalMapLevelButton("6г", "6в", (250, 200))
-GlobalMapLevelButton("7", "6", (1400, 200))
-GlobalMapLevelButton("8", "7", (1650, 200))
+GlobalMapLevelButton("6в", "6б", (500, 100), level=Level("6в", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))  # поменять
+GlobalMapLevelButton("6г", "6в", (250, 200), level=Level("6г", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))  # поменять
+GlobalMapLevelButton("7", "6", (1400, 200), level=Level("7", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+GlobalMapLevelButton("8", "7", (1650, 200), level=Level("8", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
 
 level = global_map.entities[0].level
 
