@@ -87,8 +87,9 @@ class ModGroup(sprite.Group):
 
     def draw_other(self, surf):
         for obj_ in self.sprites():
-            if hasattr(obj_, "image2"):
-                obj_.draw2(surf)
+            if level.cheat:
+                if hasattr(obj_, "image2"):
+                    obj_.draw2(surf)
             if hasattr(obj_, "image3"):
                 obj_.draw3(surf)
 
@@ -116,11 +117,11 @@ class BasePreviewGroup:
     def move_element_by_scroll(self, vector="y"):
         for en in self.entities:
             if vector == "y":
-                en.pos = en.pos[0], en.pos[1] + scroll_offset - self.scroll_pos
+                en.pos = en.pos[0], en.pos[1] + scroller.scroll_offset - self.scroll_pos
             if vector == "x":
-                en.pos = en.pos[0] + scroll_offset - self.scroll_pos, en.pos[1]
+                en.pos = en.pos[0] + scroller.scroll_offset - self.scroll_pos, en.pos[1]
             en.rect = en.image.get_rect(topleft=en.pos)
-        self.scroll_pos = scroll_offset
+        self.scroll_pos = scroller.scroll_offset
 
     def check_hover(self, surf, offset_pos=(0, 0)):
         surf_width = surf.get_width()
@@ -291,16 +292,17 @@ class RewardsPreviewGroup(BasePreviewGroup):
                 b.kill()
             self.add(entity)
 
-    def custom_draw(self, surf):
+    def custom_draw(self, surf, offset_pos=(0, 0)):
         for tower in self.entities:
-            surf.blit(tower.image, tower.rect)
+            tower.rect = tower.image.get_rect(topleft=(tower.pos[0] + offset_pos[0], tower.pos[1] + offset_pos[1]))
+            surf.blit(tower.image, (tower.rect.x - offset_pos[0], tower.rect.y - offset_pos[1]))
             if hasattr(tower, "rarity"):
                 if tower.rarity == "legendary":
-                    surf.blit(tower_window_legendary, tower.rect)
+                    surf.blit(tower_window_legendary, (tower.rect.x - offset_pos[0], tower.rect.y - offset_pos[1]))
                 if tower.rarity == "common":
-                    surf.blit(tower_window_common, tower.rect)
+                    surf.blit(tower_window_common, (tower.rect.x - offset_pos[0], tower.rect.y - offset_pos[1]))
                 if tower.rarity == "spell":
-                    surf.blit(tower_window_spell, tower.rect)
+                    surf.blit(tower_window_spell, (tower.rect.x - offset_pos[0], tower.rect.y - offset_pos[1]))
 
     def go_animation(self):
         for tower in self.entities:
@@ -332,9 +334,9 @@ class GlobalMap(BasePreviewGroup):
     @staticmethod
     def hiding_map_secrets():
         if "3" not in passed_levels:
-            screen.blit(map_secret_3, (564 + scroll_offset, 541))
+            screen.blit(map_secret_3, (564 + scroller.scroll_offset, 541))
         if "6" not in passed_levels:
-            screen.blit(map_secret_6, (274 + scroll_offset, 75))
+            screen.blit(map_secret_6, (274 + scroller.scroll_offset, 75))
 
     def use_clicked_object(self):
         global scroll_offset, continue_level, last_game_state, game_state, level, passed_levels
@@ -343,7 +345,7 @@ class GlobalMap(BasePreviewGroup):
                 if self.pushed_entity.level:
                     # level = levels[self.pushed_entity.number]
                     level = self.pushed_entity.level
-                    scroll_offset = 0
+                    scroller.scroll_offset = 0
                     continue_level = True
                     level.refresh()
                     last_game_state = game_state
@@ -3030,6 +3032,38 @@ class UpgradeTowerButton(Button2):
             self.image = upgrade_tower_red
 
 
+class Scroller:
+    def __init__(self):
+        self.scroll_offset = 0
+        self.min_scroll_offset = 0
+        self.max_scroll_offset = 0
+        self.back_to_start_position = True
+        self.last_offset_state = "main_menu"
+        self.rules = {
+            "manual_menu": {"min": -1200, "max": 0},
+            "global_map": {"min": -1600, "max": 0},
+            "tower_select": {"min": -450, "max": 0}
+        }
+
+    def set_scroll_offset(self, offset, next_game_state="current"):
+        self.scroll_offset = offset
+        if next_game_state != "current":
+            self.last_offset_state = next_game_state
+
+    def check_possible_scrolling(self):
+        if game_state in self.rules:
+            if self.scroll_offset < self.rules[game_state]["min"]:
+                self.scroll_offset = self.rules[game_state]["min"]
+            if self.scroll_offset > self.rules[game_state]["max"]:
+                self.scroll_offset = self.rules[game_state]["max"]
+
+    def set_start_position_if_game_state_changes(self):
+        if self.back_to_start_position:
+            if self.last_offset_state != game_state:
+                self.scroll_offset = 0
+                self.last_offset_state = game_state
+
+
 def is_free(new_tower):
     is_free_list = []           # Проверка свободна ли клетка
     for tower in towers_group:
@@ -3108,19 +3142,6 @@ def first_empty_slot(blocked_slots_):
             fill_pos.add(ui.rect.y)
 
     return min(ui_pos_list - fill_pos)
-
-
-def scroll_offset_min_max(min_offset, max_offset):
-    global scroll_offset, current_scroll_offset_state
-
-    if scroll_offset < min_offset:
-        scroll_offset = min_offset
-    if scroll_offset > max_offset:
-        scroll_offset = max_offset
-
-    if current_scroll_offset_state != game_state:
-        scroll_offset = 0
-        current_scroll_offset_state = game_state
 
 
 def upload_data(default=False):
@@ -3214,7 +3235,8 @@ def menu_positioning():
             level,\
             scroll_offset, \
             coin_indent_x, \
-            count_of_reward_coins
+            count_of_reward_coins, \
+            current_scroll_offset_state
 
     if game_state == "main_menu":
         screen.blit(main_menu, (0, 0))
@@ -3280,7 +3302,9 @@ def menu_positioning():
         screen.blit(modification_preview_menu, (830, 120))
         modification_preview_menu.blit(modification_preview_menu_copy, (0, 0))
         modification_preview_menu.blit(line_, (0, 275))
-        scroll_offset_min_max(-1200, 0)                          # одна линия -150
+        scroller.set_start_position_if_game_state_changes()
+        scroller.check_possible_scrolling()
+        # scroll_offset_min_max(-1200, 0)                          # одна линия -150
 
         preview_group.move_element_by_scroll()
         preview_group.go_animation()
@@ -3385,7 +3409,7 @@ def menu_positioning():
 
         if back_button.click(screen, (1000, 750), col=(0, 0, 0)):
             game_state, last_game_state = last_game_state, game_state
-            scroll_offset = 0
+            # scroller.scroll_offset = 0
 
         if change_preview_turn_button.click(screen, (1280, 90)):
             if preview_group.turn == Enemy:
@@ -3419,8 +3443,11 @@ def menu_positioning():
         all_sprites_group.draw_other(screen)
 
     if game_state == "global_map":
-        scroll_offset_min_max(-1600, 0)
-        screen.blit(game_map, (0 + scroll_offset, 0))
+        # scroll_offset_min_max(-1600, 0)
+        scroller.set_start_position_if_game_state_changes()
+        scroller.check_possible_scrolling()
+
+        screen.blit(game_map, (0 + scroller.scroll_offset, 0))
 
         # global_map.check_hover(screen)        # если нужно при наведении что то делать
         global_map.check_click(screen)
@@ -3493,7 +3520,9 @@ def menu_positioning():
         screen.blit(select_menu, (250, 150))
         select_menu.blit(select_menu_copy, (0, 0))
         screen.blit(additional_menu, (1210, 150))
-        scroll_offset_min_max(-450, 0)      # насколько сильно прокручивается вниз
+        scroller.set_start_position_if_game_state_changes()
+        scroller.check_possible_scrolling()
+        # scroll_offset_min_max(-450, 0)      # насколько сильно прокручивается вниз
 
         select_towers_preview_group.move_element_by_scroll()
         select_towers_preview_group.check_hover(select_menu, offset_pos=(250, 150))
@@ -3516,7 +3545,7 @@ def menu_positioning():
 
         if start_level_button.click(screen, (1265, 630), col=(0, 0, 0)):
             if len(select_towers_preview_group.remember_entities) == 7 - len(level.blocked_slots):
-                scroll_offset = 0
+                scroller.scroll_offset = 0
                 game_state = "run"
                 level.clear(ui_group)
                 level.state = "not_run"
@@ -3591,7 +3620,7 @@ def menu_positioning():
         game_state = "reward_second_stage"
 
     if game_state == "reward_second_stage":
-        screen.blit(game_map, (0 + scroll_offset, 0))
+        screen.blit(game_map, (0 + scroller.scroll_offset, 0))
         global_map.custom_draw(screen)
         screen.blit(pause_menu_w, (480, 250))
         pause_menu_w.blit(pause_menu_w_copy, (0, 0))
@@ -3603,8 +3632,18 @@ def menu_positioning():
                 pause_menu_w.blit(coins[k], (coin_indent_x + (column * (64 + coin_indent_x)) + (column * 22.5), 230))
                 pause_menu_w.blit(font60.render(str(v), True, (0, 0, 0)), (coin_indent_x + (column * (64 + coin_indent_x)) - ((2 - column) * 22.5), 225))
 
-        rewards_preview_group.custom_draw(pause_menu_w)
+        rewards_preview_group.custom_draw(pause_menu_w, offset_pos=(480, 250))
         rewards_preview_group.go_animation()
+
+        if rewards_preview_group.check_click(pause_menu_w, offset_pos=(480, 250)):
+            last_game_state = game_state
+            game_state = "manual_menu"
+
+            preview_group.refresh(3)
+            for entity in preview_group.entities:
+                if entity.name == rewards_preview_group.pushed_entity.name:
+                    preview_group.pushed_entity = entity
+                    scroller.set_scroll_offset(-preview_group.pushed_entity.pos[1], "manual_menu")
 
         if take_button.click(screen, (680, 540), col=(0, 0, 0)):
             last_game_state = game_state
@@ -3695,6 +3734,7 @@ UpgradeTowerButton("3a", (384, 36))
 UpgradeTowerButton("2b", (216, 172))
 UpgradeTowerButton("3b", (384, 172))
 
+scroller = Scroller()
 
 preview_group.entity_create(3)
 select_towers_preview_group.entity_create(6)
@@ -3731,7 +3771,8 @@ while running:
     display.update()
     for e in event.get():
         if e.type == MOUSEWHEEL and (game_state == "level_select" or game_state == "tower_select" or game_state == "manual_menu" or game_state == "global_map"):
-            scroll_offset += e.y * 50
+            # scroll_offset += e.y * 50
+            scroller.scroll_offset += e.y * 50
             # scroll_pos = mouse_pos    # пока что забью
         if e.type == KEYDOWN:
             if e.key == K_ESCAPE and (game_state == "run"
@@ -3791,10 +3832,10 @@ while running:
             if e.key == K_KP_3:
                 Enemy("klonik", (1508, 704))
 
-            if e.key == K_a:
-                scroll_offset += 600
-            if e.key == K_d:
-                scroll_offset -= 600
+            # if e.key == K_a:
+            #     scroll_offset += 600
+            # if e.key == K_d:
+            #     scroll_offset -= 600
 
             if e.key == K_r:
                 level.give_reward()
