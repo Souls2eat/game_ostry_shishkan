@@ -626,8 +626,9 @@ class Level:
                         sprite_.kill()
             else:
                 if sprite_ not in text_sprites_group:
-                    if hasattr(sprite_, "name") and sprite_.name != "shovel":
-                        sprite_.kill()
+                    if hasattr(sprite_, "name"):
+                        if sprite_.name != "shovel":
+                            sprite_.kill()
                     else:
                         sprite_.kill()
 
@@ -787,11 +788,9 @@ class Tower(sprite.Sprite):
         self.pushed = False
         self.in_slot = False
 
-
         # СТАТЫ начало
-
         if self.name == 'fire_mag':
-            self.hp = 200
+            self.hp = self.max_hp = 200
             self.atk = 10
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
@@ -807,10 +806,9 @@ class Tower(sprite.Sprite):
                 self.fire_form_cooldown = self.basic_fire_form_cooldown = 6
             if self.upgrade_level == "2b" or self.upgrade_level == '3b':
                 self.atk_dot = 1  # dot = damage_over_time    # типа он поджогом дамажит 5 сек по 1 урону и в итоге у него от каждой тычки дамаг в 1,5 раза увеличивается но растянуто
-                # новый функционал
 
         if self.name == 'boomchick':
-            self.hp = 200
+            self.hp = self.max_hp = 200
             self.atk = 10  # типа по кому попадёт получит 20 а остальные по 10
             self.bullet_speed_x = 4
             self.bullet_speed_y = 0
@@ -819,7 +817,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'kopitel':
-            self.hp = 200
+            self.hp = self.max_hp = 200
             self.atk = 32  # я так сделал чтобы анимации ахуенно ложились
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
@@ -834,7 +832,7 @@ class Tower(sprite.Sprite):
                 self.atk_big = 96
 
         if self.name == 'thunder':
-            self.hp = 200
+            self.hp = self.max_hp = 200
             self.atk = 15
             self.bullet_speed_x = 7
             self.bullet_speed_y = 3
@@ -844,7 +842,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'thunder_kamen':
-            self.hp = 2000
+            self.hp = self.max_hp = 2000
             self.rarity = "common"
 
         if self.name == 'gribnik':
@@ -863,7 +861,7 @@ class Tower(sprite.Sprite):
                 self.rarity = "common"
 
         if self.name == 'zeus':
-            self.hp = 50
+            self.hp = self.max_hp = 50
             self.atk = 15
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
@@ -872,7 +870,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'yascerica':
-            self.hp = 200
+            self.hp = self.max_hp = 200
             self.atk = 0
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
@@ -893,7 +891,7 @@ class Tower(sprite.Sprite):
             self.rarity = "legendary"
 
         if self.name == 'electric':
-            self.hp = 200
+            self.hp = self.max_hp = 200
             self.atk = 3  # типо дальней атакой он наносит 45 урона в 1 цель за 4 секунды(3 сек кд и 1 сек он всё выпускает)
             self.atk2 = 45  # а ближней он наносит 45 урона сплешом за 3 секунды
             self.bullet_speed_x = 5
@@ -907,7 +905,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'struyniy':  # пока что он слишком имба под баффом но мы что-нибудь придумаем. хотя мб нет
-            self.hp = 200
+            self.hp = self.max_hp = 200
             self.atk = 2
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
@@ -919,7 +917,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'dark_druid':
-            self.hp = 200
+            self.hp = self.max_hp = 200
             self.atk = 5
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
@@ -1169,6 +1167,7 @@ class Tower(sprite.Sprite):
             for i in range(5):
                 self.debuff_x = 1 + i * 128
                 self.debuff = Buff('boloto', self.rect.x + self.debuff_x, self.rect.y, self)
+                self.rarity = "common"
 
         if self.name == 'pen':
             self.hp = self.max_hp = 200
@@ -1477,7 +1476,7 @@ class Tower(sprite.Sprite):
                     for tower in towers_group:
                         if self.best_target.rect.x < tower.rect.x and tower.hp < tower.max_hp and -10 <= tower.rect.y - self.rect.y <= 10 and tower.rect.x >= self.rect.x and tower.hp > 0:
                             self.best_target = tower
-                    return(self.best_target)
+                    return self.best_target
 
         return None
 
@@ -1556,7 +1555,7 @@ class Tower(sprite.Sprite):
         if self.name == "parasitelniy":
             self.parasix = randint(0, 32)
             self.parasiy = randint(-32, 32)
-            Parasite('sosun', targets[id(self)].rect.centerx+self.parasix, targets[id(self)].rect.centery+self.parasiy, '', self.atk, targets[id(self)], self) # bug? no, juk.
+            Parasite('sosun', targets[id(self)].rect.centerx+self.parasix, targets[id(self)].rect.centery+self.parasiy, '', self.atk, targets[id(self)], self)  # bug? no, juk.
             targets[id(self)].parasite_parents.add(self)
             targets[id(self)] = None
 
@@ -1564,6 +1563,8 @@ class Tower(sprite.Sprite):
             self.parasix = randint(-9, 9)
             self.parasiy = randint(-64, -46)
             Parasite('metka_inq', targets[id(self)].rect.centerx+self.parasix, targets[id(self)].rect.centery+self.parasiy, '', self.atk, targets[id(self)], self)
+            targets[id(self)].parasite_parents.add(self)
+            targets[id(self)] = None
 
         if self.name == "nekr":
             if self.upgrade_level == "2a":
@@ -2705,6 +2706,7 @@ class Parasite(sprite.Sprite):
         if self.name == 'metka_inq':
             self.damage = self.owner.atk // 5
             self.owner.parasites.add(self)
+            # if self.parent in self.owner.parasites:
             self.owner.parasites.remove(self.parent)
             self.cashback_list = []
             self.lifetime = 750
@@ -4317,7 +4319,7 @@ select_towers_preview_group.entity_create(6)
 
 # {160, 256, 352, 448, 544, 640, 736}
 a = Slot((32, 160), allowed_rarity=("legendary",))      # редкость слота
-Slot((32, 256), allowed_rarity=("legendary",))
+Slot((32, 256))
 Slot((32, 352))
 Slot((32, 448))
 Slot((32, 544))
