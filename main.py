@@ -33,16 +33,20 @@ cursor = image.load("images/other/cursor.png").convert_alpha()
 tower_window_legendary = image.load("images/tower_select_windows/tower_select_window_legendary.png").convert_alpha()
 tower_window_common = image.load("images/tower_select_windows/tower_select_window_common.png").convert_alpha()
 tower_window_spell = image.load("images/tower_select_windows/tower_select_window_spell.png").convert_alpha()
+tower_window_active = image.load("images/tower_select_windows/tower_select_window_active.png").convert_alpha()
 line_ = image.load("images/other/line.png").convert_alpha()
 unknown_entity = image.load("images/buttons_states/unknown_entity.png").convert_alpha()
-game_map = image.load("images/maps/game_map.png").convert_alpha()
-global_level = image.load("images/maps/global_level.png").convert_alpha()
+game_map = image.load("images/maps/global_map/game_map.png").convert_alpha()
+global_level = image.load("images/maps/global_map/global_level.png").convert_alpha()
 ok = image.load("images/buttons_states/ok.png").convert_alpha()
 upgrade_tower_red = image.load("images/buttons_states/upgrade_tower_red.png").convert_alpha()
 upgrade_tower_green = image.load("images/buttons_states/upgrade_tower_green.png").convert_alpha()
 upgrade_tower_select = image.load("images/buttons_states/upgrade_tower_select.png").convert_alpha()
 upgrade_path = image.load("images/other/upgrade_path.png").convert_alpha()
 new_bg = image.load("images/other/new_bg.png").convert_alpha()
+map_secret_3 = image.load("images/maps/global_map/secrets/map_3_secret.png").convert_alpha()
+map_secret_6 = image.load("images/maps/global_map/secrets/map_6_secret.png").convert_alpha()
+
 
 font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
 font35 = font.Font("fonts/ofont.ru_Nunito.ttf", 35)
@@ -62,6 +66,7 @@ continue_level = False
 free_money = default_free_money = 750
 upgrades = {}
 your_coins = {}
+d_col = (200, 200, 200)
 
 
 class ModGroup(sprite.Group):
@@ -97,6 +102,7 @@ class BasePreviewGroup:
         self.scroll_pos = 0
         self.hovered_entity = None
         self.pushed_entity = None
+        self.dragged_entity = None
         self.supported_objects = supported_objects
         self.turn = self.supported_objects[0]
 
@@ -114,11 +120,11 @@ class BasePreviewGroup:
     def move_element_by_scroll(self, vector="y"):
         for en in self.entities:
             if vector == "y":
-                en.pos = en.pos[0], en.pos[1] + scroll_offset - self.scroll_pos
+                en.pos = en.pos[0], en.pos[1] + scroller.scroll_offset - self.scroll_pos
             if vector == "x":
-                en.pos = en.pos[0] + scroll_offset - self.scroll_pos, en.pos[1]
+                en.pos = en.pos[0] + scroller.scroll_offset - self.scroll_pos, en.pos[1]
             en.rect = en.image.get_rect(topleft=en.pos)
-        self.scroll_pos = scroll_offset
+        self.scroll_pos = scroller.scroll_offset
 
     def check_hover(self, surf, offset_pos=(0, 0)):
         surf_width = surf.get_width()
@@ -149,11 +155,30 @@ class BasePreviewGroup:
                 return True
         return False
 
+    # def check_drag(self, surf, offset_pos=(0, 0)):
+    #     surf_width = surf.get_width()
+    #     surf_height = surf.get_height()
+    #     on_surf = surf_width + offset_pos[0] > mouse_pos[0] > offset_pos[0] and surf_height + offset_pos[1] > mouse_pos[1] > offset_pos[1]
+    #     for en in filter(self.filter_by_turn, self.entities):
+    #         en.rect = en.image.get_rect(topleft=(en.pos[0] + offset_pos[0], en.pos[1] + offset_pos[1]))
+    #         if en.rect.collidepoint(mouse_pos) and on_surf:
+    #             if mouse.get_pressed()[0] == 1:
+    #                 self.dragged_entity = en
+    #                 self.dragged_entity.is_move = True
+    #                 return True
+    #
+    #     if self.dragged_entity:
+    #         self.dragged_entity.is_move = False
+    #     self.dragged_entity = None
+
     def filter_by_turn(self, en):
         return isinstance(en, self.turn)  # noqa
 
     def __len__(self):
         return len(self.entities)
+
+    def __iter__(self):
+        return iter(self.entities)
 
 
 class PreviewGroup(BasePreviewGroup):
@@ -186,11 +211,12 @@ class PreviewGroup(BasePreviewGroup):
     def custom_draw(self, surf, offset_pos=(0, 0)):
         for en in filter(self.filter_by_turn, self.entities):
             en.rect = en.image.get_rect(topleft=(en.pos[0] + offset_pos[0], en.pos[1] + offset_pos[1]))
-            # draw.rect(screen, "GREEN", en.rect, 5)
+
             if en.name in received_towers or en.name in encountered_enemies:
                 surf.blit(en.image, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
             else:
                 surf.blit(unknown_entity, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
+
             if hasattr(en, "rarity"):
                 if en.rarity == "legendary":
                     surf.blit(tower_window_legendary, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
@@ -198,8 +224,22 @@ class PreviewGroup(BasePreviewGroup):
                     surf.blit(tower_window_common, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
                 if en.rarity == "spell":
                     surf.blit(tower_window_spell, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
+                if self.hovered_entity == en:
+                    surf.blit(tower_window_active, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
             else:
                 surf.blit(tower_window_common, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
+                if self.hovered_entity == en:
+                    surf.blit(tower_window_active, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
+
+            # if hasattr(en, "rarity"):
+            #     if self.hovered_entity == en:
+            #         if en.rarity == "common":
+            #             self.repaint_to_default()
+            #         if en.rarity == "legendary":
+            #             self.repaint_to_legendary()
+            #         if en.rarity == "spell":
+            #             self.repaint_to_spell()
+            #
             if en in self.remember_entities:
                 surf.blit(ok, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
 
@@ -225,7 +265,7 @@ class PreviewGroup(BasePreviewGroup):
 
     def get_max_hp(self):
         return sorted(filter(self.filter_by_turn, self.entities), key=lambda en: en.hp)[-1].hp
-    
+
     def get_max_speed(self):
         return sorted(filter(self.filter_by_turn, self.entities), key=self.get_speed)[-1].speed
 
@@ -289,16 +329,19 @@ class RewardsPreviewGroup(BasePreviewGroup):
                 b.kill()
             self.add(entity)
 
-    def custom_draw(self, surf):
+    def custom_draw(self, surf, offset_pos=(0, 0)):
         for tower in self.entities:
-            surf.blit(tower.image, tower.rect)
+            tower.rect = tower.image.get_rect(topleft=(tower.pos[0] + offset_pos[0], tower.pos[1] + offset_pos[1]))
+            surf.blit(tower.image, (tower.rect.x - offset_pos[0], tower.rect.y - offset_pos[1]))
             if hasattr(tower, "rarity"):
                 if tower.rarity == "legendary":
-                    surf.blit(tower_window_legendary, tower.rect)
+                    surf.blit(tower_window_legendary, (tower.rect.x - offset_pos[0], tower.rect.y - offset_pos[1]))
                 if tower.rarity == "common":
-                    surf.blit(tower_window_common, tower.rect)
+                    surf.blit(tower_window_common, (tower.rect.x - offset_pos[0], tower.rect.y - offset_pos[1]))
                 if tower.rarity == "spell":
-                    surf.blit(tower_window_spell, tower.rect)
+                    surf.blit(tower_window_spell, (tower.rect.x - offset_pos[0], tower.rect.y - offset_pos[1]))
+            if self.hovered_entity == tower:
+                surf.blit(tower_window_active, (tower.rect.x - offset_pos[0], tower.rect.y - offset_pos[1]))
 
     def go_animation(self):
         for tower in self.entities:
@@ -314,7 +357,12 @@ class GlobalMap(BasePreviewGroup):
         for level_ in self.entities:
             # draw.rect(screen, (0, 255, 0), level_.rect, 5)
             if level_.parent in passed_levels:
-                surf.blit(level_.image, level_.rect)
+                if level_ == self.hovered_entity:
+                    level_.repaint_to_hovered()
+                    surf.blit(level_.image, level_.rect)
+                else:
+                    level_.repaint_to_default()
+                    surf.blit(level_.image, level_.rect)
                 if not level_.chest:
                     if len(str(level_.number)) < 2:
                         surf.blit(font60.render(f"{str(level_.number)}", True, (0, 0, 0)), (level_.rect.x + 30, level_.rect.y + 6))
@@ -327,6 +375,13 @@ class GlobalMap(BasePreviewGroup):
                     if level_.chest:
                         surf.blit(level_.chest.image, level_.rect)
 
+    @staticmethod
+    def hiding_map_secrets():
+        if "3" not in passed_levels:
+            screen.blit(map_secret_3, (564 + scroller.scroll_offset, 541))
+        if "6" not in passed_levels:
+            screen.blit(map_secret_6, (274 + scroller.scroll_offset, 75))
+
     def use_clicked_object(self):
         global scroll_offset, continue_level, last_game_state, game_state, level, passed_levels
         if self.pushed_entity:
@@ -334,7 +389,7 @@ class GlobalMap(BasePreviewGroup):
                 if self.pushed_entity.level:
                     # level = levels[self.pushed_entity.number]
                     level = self.pushed_entity.level
-                    scroll_offset = 0
+                    scroller.scroll_offset = 0
                     continue_level = True
                     level.refresh()
                     last_game_state = game_state
@@ -353,15 +408,20 @@ class TowerUpgradesGroup(BasePreviewGroup):
     def custom_draw(self, surf, offset_pos=(0, 0)):
         for upgrade in filter(self.filter_by_turn, self.entities):
             upgrade.rect = upgrade.image.get_rect(topleft=(upgrade.pos[0] + offset_pos[0], upgrade.pos[1] + offset_pos[1]))
+            surf.blit(upgrade.image, (upgrade.rect.x - offset_pos[0], upgrade.rect.y - offset_pos[1]))
+
+            if self.pushed_entity == upgrade:
+                surf.blit(upgrade_tower_select, (upgrade.rect.x - offset_pos[0], upgrade.rect.y - offset_pos[1]))
+            if self.hovered_entity == upgrade:
+                upgrade.repaint_to_hovered()
+            else:
+                upgrade.repaint_to_default()
 
             if preview_group.turn == Tower:
                 if upgrade.number in upgrades[preview_group.pushed_entity.name]:
                     upgrade.set_active(True)
                 else:
                     upgrade.set_active(False)
-            surf.blit(upgrade.image, (upgrade.rect.x - offset_pos[0], upgrade.rect.y - offset_pos[1]))
-            if self.pushed_entity == upgrade:
-                surf.blit(upgrade_tower_select, (upgrade.rect.x - offset_pos[0], upgrade.rect.y - offset_pos[1]))
 
     @staticmethod
     def possible_upgrade_path():
@@ -374,6 +434,113 @@ class TowerUpgradesGroup(BasePreviewGroup):
         if last_update in upgrades[preview_group.pushed_entity.name] or last_update[0] == "1":
             return True
         return False
+
+
+class SlotsGroup(BasePreviewGroup):
+    def __init__(self):
+        super().__init__(Slot)
+
+    def clear_units(self):
+        select_towers_preview_group.remember_entities_empty()
+        for slot_ in self:
+            if slot_.unit_inside:
+                slot_.remove_unit()
+
+    def random_add_to_slots(self):
+        def count_empty_slots():
+            nonlocal legendary_slots, common_slots, spell_slots
+            for s in self.entities:
+                if not s.unit_inside and not s.blocked:
+                    if s.allowed_rarity == ("common",):
+                        common_slots += 1
+                    if s.allowed_rarity == ("legendary",):
+                        legendary_slots += 1
+                    if s.allowed_rarity == ("spell",):
+                        spell_slots += 1
+            return common_slots + legendary_slots + spell_slots
+
+        legendary_slots = 0
+        common_slots = 0
+        spell_slots = 0
+        legendary_towers = []
+        common_towers = []
+        spell_towers = []
+
+        if count_empty_slots() == 0:
+            self.clear_units()
+            count_empty_slots()
+
+        for tower in select_towers_preview_group.entities:
+            if tower not in select_towers_preview_group.remember_entities and tower.name in received_towers:
+                if tower.rarity == "common":
+                    common_towers.append(tower)
+                if tower.rarity == "legendary":
+                    legendary_towers.append(tower)
+                if tower.rarity == "spell":
+                    spell_towers.append(tower)
+
+        for i in range(legendary_slots):
+            new_tower = choice(legendary_towers)
+            legendary_towers.remove(new_tower)
+            self.add_to_slots(new_tower)
+        for i in range(common_slots):
+            new_tower = choice(common_towers)
+            common_towers.remove(new_tower)
+            self.add_to_slots(new_tower)
+        for i in range(spell_slots):
+            new_tower = choice(spell_towers)
+            spell_towers.remove(new_tower)
+            self.add_to_slots(new_tower)
+
+    def add_to_slots(self, tower):
+        if len(select_towers_preview_group.remember_entities) <= 6 - len(level.blocked_slots) or tower.in_slot:
+            if not tower.in_slot:
+                for slot_ in sorted(self.entities, key=lambda s: s.pos[1]):
+                    if not slot_.unit_inside:
+                        if tower.rarity in slot_.allowed_rarity and not slot_.blocked:
+                            slot_.add_unit(tower)
+                            tower.in_slot = True
+                            select_towers_preview_group.remember_entities.append(tower)
+                            return True
+            elif tower.in_slot:
+                for slot_ in self.entities:
+                    if slot_.unit_inside:
+                        if slot_.unit_inside.name == tower.name:
+                            slot_.remove_unit()
+                            tower.in_slot = False
+                            select_towers_preview_group.remember_entities.remove(tower)
+                            return True
+            return False
+        else:
+            Alert("Закончились свободные слоты", (345, 760), 75)
+
+    def custom_draw(self, surf):
+        for slot_ in self.entities:
+            surf.blit(slot_.image, slot_.rect)
+            if slot_.unit_inside:
+                surf.blit(slot_.unit_inside.image, slot_.unit_inside.rect)      # cost... cd...
+
+                img = font30.render(str(slot_.unit_cost), True, (255, 255, 255))
+                if slot_.unit_cost > 9:
+                    surf.blit(img, img.get_rect(topleft=(slot_.pos[0] + 14, slot_.pos[1] + 4)))
+                else:
+                    surf.blit(img, img.get_rect(topleft=(slot_.pos[0] + 21, slot_.pos[1] + 4)))
+
+                additional_pixels = 0
+                if 0 <= slot_.kd_time < 10:     # формулу сделать нельзя
+                    additional_pixels = 21
+                elif 10 <= slot_.kd_time < 100:
+                    additional_pixels = 14
+                elif 100 <= slot_.kd_time < 1000:
+                    additional_pixels = 5
+                elif 1000 <= slot_.kd_time < 10000:
+                    additional_pixels = -5
+                if additional_pixels != 0:
+                    surf.blit(font30.render(str(slot_.kd_time), True, (255, 255, 255)), (slot_.pos[0] + additional_pixels, slot_.pos[1] + 50))
+
+    def update(self):
+        for slot_ in self.entities:
+            slot_.update()
 
 
 class TextSprite(sprite.Sprite):
@@ -391,9 +558,9 @@ class TextSprite(sprite.Sprite):
 class Level:
     def __init__(self, level_number, level_time, time_to_spawn, start_money, waves: dict, allowed_enemies: tuple, allowed_cords=(192, 320, 448, 576, 704), blocked_slots=(), level_image="default"):
         if level_image == "default":
-            self.image = image.load(f"images/maps/map{level_number}.png").convert_alpha()
+            self.image = image.load(f"images/maps/levels/map{level_number}.png").convert_alpha()
         else:
-            self.image = image.load(f"images/maps/map{level_image}.png").convert_alpha()
+            self.image = image.load(f"images/maps/levels/map{level_image}.png").convert_alpha()
         self.current_level = level_number
         self.money = self.start_money = start_money
         self.state = "not_run"
@@ -415,12 +582,15 @@ class Level:
         draw.rect(screen, (233, 126, 72), (self.x, self.y, self.w, self.h))
         draw.rect(screen, (55, 127, 236), (self.x, self.y, self.w * ratio, self.h))
         draw.rect(screen, (0, 0, 0), (self.x, self.y, self.w, self.h), 4)
-        for wave_time in self.waves:
+        for wave in self.waves:
+            wave_description = wave[:1]
+            wave_time = int(wave[1:])
             mark_ratio = wave_time / self.start_level_time
-            screen.blit(amogus, (self.x + int(mark_ratio * self.w), self.y - 30))
+            if wave_description == "v":
+                screen.blit(amogus, (self.x + int(mark_ratio * self.w), self.y - 30))
 
-    def wave_spawn_enemies(self, wave_time):
-        waves_points = self.waves[wave_time]
+    def wave_spawn_enemies(self, wave_time, wave_description):
+        waves_points = self.waves[wave_description + str(wave_time)]
         enemy_x_cord = 1600
         while waves_points > 0:
             enemy_name = choice(self.allowed_enemies)
@@ -440,22 +610,30 @@ class Level:
             for button in buttons_group:
                 button.ok = False
         select_towers_preview_group.remember_entities_empty()
-        if ui_group not in dont_clear_groups:
-            for ui in ui_group:
-                ui.kill()
+        # if ui_group not in dont_clear_groups:
+        #     for ui in ui_group:
+        #         ui.kill()
+
+        if slots_group not in dont_clear_groups:
+            for s in slots_group:
+                if s.unit_inside:
+                    s.remove_unit()
 
         for sprite_ in all_sprites_group:
             if dont_clear_groups:
                 for group in dont_clear_groups:
-                    if sprite_ not in group and sprite_ not in text_sprites_group:
+                    if sprite_ not in group and sprite_ not in text_sprites_group and sprite_.name != "shovel":
                         sprite_.kill()
             else:
                 if sprite_ not in text_sprites_group:
-                    sprite_.kill()
+                    if hasattr(sprite_, "name") and sprite_.name != "shovel":
+                        sprite_.kill()
+                    else:
+                        sprite_.kill()
 
     @staticmethod
     def spawn():
-        UI((1500, 800), "shovel", "lopata", False)
+        # UI((1500, 800), "shovel", "lopata", False)
 
         Cloud((1000, 100))
         Cloud((600, 60))
@@ -473,6 +651,12 @@ class Level:
         self.time_to_spawn = self.start_time_to_spawn
         self.state = "not_run"
         self.clear()
+
+        for slot_ in slots_group:
+            if slot_.pos[1] in self.blocked_slots:
+                slot_.blocked = True
+            else:
+                slot_.blocked = False
 
     def give_reward(self):
         global passed_levels
@@ -519,12 +703,16 @@ class Level:
         if self.current_level not in passed_levels:
             passed_levels.append(self.current_level)
         save_data()
- 
+
     def update(self):
         all_sprites_group.update()
-        for wave_time in self.waves:
+        for wave in self.waves:
+            wave_time = int(wave[1:])
+            wave_description = wave[:1]
             if self.level_time == wave_time:
-                self.wave_spawn_enemies(wave_time)
+                self.wave_spawn_enemies(wave_time, wave_description)
+                if wave_description == "a":
+                    Alert("БомБом", (750, 450), 225)
         if self.state == "not_run":
             self.state = self.spawn()
         if not self.cheat:
@@ -550,23 +738,23 @@ class Chest:
     def __init__(self, parent_number: str, rewards: dict):
         self.rewards = rewards      # башни/коины
         if parent_number not in passed_levels:
-            self.image = image.load("images/maps/chest.png")
+            self.image = image.load("images/maps/global_map/chest.png")
             self.open = False
         else:
             self.open = True
-            self.image = image.load("images/maps/chest_open.png")
+            self.image = image.load("images/maps/global_map/chest_open.png")
 
     def opening(self):
         global game_state
         self.open = True
-        self.image = image.load("images/maps/chest_open.png")
+        self.image = image.load("images/maps/global_map/chest_open.png")
         if global_map.pushed_entity.number not in passed_levels:
             passed_levels.append(global_map.pushed_entity.number)
         game_state = "reward_first_stage"
 
     def refresh(self):
         self.open = False
-        self.image = image.load("images/maps/chest.png")
+        self.image = image.load("images/maps/global_map/chest.png")
 
 
 class Tower(sprite.Sprite):
@@ -599,6 +787,7 @@ class Tower(sprite.Sprite):
         self.pushed = False
         self.in_slot = False
 
+
         # СТАТЫ начало
 
         if self.name == 'fire_mag':
@@ -620,7 +809,7 @@ class Tower(sprite.Sprite):
                 self.atk_dot = 1  # dot = damage_over_time    # типа он поджогом дамажит 5 сек по 1 урону и в итоге у него от каждой тычки дамаг в 1,5 раза увеличивается но растянуто
                 # новый функционал
 
-        if self.name == 'boomchick':  
+        if self.name == 'boomchick':
             self.hp = 200
             self.atk = 10  # типа по кому попадёт получит 20 а остальные по 10
             self.bullet_speed_x = 4
@@ -659,7 +848,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'gribnik':
-            self.hp = 300  # ну а почему бы и нет
+            self.hp = self.max_hp = 300  # ну а почему бы и нет
             self.atk = 15
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
@@ -670,7 +859,7 @@ class Tower(sprite.Sprite):
 
         for i in range(3):
             if self.name == 'grib' + str(i + 1):
-                self.hp = 300 * (i + 1)
+                self.hp = self.max_hp = 300 * (i + 1)
                 self.rarity = "common"
 
         if self.name == 'zeus':
@@ -797,7 +986,7 @@ class Tower(sprite.Sprite):
             self.damage_type = ''
             self.rarity = "common"
 
-        if self.name == 'spike':  
+        if self.name == 'spike':
             self.hp = self.max_hp = 1
             self.atk = 20
             self.attack_cooldown = self.basic_attack_cooldown = 75
@@ -1092,7 +1281,7 @@ class Tower(sprite.Sprite):
 
         if self.name == "bomb":
             Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self)
-        
+
         if self.name == "perec":
             Bullet("perec_bullet", 960, self.rect.bottom-8, self.damage_type, self.atk, 0, 0, 'explosion', self)
 
@@ -1165,7 +1354,6 @@ class Tower(sprite.Sprite):
                         self.time_indicator *= 2
                         self.basic_attack_cooldown //= 2
                     self.self_buff_level = 2
-        
         if self.name == 'terpila' and (self.upgrade_level == '2b' or self.upgrade_level == '3b' or self.upgrade_level == '3a'):
             if self.received_damage >= self.max_received_damage:
                 self.received_damage -= self.max_received_damage
@@ -1198,7 +1386,7 @@ class Tower(sprite.Sprite):
             for enemy in enemies_group:
                 if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
                     return enemy
-                
+
         if self.name == 'kopitel':
             for enemy in enemies_group:
                 if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive and self.nakopleno > 0:
@@ -1208,7 +1396,7 @@ class Tower(sprite.Sprite):
             for enemy in enemies_group:
                 if self not in enemy.parasite_parents and enemy.alive:
                     return enemy
-                
+
         if self.name == 'inquisitor':
             self.best_target = None
             for enemy in enemies_group:
@@ -1218,7 +1406,7 @@ class Tower(sprite.Sprite):
                         if len(enemy.parasites) < len(self.best_target.parasites) and self not in enemy.parasite_parents and enemy.alive:
                             self.best_target = enemy
                     self.best_target.parasites.add(self)
-                    return(self.best_target)
+                    return self.best_target
 
         if self.name == "thunder":
             for enemy in enemies_group:
@@ -1280,7 +1468,7 @@ class Tower(sprite.Sprite):
             for enemy in enemies_group:
                 if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 192 and enemy.alive:
                     return enemy
-                
+
         if self.name == 'priest':
             self.best_target = None
             for tower in towers_group:
@@ -1376,8 +1564,6 @@ class Tower(sprite.Sprite):
             self.parasix = randint(-9, 9)
             self.parasiy = randint(-64, -46)
             Parasite('metka_inq', targets[id(self)].rect.centerx+self.parasix, targets[id(self)].rect.centery+self.parasiy, '', self.atk, targets[id(self)], self)
-            targets[id(self)].parasite_parents.add(self)
-            targets[id(self)] = None
 
         if self.name == "nekr":
             if self.upgrade_level == "2a":
@@ -1469,7 +1655,7 @@ class Tower(sprite.Sprite):
             Bullet("red_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
 
         if self.name == "pukish":
-            Bullet("gas", self.rect.centerx+38, self.rect.centery+8, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'gas', self)
+            Bullet("gas", self.rect.centerx + 38, self.rect.centery + 8, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'gas', self)
 
         if self.name == 'spike':    # fix?
             for enemy in enemies_group:
@@ -1533,7 +1719,7 @@ class Tower(sprite.Sprite):
                     self.ammo = self.basic_ammo
                     self.attack_cooldown = self.basic_attack_cooldown
                     self.bursting = False
-        
+
         if self.name == 'struyniy':
             if self.ammo > 0:
                 Bullet("struya", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "struya", self)
@@ -1692,8 +1878,6 @@ class Tower(sprite.Sprite):
                 self.self_healing_cooldown -= 1
             else:
                 self.self_healing_cooldown = self.basic_healing_cooldown
-                if self.hp <= (self.max_hp - self.heal):
-                    self.hp += self.heal
 
         if self.name == 'nekr':
             for creep in self.creeps:
@@ -2027,7 +2211,7 @@ class Enemy(sprite.Sprite):
     def check_hp(self):
         if self.hp <= 0:
             self.dead()
-        
+
         if self.name == 'teleportik' and self.damaged:
             if self.tp_cooldown <= 0:
                 self.tp_cooldown = self.basic_tp_cooldown
@@ -2128,7 +2312,7 @@ class Creep(sprite.Sprite):
             if -64 < enemy.rect.centery - self.rect.centery < 64 and -64 < enemy.rect.centerx - self.rect.centerx < self.attack_range + 64 and self.rect.centerx > 384:
                 return True, enemy
         return False, None
-    
+
     def preparing_to_attack(self):
         if self.attack_cooldown > 0:
             self.attack_cooldown -= 1
@@ -2301,7 +2485,6 @@ class Bullet(sprite.Sprite):
                     self.speed_x *= 1.5
                     self.damage *= 1.5
                     self.penned = True
-
         if self.name == "zeleniy_strelok_bullet" or self.name == 'anti_hrom':
             for tower in towers_group:
                 if tower.name != "pukish":
@@ -2333,7 +2516,6 @@ class Bullet(sprite.Sprite):
                     for parasite in self.parent.parasites:
                         if parasite.name == 'metka_inq':
                             parasite.cashback_list.append(225)
-
 
         if self.name == "yas":
             if self.sumon != "baza":
@@ -2370,7 +2552,7 @@ class Bullet(sprite.Sprite):
                     self.parent.attack_cooldown = (self.parent.basic_attack_cooldown // self.basic_stomach_capacity) * (self.basic_stomach_capacity - self.stomach_capacity)
                     self.stomach_capacity = self.basic_stomach_capacity
 
-        if self.name == 'gas': 
+        if self.name == 'gas':
             for enemy in enemies_group:
                 if sprite.collide_rect(enemy, self) and enemy.hp > 0:
                     if enemy not in self.gazirovannie_group:
@@ -2459,7 +2641,7 @@ class Bullet(sprite.Sprite):
                         self.parent.parasiy = randint(-48, 48)
                         Parasite('ogonek_parasite', enemy.rect.centerx+self.parent.parasix, enemy.rect.centery+self.parent.parasiy, '', self.parent.atk_dot, enemy, self.parent)
                     self.kill()
-                    
+
                 break
 
     def check_parent(self):
@@ -2519,7 +2701,7 @@ class Parasite(sprite.Sprite):
         if self.name == 'barrier':
             self.hp = self.parent.barrier_hp
             # self.life_time = self.parent.basic_spawn_something_cooldown
-        
+
         if self.name == 'metka_inq':
             self.damage = self.owner.atk // 5
             self.owner.parasites.add(self)
@@ -2551,18 +2733,18 @@ class Parasite(sprite.Sprite):
             if self.owner != self.parent:
                 self.dealing_damage(self.owner)
             self.lifetime = 75
-        
+
         if self.name == 'terpila_debuff':
             self.lifetime = 750
             self.owner.speed /= 2
             self.owner.basic_attack_cooldown *= 2
-    
+
     def dead(self):
         self.kill()
         if self.name == 'uragan':
             for enemy in enemies_group:
                 enemy.back_to_line()
-        if self.name == 'sosun' or self.name == 'metka_inq':        
+        if self.name == 'sosun' or self.name == 'metka_inq':
             self.parent.have_parasite.remove(self.owner)
             if self.parent in self.owner.parasite_parents:
                 self.owner.parasite_parents.remove(self.parent)
@@ -2722,7 +2904,7 @@ class Parasite(sprite.Sprite):
 
     def update(self):
         self.prisasivanie()
-        
+
         if self.name == 'sosun' or self.name == 'uragan' or self.name == 'ogonek_parasite' or self.name == 'raven':
             if self.attack_cooldown > 0:
                 self.attack_cooldown -= 1
@@ -2777,7 +2959,7 @@ class Buff(sprite.Sprite):
 
         if self.rect.x <= 384 or self.rect.x >= 1536 or self.rect.y < 192 or self.rect.y >= 832:  # по хорошему надо не >= 832, а > 704, но похуй
             self.kill()
-        
+
         if self.name == 'vodkamat':
             self.lifetime = 750
         elif self.name == 'fire_luja':
@@ -2789,7 +2971,7 @@ class Buff(sprite.Sprite):
             self.debuffed_enemies = sprite.Group()
 
         self.buff_collision()  # в апдейт не надо сувать
-    
+
     def buff_collision(self):
         if self.name == 'mat' or self.name == 'vodkamat':
             for buff in buffs_group:
@@ -2806,7 +2988,7 @@ class Buff(sprite.Sprite):
                     for enemy in buff.debuffed_enemies:
                         enemy.speed *= 2
                     buff.kill()
-        
+
         elif self.name == 'fire_luja':
             for buff in buffs_group:
                 if self.rect.collidepoint(buff.rect.centerx, buff.rect.centery) and self != buff and self.name == buff.name:
@@ -2835,6 +3017,7 @@ class Buff(sprite.Sprite):
                             or tower.name == "gnome_cannon3"\
                             or tower.name == "electric"\
                             or tower.name == "gribnik"\
+                            or tower.name == "nekr"\
                             or tower.name == "struyniy"\
                             or tower.name == "inquisitor"\
                             or tower.name == "priest"\
@@ -2889,7 +3072,7 @@ class Buff(sprite.Sprite):
                 if tower.name == 'matricayshon':
                     if self.rect2.collidepoint(tower.rect.centerx, tower.rect.centery):
                         self.mozhet_zhit = True
-                
+
         if self.name == 'vodkamat' or self.name == 'fire_luja':
             if self.lifetime > 0:
                 self.lifetime -= 1
@@ -2937,6 +3120,7 @@ class Buff(sprite.Sprite):
                         or tower.name == "gnome_cannon3"\
                         or tower.name == "electric"\
                         or tower.name == "gribnik"\
+                        or tower.name == "nekr"\
                         or tower.name == "struyniy"\
                         or tower.name == "inquisitor"\
                         or tower.name == "priest"\
@@ -3007,68 +3191,193 @@ class Buff(sprite.Sprite):
         return f"Я {self.name}"
 
 
-class UI(sprite.Sprite):
-    def __init__(self, pos, path, unit_inside, free_placement, kd_time=0):
-        super().__init__(ui_group, all_sprites_group)
-        self.image = image.load(f"images/{path}/images_inside/{unit_inside}_inside.png").convert_alpha()
+# class UI(sprite.Sprite):
+#     def __init__(self, pos, path, unit_inside, free_placement, kd_time=0):
+#         super().__init__(ui_group, all_sprites_group)
+#         self.image = image.load(f"images/{path}/images_inside/{unit_inside}_inside.png").convert_alpha()
+#         self.pos = pos
+#         self.default_pos = pos
+#         self.rect = self.image.get_rect(topleft=self.pos)
+#         self.image3 = image.load("images/other/nothing.png").convert_alpha()
+#         self.rect3 = self.image3.get_rect(topleft=self.default_pos)
+#         self.path = path
+#         self.unit_inside = unit_inside
+#         self.free_placement = free_placement
+#         self.is_move = False
+#         self.kd_time = 0
+#         self.default_kd_time = kd_time
+#         self.render_layer = 3
+#
+#         if self.path == "towers":
+#             self.cost = tower_costs[unit_inside]
+#             self.image2 = font30.render(str(self.cost), True, (255, 255, 255))
+#             self.rect2 = self.image2.get_rect(topleft=(self.default_pos[0] - 49, self.default_pos[1] + 4))
+#
+#     def move(self):
+#         self.pos = mouse.get_pos()
+#         self.rect = self.image.get_rect(center=self.pos)
+#         self.render_layer = 9
+#
+#     def back_to_default(self):
+#         self.image = image.load(f"images/{self.path}/images_inside/{self.unit_inside}_inside.png").convert_alpha()
+#         self.rect = self.image.get_rect(topleft=self.default_pos)
+#         self.pos = self.default_pos
+#         self.render_layer = 3
+#
+#     def draw2(self, surf):
+#         surf.blit(self.image2, self.rect2)
+#
+#     def draw3(self, surf):
+#         surf.blit(self.image3, self.rect3)
+#
+#     def update(self):
+#         if level.cheat:
+#             self.kd_time = -1
+#
+#         if self.is_move and self.kd_time == -1:                                     # если нажал кнопку и кд откатилось
+#             self.image = image.load(f"images/{self.path}/{self.unit_inside}/wait/{self.unit_inside}1.png").convert_alpha()
+#             self.move()
+#         if self.is_move and self.kd_time != -1:                                     # если нажал кнопку и кд не откатилось
+#             self.is_move = False
+#         if self.is_move is not True and self.pos != self.default_pos:               # если отжал кнопку и не на дефолтной позиции.
+#             self.back_to_default()
+#
+#         if self.kd_time == self.default_kd_time:                                    # когда  обновилось кд, загрузить картинку закрытого слота
+#             self.image3 = image.load("images/other/kd_slota.png").convert_alpha()
+#         if self.kd_time == 0:                                                       # когда кд дошло до нуля, загрузить картину юнита
+#             self.image3 = image.load(f"images/other/nothing.png").convert_alpha()
+#             self.kd_time = -1                                                       # чтобы картинка загрузилась только 1 раз, а потом проверка не пройдёт
+#
+#         if self.kd_time > 0:                                                        # уменьшает кд с каждым циклом
+#             self.kd_time -= 1
+#
+#         screen.blit(font30.render(str(self.kd_time), True, (255, 255, 255)), (self.default_pos[0] - 49, self.default_pos[1] + 50))  # потом будет графически так что пох что пропадает
+
+
+class Slot:
+    def __init__(self, pos, allowed_rarity=("common",)):
         self.pos = pos
-        self.default_pos = pos
+        self.blocked = False
+        self.free_placement = False
+        self.allowed_rarity = allowed_rarity
+        self.image = image.load("images/other/slot.png").convert_alpha()
+        self.repaint()
+
         self.rect = self.image.get_rect(topleft=self.pos)
-        self.image3 = image.load("images/other/nothing.png").convert_alpha()
-        self.rect3 = self.image3.get_rect(topleft=self.default_pos)
-        self.path = path
-        self.unit_inside = unit_inside
-        self.free_placement = free_placement
-        self.is_move = False
-        self.kd_time = 0
-        self.default_kd_time = kd_time
-        self.loaded_p = False
         self.render_layer = 3
+        self.is_move = False
 
-        if self.path == "towers":
-            self.cost = tower_costs[unit_inside]
-            self.image2 = font30.render(str(self.cost), True, (255, 255, 255))
-            self.rect2 = self.image2.get_rect(topleft=(self.default_pos[0] - 49, self.default_pos[1] + 4))
+        self.unit_inside = None
+        self.unit_image = image.load("images/other/nothing.png").convert_alpha()    # пока так
+        self.unit_rect = self.unit_image.get_rect()
+        self.unit_default_rect = self.unit_rect
+        self.unit_cost = 0
+        self.kd_time = 0
+        self.default_kd_time = 0
+        slots_group.add(self)
 
-    def move(self):
-        self.pos = mouse.get_pos()
-        self.rect = self.image.get_rect(center=self.pos)
+    def repaint(self):
+        if self.allowed_rarity == ("legendary",):
+            for i in range(190):
+                for j in range(94):
+                    pixel = self.image.get_at((i, j))
+                    if pixel[:-1] == (61, 243, 79):
+                        self.image.set_at((i, j), (243, 243, 61))
+                    if pixel[:-1] == (64, 211, 78):
+                        self.image.set_at((i, j), (215, 215, 63))
+                    if pixel[:-1] == (67, 183, 78):
+                        self.image.set_at((i, j), (196, 196, 75))
+        if self.allowed_rarity == ("spell",):
+            for i in range(190):
+                for j in range(94):
+                    pixel = self.image.get_at((i, j))
+                    if pixel[:-1] == (61, 243, 79):
+                        self.image.set_at((i, j), (70, 109, 249))
+                    if pixel[:-1] == (64, 211, 78):
+                        self.image.set_at((i, j), (67, 100, 215))
+                    if pixel[:-1] == (67, 183, 78):
+                        self.image.set_at((i, j), (71, 95, 180))
+
+    def add_unit(self, unit):
+        self.unit_inside = Tower(unit.name, (self.unit_rect.x - 100, self.unit_rect.y))   # x - 100 == нет всяких блакиков и ворон
+        self.unit_inside.image = image.load(f"images/towers/images_inside/{unit.name}_inside.png").convert_alpha()
+        self.unit_inside.rect = self.unit_inside.image.get_rect(topleft=(self.pos[0] + 62, self.pos[1]))
+        self.unit_default_rect = self.unit_inside.rect
+        self.unit_cost = tower_costs[unit.name]   # можно прям в тавер записать
+        self.kd_time = 0                            # можно прям в тавер записать
+        self.default_kd_time = towers_kd[unit.name]
+        self.free_placement = unit.free_placement
+
+    def remove_unit(self):
+        self.unit_inside.kill()
+
+        # self.unit_image = image.load("images/other/nothing.png").convert_alpha()
+        self.unit_inside.rect = self.unit_inside.image.get_rect()
+        self.unit_default_rect = self.unit_inside.rect
+        self.unit_cost = 0
+        self.kd_time = 0
+        self.default_kd_time = 0
+        self.unit_inside = None
+
+    def move_unit(self):
+        self.unit_inside.rect = self.unit_inside.image.get_rect(center=mouse.get_pos())
         self.render_layer = 9
+        self.unit_inside.image = towers_wait[self.unit_inside.name][0]
 
     def back_to_default(self):
-        self.image = image.load(f"images/{self.path}/images_inside/{self.unit_inside}_inside.png").convert_alpha()
-        self.rect = self.image.get_rect(topleft=self.default_pos)
-        self.pos = self.default_pos
+        self.unit_inside.image = image.load(f"images/towers/images_inside/{self.unit_inside.name}_inside.png").convert_alpha()
+        self.unit_inside.rect = self.unit_default_rect
         self.render_layer = 3
 
-    def draw2(self, surf):
-        surf.blit(self.image2, self.rect2)
-
-    def draw3(self, surf):
-        surf.blit(self.image3, self.rect3)
+    def magic_cooldown(self):
+        pass
 
     def update(self):
-        if level.cheat:
-            self.kd_time = -1
+        if self.unit_inside:
+            self.magic_cooldown()
+            if self.kd_time > 0:                                                        # уменьшает кд с каждым циклом
+                self.kd_time -= 1
 
-        if self.is_move and self.kd_time == -1:                                     # если нажал кнопку и кд откатилось
-            self.image = image.load(f"images/{self.path}/{self.unit_inside}/wait/{self.unit_inside}1.png").convert_alpha()
+            if self.is_move and self.kd_time == -1:                                     # если нажал кнопку и кд откатилось
+                self.unit_inside.image = image.load(f"images/towers/{self.unit_inside.name}/wait/{self.unit_inside.name}1.png").convert_alpha()
+                self.move_unit()
+            if self.is_move and self.kd_time != -1:                                     # если нажал кнопку и кд не откатилось
+                self.is_move = False
+            if self.is_move is not True and self.unit_inside.rect != self.unit_default_rect:               # если отжал кнопку и не на дефолтной позиции.
+                self.back_to_default()
+
+            # if self.kd_time == self.default_kd_time:                                    # когда  обновилось кд, загрузить картинку закрытого слота
+                # self.image3 = image.load("images/other/kd_slota.png").convert_alpha()
+            if self.kd_time == 0:                                                       # когда кд дошло до нуля, загрузить картину юнита
+                # self.image3 = image.load(f"images/other/nothing.png").convert_alpha()
+                self.kd_time = -1
+
+    def __repr__(self):
+        return f"I am at {self.pos[1]}. I has {self.unit_inside} inside"
+
+
+class Shovel(sprite.Sprite):
+    def __init__(self, pos):
+        super().__init__(all_sprites_group)
+        self.pos = pos
+        self.image = image.load("images/shovel/lopata.png").convert_alpha()
+        self.rect = self.image.get_rect(topleft=self.pos)
+        self.default_rect = self.rect
+        self.is_move = False
+        self.name = "shovel"
+        self.render_layer = 3
+
+    def move(self):
+        self.rect = self.image.get_rect(center=mouse.get_pos())
+
+    def back_to_default(self):
+        self.rect = self.default_rect
+
+    def update(self):
+        if self.is_move:
             self.move()
-        if self.is_move and self.kd_time != -1:                                     # если нажал кнопку и кд не откатилось
-            self.is_move = False
-        if self.is_move is not True and self.pos != self.default_pos:               # если отжал кнопку и не на дефолтной позиции.
+        if not self.is_move and self.rect != self.default_rect:
             self.back_to_default()
-
-        if self.kd_time == self.default_kd_time:                                    # когда  обновилось кд, загрузить картинку закрытого слота
-            self.image3 = image.load("images/other/kd_slota.png").convert_alpha()
-        if self.kd_time == 0:                                                       # когда кд дошло до нуля, загрузить картину юнита
-            self.image3 = image.load(f"images/other/nothing.png").convert_alpha()
-            self.kd_time = -1                                                       # чтобы картинка загрузилась только 1 раз, а потом проверка не пройдёт
-
-        if self.kd_time > 0:                                                        # уменьшает кд с каждым циклом
-            self.kd_time -= 1
-
-        screen.blit(font30.render(str(self.kd_time), True, (255, 255, 255)), (self.default_pos[0] - 49, self.default_pos[1] + 50))  # потом будет графически так что пох что пропадает
 
 
 class Button:               # Переделать на спрайты кнопок
@@ -3087,13 +3396,20 @@ class Button:               # Переделать на спрайты кноп�
         self.ok = False
         self.closed = closed
         self.windowed = windowed
+        self.pos = (0, 0)
+        self.color_manage = False
+        self.new_color = (0, 0, 0)
         buttons_group.append(self)
 
     def click(self, surf, pos, col=(255, 255, 255), offset_pos=(0, 0)):  # offset_pos нужно только где есть скрол
         if self.data_type == "text":
-            self.image = self.font.render(self.text, font, col)   # По дефолту цвет текста белый. Я ебал по 50 раз писать одно и тоже
+            if not self.color_manage:
+                self.image = self.font.render(self.text, font, col)   # По дефолту цвет текста белый. Я ебал по 50 раз писать одно и тоже
+            else:
+                self.image = self.font.render(self.text, font, self.new_color)
         self.rect = self.image.get_rect(topleft=(pos[0] + offset_pos[0], pos[1] + offset_pos[1]))
 
+        self.pos = pos
         surf.blit(self.image, (self.rect.x - offset_pos[0], self.rect.y - offset_pos[1]))
         if self.ok is True:
             surf.blit(image.load("images/buttons_states/ok.png").convert_alpha(), (self.rect.x - offset_pos[0], self.rect.y - offset_pos[1]))
@@ -3107,9 +3423,10 @@ class Button:               # Переделать на спрайты кноп�
             self.pushed = False
             return True
 
-    def on_hover(self, pos, offset_pos=(0, 0)):
-        if self.image.get_rect(topleft=(pos[0] + offset_pos[0], pos[1] + offset_pos[1])).collidepoint(mouse_pos):
-            return True
+    def on_hover(self, offset_pos=(0, 0)):
+        if hasattr(self, "image"):
+            if self.image.get_rect(topleft=(self.pos[0] + offset_pos[0], self.pos[1] + offset_pos[1])).collidepoint(mouse_pos):
+                return True
         return False
 
 
@@ -3176,7 +3493,31 @@ class GlobalMapLevelButton(Button2):
         self.image = global_level
         self.rect = self.image.get_rect(topleft=self.pos)
         self.parent = parent
+        self.repainted = False
         global_map.add(self)
+
+    def repaint_to_hovered(self):
+        if not self.repainted:
+            new_img = self.image.__copy__()
+            for i in range(new_img.get_width()):
+                for j in range(new_img.get_height()):
+                    pixel = new_img.get_at((i, j))
+                    if pixel == (125, 187, 68, 255):
+                        new_img.set_at((i, j), (134, 230, 45))
+
+            self.image = new_img
+            self.repainted = True
+
+    def repaint_to_default(self):
+        if self.repainted:
+            new_img = self.image.__copy__()
+            for i in range(new_img.get_width()):
+                for j in range(new_img.get_height()):
+                    pixel = new_img.get_at((i, j))
+                    if pixel == (134, 230, 45, 255):
+                        new_img.set_at((i, j), (125, 187, 68))
+            self.image = new_img
+            self.repainted = False
 
 
 class UpgradeTowerButton(Button2):
@@ -3186,14 +3527,78 @@ class UpgradeTowerButton(Button2):
         self.pos = pos
         self.image = upgrade_tower_red
         self.rect = self.image.get_rect(topleft=self.pos)
+        self.repainted = False
         tower_upgrades_group.add(self)
 
     def set_active(self, state):
-        self.activate = state
-        if self.activate:
-            self.image = upgrade_tower_green
-        if not self.activate:
-            self.image = upgrade_tower_red
+
+        if self.activate != state:
+            if state:
+                self.image = upgrade_tower_green
+            if not state:
+                self.image = upgrade_tower_red
+            self.activate = state
+
+    def repaint_to_hovered(self):
+        if not self.repainted:
+            new_img = self.image.__copy__()
+            for i in range(new_img.get_width()):
+                for j in range(new_img.get_height()):
+                    pixel = new_img.get_at((i, j))
+                    if pixel == (200, 0, 0, 255):
+                        new_img.set_at((i, j), (255, 0, 0))
+                    if pixel == (0, 200, 0, 255):
+                        new_img.set_at((i, j), (0, 255, 0))
+
+            self.image = new_img
+            self.repainted = True
+
+    def repaint_to_default(self):
+        if self.repainted:
+            new_img = self.image.__copy__()
+            for i in range(new_img.get_width()):
+                for j in range(new_img.get_height()):
+                    pixel = new_img.get_at((i, j))
+                    if pixel[0] == 255:
+                        new_img.set_at((i, j), (200, 0, 0))
+                    if pixel[1] == 255:
+                        new_img.set_at((i, j), (0, 200, 0))
+            self.image = new_img
+            self.repainted = False
+
+
+class Scroller:
+    def __init__(self):
+        self.scroll_offset = 0
+        self.min_scroll_offset = 0
+        self.max_scroll_offset = 0
+        self.back_to_start_position = True
+        self.last_offset_state = "main_menu"
+        self.rules = {
+            "manual_menu": {"min": -1200, "max": 0},
+            "global_map": {"min": -1600, "max": 0},
+            "reward_second_stage": {"min": -1600, "max": 0},
+            "tower_select": {"min": -450, "max": 0}
+        }
+        self.remembered_scroll_offset = 0
+
+    def set_scroll_offset(self, offset, next_game_state="current"):
+        self.scroll_offset = offset
+        if next_game_state != "current":
+            self.last_offset_state = next_game_state
+
+    def check_possible_scrolling(self):
+        if game_state in self.rules:
+            if self.scroll_offset < self.rules[game_state]["min"]:
+                self.scroll_offset = self.rules[game_state]["min"]
+            if self.scroll_offset > self.rules[game_state]["max"]:
+                self.scroll_offset = self.rules[game_state]["max"]
+
+    def set_start_position_if_game_state_changes(self):
+        if self.back_to_start_position:
+            if self.last_offset_state != game_state:
+                self.scroll_offset = 0
+                self.last_offset_state = game_state
 
 
 def is_free(new_tower):
@@ -3210,7 +3615,7 @@ def is_free(new_tower):
 
 
 def uniq_is_free(new_tower):
-    if new_tower.unit_inside == "gnome_cannon1":
+    if new_tower.name == "gnome_cannon1":
         for tower in towers_group:
             if tower.rect.collidepoint(new_tower.rect.centerx, new_tower.rect.centery) and tower.stack == "gnome_cannon":
                 if tower.name == "gnome_cannon3":
@@ -3221,6 +3626,24 @@ def uniq_is_free(new_tower):
                     num = int(tower.name[-1]) + 1
                     return True, tower.name[:-1] + str(num)
         return None, None
+
+
+def tower_placement2(slot_):
+    if is_free(slot_.unit_inside):
+        if level.money - tower_costs[slot_.unit_inside.name] >= 0 or level.cheat:
+            Tower(slot_.unit_inside.name, unit_pos)
+            if not level.cheat:
+                level.money -= tower_costs[slot_.unit_inside.name]
+                slot_.kd_time = slot_.default_kd_time
+
+    elif slot_.unit_inside.name == "gnome_cannon1" or slot_.unit_inside.name == "go_bleen1":
+        ok_, tower_name = uniq_is_free(slot_.unit_inside)
+        if ok_:
+            if level.money - tower_costs[slot_.unit_inside.name] >= 0:
+                Tower(tower_name, unit_pos)
+                if not level.cheat:
+                    level.money -= tower_costs[slot_.unit_inside.name]
+                    slot_.kd_time = slot_.default_kd_time
 
 
 def tower_placement(new_tower):
@@ -3241,52 +3664,39 @@ def tower_placement(new_tower):
                 new_tower.kd_time = new_tower.default_kd_time
 
 
-def random_add_to_slots(*blocked_slots_):    # жестко пофиксить
-    all_towers = []
-    for tower in select_towers_preview_group.entities:
-        if tower not in select_towers_preview_group.remember_entities and tower.name in received_towers:
-            all_towers.append(tower)
-    random_unit = choice(all_towers)
-    add_to_slots(random_unit, *blocked_slots_)
-
-
-def add_to_slots(en, *blocked_slots_):    # жестко пофиксить
-    if len(select_towers_preview_group.remember_entities) <= 6 - len(blocked_slots_) or en.in_slot:
-        if not en.in_slot:
-            UI((94, first_empty_slot(blocked_slots_)), "towers", en.name, en.free_placement, towers_kd[en.name])
-            en.in_slot = True
-            select_towers_preview_group.remember_entities.append(en)
-        elif en.in_slot:
-            for ui in ui_group:
-                if ui.unit_inside == en.name:
-                    ui.kill()
-                    en.in_slot = False
-                    select_towers_preview_group.remember_entities.remove(en)
-    else:
-        Alert("Закончились свободные слоты", (345, 760), 75)
-
-
-def first_empty_slot(blocked_slots_):
-    ui_pos_list = {160, 256, 352, 448, 544, 640, 736} - set(blocked_slots_)
-    fill_pos = set()
-    for ui in ui_group:
-        if ui.rect.y in ui_pos_list:
-            fill_pos.add(ui.rect.y)
-
-    return min(ui_pos_list - fill_pos)
-
-
-def scroll_offset_min_max(min_offset, max_offset):
-    global scroll_offset, current_scroll_offset_state
-
-    if scroll_offset < min_offset:
-        scroll_offset = min_offset
-    if scroll_offset > max_offset:
-        scroll_offset = max_offset
-
-    if current_scroll_offset_state != game_state:
-        scroll_offset = 0
-        current_scroll_offset_state = game_state
+# def random_add_to_slots(*blocked_slots_):    # жестко пофиксить
+#     all_towers = []
+#     for tower in select_towers_preview_group.entities:
+#         if tower not in select_towers_preview_group.remember_entities and tower.name in received_towers:
+#             all_towers.append(tower)
+#     random_unit = choice(all_towers)
+#     add_to_slots(random_unit, *blocked_slots_)
+#
+#
+# def add_to_slots(en, *blocked_slots_):    # жестко пофиксить
+#     if len(select_towers_preview_group.remember_entities) <= 6 - len(blocked_slots_) or en.in_slot:
+#         if not en.in_slot:
+#             UI((94, first_empty_slot(blocked_slots_)), "towers", en.name, en.free_placement, towers_kd[en.name])
+#             en.in_slot = True
+#             select_towers_preview_group.remember_entities.append(en)
+#         elif en.in_slot:
+#             for ui in ui_group:
+#                 if ui.unit_inside == en.name:
+#                     ui.kill()
+#                     en.in_slot = False
+#                     select_towers_preview_group.remember_entities.remove(en)
+#     else:
+#         Alert("Закончились свободные слоты", (345, 760), 75)
+#
+#
+# def first_empty_slot(blocked_slots_):
+#     ui_pos_list = {160, 256, 352, 448, 544, 640, 736} - set(blocked_slots_)
+#     fill_pos = set()
+#     for ui in ui_group:
+#         if ui.rect.y in ui_pos_list:
+#             fill_pos.add(ui.rect.y)
+#
+#     return min(ui_pos_list - fill_pos)
 
 
 def upload_data(default=False):
@@ -3380,15 +3790,21 @@ def menu_positioning():
             level,\
             scroll_offset, \
             coin_indent_x, \
-            count_of_reward_coins
+            count_of_reward_coins, \
+            current_scroll_offset_state, \
+            d_col
 
     if game_state == "main_menu":
         screen.blit(main_menu, (0, 0))
         screen.blit(game_name, (416, 10))
 
-        if new_game_button.click(screen, (30, 380)):
+        if new_game_button.click(screen, (30, 380), col=d_col):
             last_game_state = game_state
             game_state = "yes_no_window"  # новая игра
+        if new_game_button.on_hover():
+            d_col = (255, 255, 0)
+        else:
+            d_col = (255, 255, 255)
 
         if not continue_level:
             if resume_button.click(screen, (30, 460), col=(130, 130, 130)):
@@ -3400,8 +3816,9 @@ def menu_positioning():
                     game_state = "run"
                 else:
                     game_state = "global_map"
-        if level_select_button.click(screen, (30, 540)):
+        if to_map_button.click(screen, (30, 540)):
             last_game_state = game_state
+            scroller.set_scroll_offset(scroller.remembered_scroll_offset, "global_map")
             game_state = "global_map"
         if preview_button.click(screen, (30, 620)):
             last_game_state = game_state
@@ -3432,7 +3849,7 @@ def menu_positioning():
             # level.refresh()
             # level.state = "not_run"
 
-        if accept_button.on_hover((630, 485)):
+        if accept_button.on_hover():
             screen.blit(font30.render("!!! Весь прогресс сотрётся !!!", True, (200, 0, 0)), (598, 580))
 
         if deny_button.click(screen, (870, 485)):
@@ -3446,7 +3863,9 @@ def menu_positioning():
         screen.blit(modification_preview_menu, (830, 120))
         modification_preview_menu.blit(modification_preview_menu_copy, (0, 0))
         modification_preview_menu.blit(line_, (0, 275))
-        scroll_offset_min_max(-1200, 0)                          # одна линия -150
+        scroller.set_start_position_if_game_state_changes()
+        scroller.check_possible_scrolling()
+        # scroll_offset_min_max(-1200, 0)                          # одна линия -150
 
         preview_group.move_element_by_scroll()
         preview_group.go_animation()
@@ -3460,6 +3879,7 @@ def menu_positioning():
         if preview_group.turn == Tower and preview_group.pushed_entity.name in received_towers:
             modification_preview_menu.blit(upgrade_path, (0, 0))
             tower_upgrades_group.check_click(entity_preview_menu, offset_pos=(830, 120))
+            tower_upgrades_group.check_hover(entity_preview_menu, offset_pos=(830, 120))
             tower_upgrades_group.custom_draw(modification_preview_menu, offset_pos=(830, 120))
 
         if preview_group.pushed_entity.name in received_towers or preview_group.pushed_entity.name in encountered_enemies:
@@ -3545,13 +3965,14 @@ def menu_positioning():
                         upgrades[preview_group.pushed_entity.name].append(tower_upgrades_group.pushed_entity.number)
                         your_coins[upgrade_coin_name] -= upgrade_cost
 
-                    if buy_upgrade_button.on_hover((80, 470), offset_pos=(830, 120)):
+                    if buy_upgrade_button.on_hover(offset_pos=(830, 120)):
                         modification_preview_menu.blit(font30.render("Можно выбрать только 1 ветку !!!", True, (200, 0, 0)), (5, 580))
+
             # бла бла бла, screen.blit(описание)
 
         if back_button.click(screen, (1000, 750), col=(0, 0, 0)):
             game_state, last_game_state = last_game_state, game_state
-            scroll_offset = 0
+            # scroller.scroll_offset = 0
 
         if change_preview_turn_button.click(screen, (1280, 90)):
             if preview_group.turn == Enemy:
@@ -3560,6 +3981,7 @@ def menu_positioning():
             else:
                 preview_group.turn = Enemy
                 change_preview_turn_button.image = image.load("images/coins/evil_coin.png").convert_alpha()
+            scroller.set_scroll_offset(0)
             preview_group.pushed_entity = list(filter(preview_group.filter_by_turn, preview_group.entities))[0]
 
     if game_state != "main_menu"\
@@ -3584,18 +4006,28 @@ def menu_positioning():
         all_sprites_group.custom_draw(screen)
         all_sprites_group.draw_other(screen)
 
+        slots_group.custom_draw(screen)
+        slots_group.update()
+
     if game_state == "global_map":
-        scroll_offset_min_max(-1600, 0)
-        screen.blit(game_map, (0 + scroll_offset, 0))
+        # scroll_offset_min_max(-1600, 0)
+        scroller.set_start_position_if_game_state_changes()
+        scroller.check_possible_scrolling()
+
+        screen.blit(game_map, (0 + scroller.scroll_offset, 0))
 
         # global_map.check_hover(screen)        # если нужно при наведении что то делать
-        global_map.check_click(screen)
+        if global_map.check_click(screen):
+            scroller.remembered_scroll_offset = scroller.scroll_offset
+        global_map.check_hover(screen)
         global_map.use_clicked_object()
         global_map.move_element_by_scroll(vector="x")
+        global_map.hiding_map_secrets()
         global_map.custom_draw(screen)
 
         if back_button.click(screen, (30, 20), col=(200, 0, 0)):
             last_game_state = game_state
+            scroller.remembered_scroll_offset = scroller.scroll_offset
             game_state = "main_menu"
 
     if game_state == "run":
@@ -3658,32 +4090,34 @@ def menu_positioning():
         screen.blit(select_menu, (250, 150))
         select_menu.blit(select_menu_copy, (0, 0))
         screen.blit(additional_menu, (1210, 150))
-        scroll_offset_min_max(-450, 0)      # насколько сильно прокручивается вниз
+        scroller.set_start_position_if_game_state_changes()
+        scroller.check_possible_scrolling()
+        # scroll_offset_min_max(-450, 0)      # насколько сильно прокручивается вниз
 
         select_towers_preview_group.move_element_by_scroll()
         select_towers_preview_group.check_hover(select_menu, offset_pos=(250, 150))
         if select_towers_preview_group.check_click(select_menu, offset_pos=(250, 150)):
             if select_towers_preview_group.pushed_entity.name in received_towers:
-                add_to_slots(select_towers_preview_group.pushed_entity, *level.blocked_slots)
+                # add_to_slots(select_towers_preview_group.pushed_entity, *level.blocked_slots)
+                slots_group.add_to_slots(select_towers_preview_group.pushed_entity)
         select_towers_preview_group.go_animation()
         select_towers_preview_group.custom_draw(select_menu)
 
         if clear_button.click(screen, (1250, 470), col=(0, 0, 0)):
-            select_towers_preview_group.remember_entities_empty()
-            for ui in ui_group:
-                ui.kill()
+            slots_group.clear_units()
 
         if random_choice_button.click(screen, (1248, 550), col=(0, 0, 0)):
-            if len(select_towers_preview_group.remember_entities) == 7 - len(level.blocked_slots):
-                level.clear()
-            for i in range(7 - len(select_towers_preview_group.remember_entities) - len(level.blocked_slots)):
-                random_add_to_slots(*level.blocked_slots)
+            # if len(select_towers_preview_group.remember_entities) == 7 - len(level.blocked_slots):
+            #     level.clear()
+            # for i in range(7 - len(select_towers_preview_group.remember_entities) - len(level.blocked_slots)):
+            #     random_add_to_slots(*level.blocked_slots)
+            slots_group.random_add_to_slots()
 
         if start_level_button.click(screen, (1265, 630), col=(0, 0, 0)):
             if len(select_towers_preview_group.remember_entities) == 7 - len(level.blocked_slots):
-                scroll_offset = 0
+                scroller.scroll_offset = 0
                 game_state = "run"
-                level.clear(ui_group)
+                level.clear(ui_group, slots_group)
                 level.state = "not_run"
                 continue_level = True
                 select_towers_preview_group.remember_entities.clear()
@@ -3756,11 +4190,14 @@ def menu_positioning():
         game_state = "reward_second_stage"
 
     if game_state == "reward_second_stage":
-        screen.blit(game_map, (0 + scroll_offset, 0))
+        screen.blit(game_map, (0 + scroller.scroll_offset, 0))
         global_map.custom_draw(screen)
+        global_map.move_element_by_scroll(vector="x")
         screen.blit(pause_menu_w, (480, 250))
         pause_menu_w.blit(pause_menu_w_copy, (0, 0))
         pause_menu_w.blit(font60.render("Награда", True, (0, 0, 0)), (195, 0))
+
+        scroller.check_possible_scrolling()
 
         for i, (k, v) in enumerate(global_map.chest.rewards.items()):
             if k in coins:
@@ -3768,13 +4205,25 @@ def menu_positioning():
                 pause_menu_w.blit(coins[k], (coin_indent_x + (column * (64 + coin_indent_x)) + (column * 22.5), 230))
                 pause_menu_w.blit(font60.render(str(v), True, (0, 0, 0)), (coin_indent_x + (column * (64 + coin_indent_x)) - ((2 - column) * 22.5), 225))
 
-        rewards_preview_group.custom_draw(pause_menu_w)
+        rewards_preview_group.custom_draw(pause_menu_w, offset_pos=(480, 250))
+        rewards_preview_group.check_hover(pause_menu_w, offset_pos=(480, 250))
         rewards_preview_group.go_animation()
+
+        if rewards_preview_group.check_click(pause_menu_w, offset_pos=(480, 250)):
+            last_game_state = game_state
+            game_state = "manual_menu"
+
+            preview_group.refresh(3)
+            for entity in preview_group.entities:
+                if entity.name == rewards_preview_group.pushed_entity.name:
+                    preview_group.pushed_entity = entity
+                    scroller.set_scroll_offset(-preview_group.pushed_entity.pos[1], "manual_menu")
 
         if take_button.click(screen, (680, 540), col=(0, 0, 0)):
             last_game_state = game_state
             game_state = "global_map"
             rewards_preview_group.clear_rewards()
+            scroller.set_scroll_offset(scroller.remembered_scroll_offset, "global_map")
     # -------
 
 
@@ -3796,6 +4245,7 @@ global_map = GlobalMap()
 tower_upgrades_group = TowerUpgradesGroup()
 text_sprites_group = sprite.Group()
 rewards_preview_group = RewardsPreviewGroup()
+slots_group = SlotsGroup()
 
 pause_button = Button("text", font40, "||",)
 restart_button = Button("text", font60, "Перезапустить")
@@ -3838,32 +4288,19 @@ upload_data()
 # ---
 
 
-# levels = {
-#     "1": Level("1", 22500, 750, 50, level_1_waves, ("popusk", "josky")),
-#     "2": Level("2", 22500, 575, 50, level_2_waves, ("josky", "sigma", "sportik", "popusk"), level_image="1"),
-#     "3": Level("3", 22500, 500, 50, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik"), level_image="1"),
-#     "3а": Level("3а", 22500, 500, 50, level_3_waves, ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik"), level_image="1"),
-#     "4": Level("4", 22500, 225, 50, level_4_waves, ("telezhnik", "rojatel", "sigma", "armorik", "zeleniy_strelok", "drobik", "klonik"), level_image="1"),
-#     "5": Level("5", 31500, 225, 50, level_5_waves, ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik", "klonik", "teleportik"), level_image="1"),
-#     "6б": Chest(parent_number="6б", rewards={"city_coin": 5, "evil_coin": 2, "zeus": "unlock"})
-# }
-
-# level = levels["1"]
-
-
-GlobalMapLevelButton("1", "0", (100, 714), level=Level("1", 22500, 750, 50, level_waves["1"], level_allowed_enemies["1"]))     # !!! все буквы русские !!!
-GlobalMapLevelButton("2", "1", (250, 544), level=Level("2", 22500, 575, 50, level_waves["2"], level_allowed_enemies["2"], level_image="1"))
-GlobalMapLevelButton("3", "2", (500, 500), level=Level("3", 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="1"))
+GlobalMapLevelButton("1", "0", (100, 714), level=Level("1", 22500, 750, 50, level_waves["1"], level_allowed_enemies["1"], level_image="2"))     # !!! все буквы русские !!!
+GlobalMapLevelButton("2", "1", (250, 544), level=Level("2", 22500, 575, 50, level_waves["2"], level_allowed_enemies["2"], level_image="2", blocked_slots=(160, 256, 352, 448, 544, 640,)))
+GlobalMapLevelButton("3", "2", (500, 500), level=Level("3", 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="2"))
 GlobalMapLevelButton("3а", "3", (700, 700), chest=Chest(parent_number="3а", rewards=chests_rewards["3а"]))
-GlobalMapLevelButton("4", "3", (750, 400), level=Level("4", 22500, 225, 50, level_waves["4"], level_allowed_enemies["4"], level_image="1"))
-GlobalMapLevelButton("5", "4", (1000, 400), level=Level("5", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="1"))
-GlobalMapLevelButton("6", "5", (1200, 300))
-GlobalMapLevelButton("6а", "6", (1000, 100))
+GlobalMapLevelButton("4", "3", (750, 400), level=Level("4", 22500, 225, 50, level_waves["4"], level_allowed_enemies["4"], level_image="2"))
+GlobalMapLevelButton("5", "4", (1000, 400), level=Level("5", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))
+GlobalMapLevelButton("6", "5", (1200, 300), level=Level("6", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # на 6 поменять
+GlobalMapLevelButton("6а", "6", (1000, 100), level=Level("6а", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))  # поменять
 GlobalMapLevelButton("6б", "6а", (750, 100), chest=Chest(parent_number="6б", rewards=chests_rewards["6б"]))
-GlobalMapLevelButton("6в", "6б", (500, 100))
-GlobalMapLevelButton("6г", "6в", (250, 200))
-GlobalMapLevelButton("7", "6", (1400, 200))
-GlobalMapLevelButton("8", "7", (1650, 200))
+GlobalMapLevelButton("6в", "6б", (500, 100), level=Level("6в", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))  # поменять
+GlobalMapLevelButton("6г", "6в", (250, 200), level=Level("6г", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))  # поменять
+GlobalMapLevelButton("7", "6", (1400, 200), level=Level("7", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+GlobalMapLevelButton("8", "7", (1650, 200), level=Level("8", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
 
 level = global_map.entities[0].level
 
@@ -3873,15 +4310,34 @@ UpgradeTowerButton("3a", (384, 36))
 UpgradeTowerButton("2b", (216, 172))
 UpgradeTowerButton("3b", (384, 172))
 
+scroller = Scroller()
 
 preview_group.entity_create(3)
 select_towers_preview_group.entity_create(6)
+
+# {160, 256, 352, 448, 544, 640, 736}
+a = Slot((32, 160), allowed_rarity=("legendary",))      # редкость слота
+Slot((32, 256), allowed_rarity=("legendary",))
+Slot((32, 352))
+Slot((32, 448))
+Slot((32, 544))
+Slot((32, 640), allowed_rarity=("spell",))
+Slot((32, 736), allowed_rarity=("spell",))
+
+shovel = Shovel((1500, 800))
 
 running = True
 while running:
 
     mouse_pos = mouse.get_pos()
     menu_positioning()
+
+    for button in buttons_group:
+        if button.on_hover():
+            button.color_manage = True
+            button.new_color = (230, 160, 35)
+        else:
+            button.color_manage = False
 
     if level.state == 'run':
         if free_money > 0:
@@ -3908,8 +4364,13 @@ while running:
     clock.tick(75)
     display.update()
     for e in event.get():
-        if e.type == MOUSEWHEEL and (game_state == "level_select" or game_state == "tower_select" or game_state == "manual_menu" or game_state == "global_map"):
-            scroll_offset += e.y * 50
+        if e.type == MOUSEWHEEL and (game_state == "level_select"
+                                     or game_state == "tower_select"
+                                     or game_state == "manual_menu"
+                                     or game_state == "global_map"
+                                     or game_state == "reward_second_stage"):
+            # scroll_offset += e.y * 50
+            scroller.scroll_offset += e.y * 50
             # scroll_pos = mouse_pos    # пока что забью
         if e.type == KEYDOWN:
             if e.key == K_ESCAPE and (game_state == "run"
@@ -3969,10 +4430,10 @@ while running:
             if e.key == K_KP_3:
                 Enemy("klonik", (1508, 704))
 
-            if e.key == K_a:
-                scroll_offset += 600
-            if e.key == K_d:
-                scroll_offset -= 600
+            # if e.key == K_a:
+            #     scroll_offset += 600
+            # if e.key == K_d:
+            #     scroll_offset -= 600
 
             if e.key == K_r:
                 level.give_reward()
@@ -3993,27 +4454,51 @@ while running:
         #         print(scroll_offset)
         if e.type == MOUSEBUTTONDOWN:                                                       # При нажатии кнопки мыши
             mouse_pos = mouse.get_pos()
-            for el in ui_group:
-                if el.rect.collidepoint(mouse_pos):
-                    el.is_move = True
+            # for el in ui_group:
+            #     if el.rect.collidepoint(mouse_pos):
+            #         el.is_move = True
+            if shovel.rect.collidepoint(mouse_pos):
+                shovel.is_move = True
+            for slot in slots_group.entities:
+                if slot.unit_inside:
+                    if slot.unit_inside.rect.collidepoint(mouse_pos):                                          # если элемент отпущен
+                        slot.is_move = True
         if e.type == MOUSEBUTTONUP:                                                          # При отжатии кнопки мыши
             mouse_pos = mouse.get_pos()
             unit_pos = (384 + ((mouse_pos[0] - 384) // 128) * 128), (192 + ((mouse_pos[1] - 192) // 128) * 128)
 
-            for el in ui_group:
-                if el.rect.collidepoint(mouse_pos):                                          # если элемент отпущен
-                    el.is_move = False
+            # for el in ui_group:
+            #     if el.rect.collidepoint(mouse_pos):                                          # если элемент отпущен
+            #         el.is_move = False
+            #
+            #         if 1536 > unit_pos[0] >= 384 and 832 > unit_pos[1] >= 192:
+            #             if el.path == "towers":
+            #                 tower_placement(el)
+            #
+            #             if el.path == "shovel":
+            #                 for obj in [*towers_group, *nekusaemie_group]:                  # Сразу по 2 группам
+            #                     if obj.rect.collidepoint(el.rect.centerx, el.rect.centery):
+            #                         if not level.cheat:
+            #                             level.money += tower_costs[obj.name] // 2
+            #                         if hasattr(obj, "bullet"):
+            #                             obj.bullet.kill()
+            #                         obj.kill()
+            if shovel.rect.collidepoint(mouse_pos):
+                shovel.is_move = False
+                for obj in [*towers_group, *nekusaemie_group]:                  # Сразу по 2 группам
+                    if obj.rect.collidepoint(shovel.rect.centerx, shovel.rect.centery):
+                        if not level.cheat:
+                            level.money += tower_costs[obj.name] // 2
+                        if hasattr(obj, "bullet"):
+                            obj.bullet.kill()
+                        obj.kill()
 
-                    if 1536 > unit_pos[0] >= 384 and 832 > unit_pos[1] >= 192:
-                        if el.path == "towers":
-                            tower_placement(el)
+            for slot in slots_group.entities:
+                if slot.unit_inside:
+                    if slot.unit_inside.rect.collidepoint(mouse_pos):                                          # если элемент отпущен
+                        slot.is_move = False
 
-                        if el.path == "shovel":
-                            for obj in [*towers_group, *nekusaemie_group]:                  # Сразу по 2 группам
-                                if obj.rect.collidepoint(el.rect.centerx, el.rect.centery):
-                                    if not level.cheat:
-                                        level.money += tower_costs[obj.name] // 2
-                                    if hasattr(obj, "bullet"):
-                                        obj.bullet.kill()
-                                    obj.kill()
+                        if 1536 > unit_pos[0] >= 384 and 832 > unit_pos[1] >= 192:
+                            # if slot.path == "towers":
+                            tower_placement2(slot)
 save_data()
