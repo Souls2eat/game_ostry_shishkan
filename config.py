@@ -1,28 +1,26 @@
 level_waves = {
     "1": {
-        "a22000": 0,    # a -- alert
-        "v18000": 10,   # v -- visible  -- !
-        "n16000": 5,    # n -- invisible -- no!
-        "v8000": 20,
+        18000: 10,
+        8000: 20,
     },
     "2": {
-        "v18000": 30,
-        "v8000": 40,
+        18000: 30,
+        8000: 40,
     },
     "3": {
-        "v18000": 30,
-        "v8000": 40,
+        18000: 30,
+        8000: 40,
     },
     "4": {
-        "v18000": 40,
-        "v12000": 50,
-        "v6000": 50
+        18000: 40,
+        12000: 50,
+        6000: 50
     },
     "5": {
-        "v25000": 40,
-        "v22000": 60,
-        "v12000": 60,
-        "v6000": 60
+        25000: 40,
+        22000: 60,
+        12000: 60,
+        6000: 60
     },
 }
 
@@ -91,10 +89,12 @@ tower_costs = {
     "struyniy": 30,
     "dark_druid": 25,
     "pen": 20,
-    "gribnik": 30,
-    "bolotnik": 25,
+    "gribnik": 15,
+    "bolotnik": 15,
     "nekr": 35,
-    'electro_maga': 35,
+    "electro_maga": 35,
+    "inquisitor": 10,
+    "priest": 10,
     "bomb": 35,
     "perec": 30,
     "vodka": 15,
@@ -133,9 +133,13 @@ towers_kd = {
     "electric": 375,
     "struyniy": 750,
     "dark_druid": 525,
-    "bolotnik": 450,
+    "pen": 525,
+    "gribnik": 750,
+    "bolotnik": 750,
     "nekr": 525,
-    'electro_maga': 750,
+    "electro_maga": 750,
+    "inquisitor": 1125,
+    "priest": 1125,
     "bomb": 1875,
     "perec": 1500,
     "vodka": 1500,
@@ -143,8 +147,7 @@ towers_kd = {
     "vistrel": 225,
     "molniya": 1500,
     "tp_back": 5625,
-    "pen": 525,
-    "gribnik": 375,
+    
     
 }
 
@@ -319,6 +322,20 @@ upgrade_costs = {
         "3a": "2 city_coin",
         "3b": "2 city_coin",
     },
+    "gribnik": {
+        "1": "0 city_coin",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "pen": {
+        "1": "0 city_coin",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
     "bolotnik": {
         "1": "0 city_coin",
         "2a": "1 city_coin",
@@ -334,6 +351,20 @@ upgrade_costs = {
         "3b": "2 city_coin",
     },
     "electro_maga": {
+        "1": "0 city_coin",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "inquisitor": {
+        "1": "0 city_coin",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "priest": {
         "1": "0 city_coin",
         "2a": "1 city_coin",
         "2b": "1 city_coin",

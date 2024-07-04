@@ -36,6 +36,8 @@ towers_wait = {
     "bolotnik": [image.load(f"images/towers/bolotnik/wait/bolotnik{i}.png") for i in range(1, 5)],
     "nekr": [image.load(f"images/towers/nekr/wait/nekr{i}.png") for i in range(1, 5)],
     "electro_maga": [image.load(f"images/towers/electro_maga/wait/electro_maga{i}.png") for i in range(1, 5)],
+    "inquisitor": [image.load(f"images/towers/inquisitor/wait/inquisitor{i}.png") for i in range(1, 5)],
+    "priest": [image.load(f"images/towers/priest/wait/priest{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/wait/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/wait/perec{i}.png") for i in range(1, 5)],
@@ -73,6 +75,8 @@ towers_attack = {
     "gribnik": [image.load(f"images/towers/gribnik/attack/gribnik{i}.png") for i in range(1, 5)],
     "nekr": [image.load(f"images/towers/nekr/attack/nekr{i}.png") for i in range(1, 5)],
     "electro_maga": [image.load(f"images/towers/electro_maga/attack/electro_maga{i}.png") for i in range(1, 5)],
+    "inquisitor": [image.load(f"images/towers/inquisitor/attack/inquisitor{i}.png") for i in range(1, 5)],
+    "priest": [image.load(f"images/towers/priest/attack/priest{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/attack/go_bleen1{i}.png") for i in range(1, 3)],
 
 }
