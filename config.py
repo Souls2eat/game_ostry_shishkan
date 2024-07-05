@@ -36,19 +36,20 @@ level_allowed_enemies = {
 }
 
 chests_rewards = {
+    "3а": {
+        "evil_coin": 1,
+        "snow_coin": 2,
+        "terpila": "unlock",
+        "big_mechman": "unlock",
+
+    },
     "6б": {
         "forest_coin": 2,
         "mountain_coin": 1,
         "zeus": "unlock",
         "thunder": "unlock",
     },
-    "3а": {
-        "evil_coin": 1,
-        "snow_coin": 2,
-        "terpila": "unlock",
-        "zeus": "unlock",
 
-    }
 }
 
 enemy_costs = {
