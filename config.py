@@ -1,7 +1,7 @@
 level_waves = {
     "1": {
-        "a22000": 0,    # a -- alert
-        "v18000": 10,   # v -- visible  -- !
+        "a22000": 0,    # a -- alert -- в разработке :)
+        "v18000": 10,   # v -- visible -- !
         "n16000": 5,    # n -- invisible -- no!
         "v8000": 20,
     },
