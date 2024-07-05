@@ -248,7 +248,10 @@ class PreviewGroup(BasePreviewGroup):
             if en == self.hovered_entity:
                 en.state = "attack"
             else:
-                en.state = "wait"
+                if isinstance(en, Tower):
+                    en.state = "wait"
+                if isinstance(en, Enemy):
+                    en.state = "wait"
             en.animation()
 
     def get_max_damage_per_sec(self):       # добавить 2 кд 2 атаку и белый список мб
@@ -566,7 +569,7 @@ class Level:
         self.state = "not_run"
         self.level_time = self.start_level_time = level_time
         self.start_time_to_spawn = self.time_to_spawn = time_to_spawn
-        self.cheat = False
+        self.cheat = True
         self.waves = waves
         self.allowed_enemies = allowed_enemies
         self.allowed_cords = allowed_cords
@@ -707,6 +710,7 @@ class Level:
 
     def update(self):
         all_sprites_group.update()
+        slots_group.update()
         for wave in self.waves:
             wave_time = int(wave[1:])
             wave_description = wave[:1]
@@ -717,11 +721,12 @@ class Level:
         if self.state == "not_run":
             self.state = self.spawn()
         if not self.cheat:
-            if self.time_to_spawn > 0:
-                self.time_to_spawn -= 1
-            else:
-                self.time_to_spawn = self.start_time_to_spawn
-                self.random_spawn_enemies()
+            if self.level_time > 0:
+                if self.time_to_spawn > 0:
+                    self.time_to_spawn -= 1
+                else:
+                    self.time_to_spawn = self.start_time_to_spawn
+                    self.random_spawn_enemies()
             if self.level_time > 0 or len(enemies_group) > 0:
                 self.level_time -= 1
                 return "run"
@@ -774,6 +779,7 @@ class Tower(sprite.Sprite):
         targets[id(self)] = None
 
         self.is_dead = False
+        self.alive = True
         self.have_barrier = False
         self.barrier = None
         self.stack = False
@@ -1318,7 +1324,9 @@ class Tower(sprite.Sprite):
                 self.kill_time -= 1
             else:
                 self.kill()
+                self.alive = False
         else:
+            self.alive = False
             self.kill()     # + потом анимация смерти
 
     def check_hp(self):
@@ -1808,10 +1816,10 @@ class Tower(sprite.Sprite):
     def stop_hiding(self):
         self.hiding = True
 
-    def animation(self):
-        if 0 <= self.anim_count < self.anim_duration\
-                or self.anim_duration <= self.anim_count < 2 * self.anim_duration\
-                or self.anim_duration * 2 <= self.anim_count < 3 * self.anim_duration\
+    def animation(self):    # эта функция вызывается каждый цикл, хотя по идее это не нужно, но пока не лагает, я исправлять не буду
+        if 0 <= self.anim_count < self.anim_duration \
+                or self.anim_duration <= self.anim_count < 2 * self.anim_duration \
+                or self.anim_duration * 2 <= self.anim_count < 3 * self.anim_duration \
                 or self.anim_duration * 3 <= self.anim_count < 4 * self.anim_duration:      # переделать
             if self.state == "wait":
                 self.image = towers_wait[self.name][int(self.anim_count//self.anim_duration)]
@@ -1943,7 +1951,7 @@ class Tower(sprite.Sprite):
 class Enemy(sprite.Sprite):
     def __init__(self, name, pos):
         super().__init__(all_sprites_group, enemies_group)
-        self.image = image.load(f"images/enemies/{name}.png").convert_alpha()
+        self.image = image.load(f"images/enemies/{name}/wait/{name}1.png").convert_alpha()
         self.pos = pos
         self.rect = self.image.get_rect(topleft=self.pos)
         self.rect2 = self.image.get_rect(topleft=(self.rect.x + 32, self.rect.y - 32))
@@ -1962,6 +1970,14 @@ class Enemy(sprite.Sprite):
         self.damaged = False
         self.gribs = 0
 
+        targets[id(self)] = None
+        self.time_indicator = 1
+        self.anim_tasks = []
+        self.anim_count = 0
+        self.anim_duration = 15     # сколько кадров будет оставаться 1 спрайт
+        self.state = "wait"
+        self.anim_stage = "default"
+
         # СТАТЫ начало
 
         if self.name == 'popusk':
@@ -1975,7 +1991,7 @@ class Enemy(sprite.Sprite):
             self.hp = 400
             self.atk = 80
             self.speed = 0.5
-            self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.attack_cooldown = self.basic_attack_cooldown = 61
             self.attack_range = 0
 
         if self.name == 'sigma':
@@ -2081,25 +2097,25 @@ class Enemy(sprite.Sprite):
         # СТАТЫ конец
         self.image2 = font30.render(str(self.hp), True, (0, 0, 0))
 
-    def is_should_stop_to_attack(self):
-        for tower in towers_group:
-            if -64 < tower.rect.centery - self.rect.centery < 64 and -64 < self.rect.centerx - tower.rect.centerx < self.attack_range + 64 and self.rect.x < 1472:
-                return True, tower
-        for creep in creeps_group:
-            if -64 < creep.rect.centery - self.rect.centery < 64 and -64 < self.rect.centerx - creep.rect.centerx < self.attack_range + 64 and self.rect.x < 1472:
-                return True, creep
-        return False, None
+    # def is_should_stop_to_attack(self):
+    #     for tower in towers_group:
+    #         if -64 < tower.rect.centery - self.rect.centery < 64 and -64 < self.rect.centerx - tower.rect.centerx < self.attack_range + 64 and self.rect.x < 1472:
+    #             return True, tower
+    #     for creep in creeps_group:
+    #         if -64 < creep.rect.centery - self.rect.centery < 64 and -64 < self.rect.centerx - creep.rect.centerx < self.attack_range + 64 and self.rect.x < 1472:
+    #             return True, creep
+    #     return False, None
 
-    def preparing_to_attack(self):
-        if self.attack_cooldown > 0:
-            self.attack_cooldown -= 1
-        else:
-            self.attack_cooldown = self.basic_attack_cooldown
-            if self.stop:
-                if self.attack_range == 0:
-                    self.melee_attack()
-                if self.attack_range > 0:
-                    self.shoot()
+    # def preparing_to_attack(self):
+    #     if self.attack_cooldown > 0:
+    #         self.attack_cooldown -= 1
+    #     else:
+    #         self.attack_cooldown = self.basic_attack_cooldown
+    #         if self.stop:
+    #             if self.attack_range == 0:
+    #                 self.melee_attack()
+    #             if self.attack_range > 0:
+    #                 self.shoot()
 
     def shoot(self):
         if self.name == "zeleniy_strelok" or self.name == 'telezhnik':
@@ -2121,19 +2137,34 @@ class Enemy(sprite.Sprite):
                 Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, None, self.atk, self.bullet_speed_x, self.bullet_speed_y, "anti_hrom", self)
 
     def melee_attack(self):
-        if self.target:
-            if self.target.have_barrier:                     # проверка барьера
-                self.target.barrier.hp -= self.atk
-            elif self.target.name == 'knight_on_horse':      # проверка на коня
-                self.target.horse_hp -= self.atk
+        # if self.name == "popusk":
+        #     targets[id(self)].hp -= self.atk
+        if targets[id(self)]:
+            if targets[id(self)].have_barrier:                     # проверка барьера
+                targets[id(self)].barrier.hp -= self.atk
+            elif targets[id(self)].name == 'knight_on_horse':      # проверка на коня
+                targets[id(self)].horse_hp -= self.atk
             else:
-                self.target.hp -= self.atk
-                if self.target.name == 'terpila' and (self.target.upgrade_level == '2b' or self.target.upgrade_level == '3b' or self.target.upgrade_level == '3a'):
-                    self.target.received_damage += self.atk
-                self.target.check_hp()
+                targets[id(self)].hp -= self.atk
+                if targets[id(self)].name == 'terpila' and (targets[id(self)].upgrade_level == '2b' or targets[id(self)].upgrade_level == '3b' or targets[id(self)].upgrade_level == '3a'):
+                    targets[id(self)].received_damage += self.atk
+                targets[id(self)].check_hp()
             for parasite in self.parasites:
                 if parasite.name == 'metka_inq':
                     parasite.cashback_list.append(225)
+        # if self.target:
+        #     if self.target.have_barrier:                     # проверка барьера
+        #         self.target.barrier.hp -= self.atk
+        #     elif self.target.name == 'knight_on_horse':      # проверка на коня
+        #         self.target.horse_hp -= self.atk
+        #     else:
+        #         self.target.hp -= self.atk
+        #         if self.target.name == 'terpila' and (self.target.upgrade_level == '2b' or self.target.upgrade_level == '3b' or self.target.upgrade_level == '3a'):
+        #             self.target.received_damage += self.atk
+        #         self.target.check_hp()
+        #     for parasite in self.parasites:
+        #         if parasite.name == 'metka_inq':
+        #             parasite.cashback_list.append(225)
 
     def movement(self):
         if not self.stop:
@@ -2153,8 +2184,40 @@ class Enemy(sprite.Sprite):
         elif self.rect.y < 192:
             self.real_y += 128
 
+    def add_anim_task(self, anim, func):
+        if len(self.anim_tasks) == 0:
+            self.anim_tasks.append([anim, (4 * self.anim_duration) // self.time_indicator, func])
+            self.anim_count = 0
+        else:
+            already_in = [anim[0] for anim in self.anim_tasks]
+            if anim not in already_in:
+                self.anim_tasks.append([anim, (4 * self.anim_duration) // self.time_indicator, func])
+
     def animation(self):
-        pass    # не убирать, а то сломается справочник
+        # эта функция вызывается каждый цикл, хотя по идее это не нужно, но пока не лагает, я исправлять не буду
+        if 0 <= self.anim_count < self.anim_duration \
+                or self.anim_duration <= self.anim_count < 2 * self.anim_duration \
+                or self.anim_duration * 2 <= self.anim_count < 3 * self.anim_duration \
+                or self.anim_duration * 3 <= self.anim_count < 4 * self.anim_duration:      # переделать
+            if self.state == "wait":
+                self.image = enemies_wait[self.name][int(self.anim_count // self.anim_duration)]
+            if self.state == "attack":
+                self.image = enemies_attack[self.name][int(self.anim_count//self.anim_duration)]
+            if self.state == "move":
+                self.image = enemies_move[self.name][int(self.anim_count//self.anim_duration)]
+
+            if self.state == "rage_wait":
+                self.image = enemies_rage_wait[self.name][int(self.anim_count // self.anim_duration)]
+            if self.state == "rage_attack":
+                self.image = enemies_rage_attack[self.name][int(self.anim_count//self.anim_duration)]
+            if self.state == "rage_move":
+                self.image = enemies_rage_move[self.name][int(self.anim_count//self.anim_duration)]
+
+        if self.anim_count >= 4 * self.anim_duration:   # 4 -- так как в анимации 4 кадра
+            self.anim_count = 0
+        else:
+            self.anim_count += self.time_indicator
+            # , zeleniy_strelok, sportik, rojatel, mega_strelok, slabiy, armorik, telezhnik, drobik
 
     def armor_check(self):
         if hasattr(self, "armor") and self.have_armor:
@@ -2164,31 +2227,33 @@ class Enemy(sprite.Sprite):
                     self.basic_attack_cooldown = self.basic_attack_cooldown2
                     self.speed = self.speed2
                     self.have_armor = False
-                    self.image = image.load(f"images/enemies/{self.name}_zloy.png").convert_alpha()
+                    # self.image = image.load(f"images/enemies/{self.name}_zloy.png").convert_alpha()
+                    self.anim_stage = "rage"
 
                 elif self.name == 'telezhnik':
                     self.atk = self.atk2
                     self.speed = self.speed2
                     self.have_armor = False
                     self.attack_range = self.attack_range2
-                    self.image = image.load(f"images/enemies/{self.name}_zloy.png").convert_alpha()
+                    # self.image = image.load(f"images/enemies/{self.name}_zloy.png").convert_alpha()
+                    self.anim_stage = "rage"
 
-    def move(self, change_pos):
-        self.pos = self.pos[0], self.pos[1] + change_pos
-        self.rect = self.image.get_rect(topleft=self.pos)
+    # def wait(self, change_pos):
+    #     self.pos = self.pos[0], self.pos[1] + change_pos
+    #     self.rect = self.image.get_rect(topleft=self.pos)
 
-    def additional_cooldowns(self):
-        if self.name == 'klonik':
-            if self.klonirovanie_cooldown > 0:
-                self.klonirovanie_cooldown -= 1
-            else:
-                self.klonirovanie_cooldown = self.basic_klonirovanie_cooldown
-                self.klon = Enemy('klonik', (self.rect.x+randint(64, 192), self.rect.y))
-                self.klon.hp = self.hp
-
-        if self.name == 'teleportik':
-            if self.tp_cooldown > 0:
-                self.tp_cooldown -= 1
+    # def additional_cooldowns(self):
+    #     if self.name == 'klonik':
+    #         if self.klonirovanie_cooldown > 0:
+    #             self.klonirovanie_cooldown -= 1
+    #         else:
+    #             self.klonirovanie_cooldown = self.basic_klonirovanie_cooldown
+    #             self.klon = Enemy('klonik', (self.rect.x+randint(64, 192), self.rect.y))
+    #             self.klon.hp = self.hp
+    #
+    #     if self.name == 'teleportik':
+    #         if self.tp_cooldown > 0:
+    #             self.tp_cooldown -= 1
 
     def dead(self):
         if self.name == 'rojatel':
@@ -2232,21 +2297,121 @@ class Enemy(sprite.Sprite):
     def draw2(self, surf):
         surf.blit(self.image2, self.rect2)
 
-    def update(self):
-        self.stop, self.target = self.is_should_stop_to_attack()
+    def find_target(self):
+        for entity in [*towers_group, *creeps_group]:
+            if -64 < entity.rect.centery - self.rect.centery < 64 and -64 < self.rect.centerx - entity.rect.centerx < self.attack_range + 64 and self.rect.x < 1472:
+                self.stop = True
+                return entity
 
-        if self.name == 'mega_strelok':
-            if self.attack_cooldown2 > 0:
-                self.attack_cooldown2 -= 1
+        self.stop = False
+        return None
+
+    def check_target_alive(self):
+        if targets[id(self)]:
+            if targets[id(self)].rect.x < self.rect.x:
+                targets[id(self)] = None
+
+        if targets[id(self)]:
+            if targets[id(self)].alive:
+                self.attack_cooldown = self.basic_attack_cooldown
+                if self.anim_stage == "default":
+                    self.add_anim_task("attack", self.shoot)
+                if self.anim_stage == "rage":
+                    self.add_anim_task("rage_attack", self.shoot)
             else:
-                self.preparing_to_attack()
+                targets[id(self)] = self.find_target()
+                if targets[id(self)]:
+                    if targets[id(self)].alive:
+                        self.attack_cooldown = self.basic_attack_cooldown
+                        if self.attack_range == 0:
+                            if self.anim_stage == "default":
+                                self.add_anim_task("attack", self.melee_attack)
+                            if self.anim_stage == "rage":
+                                self.add_anim_task("rage_attack", self.shoot)
+                        if self.attack_range > 0:
+                            if self.anim_stage == "default":
+                                self.add_anim_task("attack", self.shoot)
+                            if self.anim_stage == "rage":
+                                self.add_anim_task("rage_attack", self.shoot)
         else:
-            self.preparing_to_attack()
+            targets[id(self)] = self.find_target()
+            if targets[id(self)]:
+                if targets[id(self)].alive:
+                    self.attack_cooldown = self.basic_attack_cooldown
+                    if self.attack_range == 0:
+                        if self.anim_stage == "default":
+                            self.add_anim_task("attack", self.melee_attack)
+                        if self.anim_stage == "rage":
+                            self.add_anim_task("rage_attack", self.shoot)
+                    if self.attack_range > 0:
+                        if self.anim_stage == "default":
+                            self.add_anim_task("attack", self.shoot)
+                        if self.anim_stage == "rage":
+                            self.add_anim_task("rage_attack", self.shoot)
+
+    def cooldown(self):
+        if hasattr(self, "attack_cooldown"):      # там буквально 3 тика раз в 100 тиков голимые
+            if self.attack_cooldown > 0:          # на определённой башне    !!!=
+                self.attack_cooldown -= 1         # если я вам не скажу, вы и не заметите    ЗАМЕТИМ(наверн)
+            else:
+                self.check_target_alive()         # когда башня перезарядилась -> чекаем врага
+
+        if self.name == 'klonik':
+            if self.klonirovanie_cooldown > 0:
+                self.klonirovanie_cooldown -= 1
+            else:
+                self.klonirovanie_cooldown = self.basic_klonirovanie_cooldown
+                self.klon = Enemy('klonik', (self.rect.x+randint(64, 192), self.rect.y))
+                self.klon.hp = self.hp
+
+        if self.name == 'teleportik':
+            if self.tp_cooldown > 0:
+                self.tp_cooldown -= 1
+
+        if self.anim_tasks:                          # порядок анимации
+            if self.anim_tasks[0][1] > 0:            # -> self.anim_tasks = [("attack", 60, shoot), ("give", 50, spawn_something), ...]
+                self.state = self.anim_tasks[0][0]   # -> какая анимация, время анимации, функция после анимации
+                self.anim_tasks[0][1] -= 1
+            elif self.anim_tasks[0][1] == 0:
+                self.anim_tasks[0][2]()
+                self.anim_tasks[0][1] -= 1
+            else:
+                self.anim_tasks.pop(0)
+                self.anim_count = 0
+        else:
+            if self.anim_stage == "default":
+                if self.stop:
+                    self.state = "wait"
+                else:
+                    self.state = "move"
+            if self.anim_stage == "rage":
+                if self.stop:
+                    self.state = "rage_wait"
+                else:
+                    self.state = "rage_move"
+            # self.state = "wait"
+
+    def update(self):
+        # self.stop, self.target = self.is_should_stop_to_attack()
+
+        # print(self.name, self.stop, self.state, self.anim_count, targets[id(self)])
+        self.cooldown()
+        self.movement()
+        self.animation()
+
+        # if self.name == 'mega_strelok':
+        #     if self.attack_cooldown2 > 0:
+        #         self.attack_cooldown2 -= 1
+        #     else:
+        #         self.preparing_to_attack()
+        # else:
+        #     self.preparing_to_attack()
+
         self.armor_check()
-        self.additional_cooldowns()
+        # self.additional_cooldowns()
         if self.alive:
             self.check_hp()
-        self.movement()
+
         self.image2 = font30.render(str(self.hp), True, (0, 0, 0))
         self.rect2 = self.image.get_rect(topleft=(self.rect.x + 32, self.rect.y - 32))
 
@@ -3215,7 +3380,7 @@ class Buff(sprite.Sprite):
 #             self.image2 = font30.render(str(self.cost), True, (255, 255, 255))
 #             self.rect2 = self.image2.get_rect(topleft=(self.default_pos[0] - 49, self.default_pos[1] + 4))
 #
-#     def move(self):
+#     def wait(self):
 #         self.pos = mouse.get_pos()
 #         self.rect = self.image.get_rect(center=self.pos)
 #         self.render_layer = 9
@@ -3238,7 +3403,7 @@ class Buff(sprite.Sprite):
 #
 #         if self.is_move and self.kd_time == -1:                                     # если нажал кнопку и кд откатилось
 #             self.image = image.load(f"images/{self.path}/{self.unit_inside}/wait/{self.unit_inside}1.png").convert_alpha()
-#             self.move()
+#             self.wait()
 #         if self.is_move and self.kd_time != -1:                                     # если нажал кнопку и кд не откатилось
 #             self.is_move = False
 #         if self.is_move is not True and self.pos != self.default_pos:               # если отжал кнопку и не на дефолтной позиции.
@@ -3974,6 +4139,7 @@ def menu_positioning():
 
         if back_button.click(screen, (1000, 750), col=(0, 0, 0)):
             game_state, last_game_state = last_game_state, game_state
+            scroller.set_scroll_offset(scroller.remembered_scroll_offset, "global_map")
             # scroller.scroll_offset = 0
 
         if change_preview_turn_button.click(screen, (1280, 90)):
@@ -4009,7 +4175,6 @@ def menu_positioning():
         all_sprites_group.draw_other(screen)
 
         slots_group.custom_draw(screen)
-        slots_group.update()
 
     if game_state == "global_map":
         # scroll_offset_min_max(-1600, 0)
@@ -4379,12 +4544,14 @@ while running:
                                       or game_state == "paused"
                                       or game_state == "settings_menu"
                                       or game_state == "tower_select"
-                                      or game_state == "level_select"):
+                                      or game_state == "global_map"
+                                      or game_state == "manual_menu"
+                                      or game_state == "reward_second_stage"):
                 if game_state == "run":
                     last_game_state = game_state
                     Alert("Пауза", (700, 200), 75)
                     game_state = "paused"
-                elif game_state == "level_select":
+                elif game_state == "global_map":
                     last_game_state = game_state
                     game_state = "main_menu"
                 elif game_state == "tower_select":
@@ -4402,6 +4569,14 @@ while running:
                     game_state = "run"
                 elif game_state == "paused" and level.state == "not_run":
                     game_state = "tower_select"
+                elif game_state == "manual_menu":
+                    last_game_state, game_state = game_state, last_game_state
+                elif game_state == "reward_second_stage":
+                    last_game_state = game_state
+                    game_state = "global_map"
+                    rewards_preview_group.clear_rewards()
+                    scroller.set_scroll_offset(scroller.remembered_scroll_offset, "global_map")
+
             if e.key == K_z:
                 Enemy("popusk", (1508, 192))
             if e.key == K_x:
@@ -4493,6 +4668,7 @@ while running:
                             level.money += tower_costs[obj.name] // 2
                         if hasattr(obj, "bullet"):
                             obj.bullet.kill()
+                        obj.alive = False
                         obj.kill()
 
             for slot in slots_group.entities:

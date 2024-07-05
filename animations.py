@@ -91,6 +91,69 @@ towers_hide = {
     "pukish": [image.load(f"images/towers/pukish/hide/pukish{i}.png") for i in range(1, 5)],
 }
 
+enemies_wait = {
+    "popusk": [image.load(f"images/enemies/popusk/wait/popusk{i}.png") for i in range(1, 5)],
+    "josky": [image.load(f"images/enemies/josky/wait/josky{i}.png") for i in range(1, 5)],
+    "sigma": [image.load(f"images/enemies/sigma/wait/sigma{i}.png") for i in range(1, 5)],
+    "zeleniy_strelok": [image.load(f"images/enemies/zeleniy_strelok/wait/zeleniy_strelok{i}.png") for i in range(1, 5)],
+    "drobik": [image.load(f"images/enemies/drobik/wait/drobik{i}.png") for i in range(1, 5)],
+    "klonik": [image.load(f"images/enemies/klonik/wait/klonik{i}.png") for i in range(1, 5)],
+    "mega_strelok": [image.load(f"images/enemies/mega_strelok/wait/mega_strelok{i}.png") for i in range(1, 5)],
+    "rojatel": [image.load(f"images/enemies/rojatel/wait/rojatel{i}.png") for i in range(1, 5)],
+    "slabiy": [image.load(f"images/enemies/slabiy/wait/slabiy{i}.png") for i in range(1, 5)],
+    "sportik": [image.load(f"images/enemies/sportik/wait/sportik{i}.png") for i in range(1, 5)],
+    "teleportik": [image.load(f"images/enemies/teleportik/wait/teleportik{i}.png") for i in range(1, 5)],
+    "armorik": [image.load(f"images/enemies/armorik/wait/armorik{i}.png") for i in range(1, 5)],
+    "telezhnik": [image.load(f"images/enemies/telezhnik/wait/telezhnik{i}.png") for i in range(1, 5)],
+}
+
+enemies_move = {
+    "popusk": [image.load(f"images/enemies/popusk/move/popusk{i}.png") for i in range(1, 5)],
+    "josky": [image.load(f"images/enemies/josky/move/josky{i}.png") for i in range(1, 5)],
+    "sigma": [image.load(f"images/enemies/sigma/move/sigma{i}.png") for i in range(1, 5)],
+    "zeleniy_strelok": [image.load(f"images/enemies/zeleniy_strelok/move/zeleniy_strelok{i}.png") for i in range(1, 5)],
+    "drobik": [image.load(f"images/enemies/drobik/move/drobik{i}.png") for i in range(1, 5)],
+    "klonik": [image.load(f"images/enemies/klonik/move/klonik{i}.png") for i in range(1, 5)],
+    "mega_strelok": [image.load(f"images/enemies/mega_strelok/move/mega_strelok{i}.png") for i in range(1, 5)],
+    "rojatel": [image.load(f"images/enemies/rojatel/move/rojatel{i}.png") for i in range(1, 5)],
+    "slabiy": [image.load(f"images/enemies/slabiy/move/slabiy{i}.png") for i in range(1, 5)],
+    "sportik": [image.load(f"images/enemies/sportik/move/sportik{i}.png") for i in range(1, 5)],
+    "teleportik": [image.load(f"images/enemies/teleportik/move/teleportik{i}.png") for i in range(1, 5)],
+    "armorik": [image.load(f"images/enemies/armorik/move/armorik{i}.png") for i in range(1, 5)],
+    "telezhnik": [image.load(f"images/enemies/telezhnik/move/telezhnik{i}.png") for i in range(1, 5)],
+}
+
+enemies_attack = {
+    "popusk": [image.load(f"images/enemies/popusk/attack/popusk{i}.png") for i in range(1, 5)],
+    "josky": [image.load(f"images/enemies/josky/attack/josky{i}.png") for i in range(1, 5)],
+    "sigma": [image.load(f"images/enemies/sigma/attack/sigma{i}.png") for i in range(1, 5)],
+    "zeleniy_strelok": [image.load(f"images/enemies/zeleniy_strelok/attack/zeleniy_strelok{i}.png") for i in range(1, 5)],
+    "drobik": [image.load(f"images/enemies/drobik/attack/drobik{i}.png") for i in range(1, 5)],
+    "klonik": [image.load(f"images/enemies/klonik/attack/klonik{i}.png") for i in range(1, 5)],
+    "mega_strelok": [image.load(f"images/enemies/mega_strelok/attack/mega_strelok{i}.png") for i in range(1, 5)],
+    "rojatel": [image.load(f"images/enemies/rojatel/attack/rojatel{i}.png") for i in range(1, 5)],
+    "slabiy": [image.load(f"images/enemies/slabiy/attack/slabiy{i}.png") for i in range(1, 5)],
+    "sportik": [image.load(f"images/enemies/sportik/attack/sportik{i}.png") for i in range(1, 5)],
+    "teleportik": [image.load(f"images/enemies/teleportik/attack/teleportik{i}.png") for i in range(1, 5)],
+    "armorik": [image.load(f"images/enemies/armorik/attack/armorik{i}.png") for i in range(1, 5)],
+    "telezhnik": [image.load(f"images/enemies/telezhnik/attack/telezhnik{i}.png") for i in range(1, 5)],
+}
+
+enemies_rage_wait = {
+    "armorik": [image.load(f"images/enemies/armorik/rage_wait/armorik_zloy{i}.png") for i in range(1, 5)],
+    "telezhnik": [image.load(f"images/enemies/telezhnik/rage_wait/telezhnik_zloy{i}.png") for i in range(1, 5)],
+}
+
+enemies_rage_move = {
+    "armorik": [image.load(f"images/enemies/armorik/rage_move/armorik_zloy{i}.png") for i in range(1, 5)],
+    "telezhnik": [image.load(f"images/enemies/telezhnik/rage_move/telezhnik_zloy{i}.png") for i in range(1, 5)],
+}
+
+enemies_rage_attack = {
+    "armorik": [image.load(f"images/enemies/armorik/rage_attack/armorik_zloy{i}.png") for i in range(1, 5)],
+    "telezhnik": [image.load(f"images/enemies/telezhnik/rage_attack/telezhnik_zloy{i}.png") for i in range(1, 5)],
+}
+
 coins = {
     "city_coin": image.load("images/coins/city_coin.png"),
     "evil_coin": image.load("images/coins/evil_coin.png"),
