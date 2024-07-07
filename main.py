@@ -54,6 +54,7 @@ font40 = font.Font("fonts/ofont.ru_Nunito.ttf", 40)
 font50 = font.Font("fonts/ofont.ru_Nunito.ttf", 50)
 font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
 
+
 game_name = font60.render("GAME_OSTRY_SHISHIKAN", True, (255, 255, 255))  # GAME_OSTRY_SHISHIKAN
 game_state = "main_menu"
 last_game_state = game_state
@@ -66,10 +67,9 @@ continue_level = False
 free_money = default_free_money = 750
 upgrades = {}
 your_coins = {}
-d_col = (200, 200, 200)
 
 
-class ModGroup(sprite.Group):
+class ExtendedGroup(sprite.Group):
     def __init__(self):
         super().__init__()
 
@@ -458,6 +458,8 @@ class SlotsGroup(BasePreviewGroup):
                         common_slots += 1
                     if s.allowed_rarity == ("legendary",):
                         legendary_slots += 1
+                    if s.allowed_rarity == ("common", "legendary"):
+                        pass
                     if s.allowed_rarity == ("spell",):
                         spell_slots += 1
             return common_slots + legendary_slots + spell_slots
@@ -559,7 +561,15 @@ class TextSprite(sprite.Sprite):
 
 
 class Level:
-    def __init__(self, level_number, level_time, time_to_spawn, start_money, waves: dict, allowed_enemies: tuple, allowed_cords=(192, 320, 448, 576, 704), blocked_slots=(), level_image="default"):
+    def __init__(self, level_number: str,
+                 level_time: int,
+                 time_to_spawn: int,
+                 start_money: int,
+                 waves: dict,
+                 allowed_enemies: tuple,
+                 allowed_cords=(192, 320, 448, 576, 704),
+                 blocked_slots=(),
+                 level_image="default"):
         if level_image == "default":
             self.image = image.load(f"images/maps/levels/map{level_number}.png").convert_alpha()
         else:
@@ -610,8 +620,8 @@ class Level:
     @staticmethod
     def clear(*dont_clear_groups):
         if buttons_group not in dont_clear_groups:
-            for button in buttons_group:
-                button.ok = False
+            for button_ in buttons_group:
+                button_.ok = False
         select_towers_preview_group.remember_entities_empty()
         # if ui_group not in dont_clear_groups:
         #     for ui in ui_group:
@@ -3965,24 +3975,20 @@ def menu_positioning():
         screen.blit(main_menu, (0, 0))
         screen.blit(game_name, (416, 10))
 
-        if new_game_button.click(screen, (30, 380), col=d_col):
+        if new_game_button.click(screen, (30, 380)):
             last_game_state = game_state
             game_state = "yes_no_window"  # новая игра
-        if new_game_button.on_hover():
-            d_col = (255, 255, 0)
-        else:
-            d_col = (255, 255, 255)
 
-        if not continue_level:
-            if resume_button.click(screen, (30, 460), col=(130, 130, 130)):
-                Alert("<- Тыкай новую игру", (500, 380), 75)
-        else:
+        if continue_level:
             if resume_button.click(screen, (30, 460)):
                 last_game_state = game_state
                 if level.state == "run":
                     game_state = "run"
                 else:
                     game_state = "global_map"
+        else:
+            resume_button.click(screen, (30, 460), col=(130, 130, 130))
+
         if to_map_button.click(screen, (30, 540)):
             last_game_state = game_state
             scroller.set_scroll_offset(scroller.remembered_scroll_offset, "global_map")
@@ -4402,7 +4408,7 @@ enemies_group = sprite.Group()
 towers_group = sprite.Group()
 nekusaemie_group = sprite.Group()
 ui_group = sprite.Group()
-all_sprites_group = ModGroup()
+all_sprites_group = ExtendedGroup()
 clouds_group = sprite.Group()
 alert_group = sprite.Group()
 level_group = sprite.Group()
@@ -4454,8 +4460,7 @@ snow_coins = 0
 upload_data()
 # ---
 
-
-GlobalMapLevelButton("1", "0", (100, 714), level=Level("1", 22500, 750, 50, level_waves["1"], level_allowed_enemies["1"], level_image="2"))     # !!! все буквы русские !!!
+GlobalMapLevelButton("1", "0", (100, 714), level=Level("1", 22500, 750, 50, level_waves["1"], level_allowed_enemies["1"], level_image="2"))    # !!! все буквы русские !!!
 GlobalMapLevelButton("2", "1", (250, 544), level=Level("2", 22500, 575, 50, level_waves["2"], level_allowed_enemies["2"], level_image="2", blocked_slots=(160, 256, 352, 448, 544, 640,)))
 GlobalMapLevelButton("3", "2", (500, 500), level=Level("3", 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="2"))
 GlobalMapLevelButton("3а", "3", (700, 700), chest=Chest(parent_number="3а", rewards=chests_rewards["3а"]))
@@ -4501,8 +4506,9 @@ while running:
 
     for button in buttons_group:
         if button.on_hover():
-            button.color_manage = True
-            button.new_color = (230, 160, 35)
+            if button != resume_button or continue_level:
+                button.color_manage = True
+                button.new_color = (230, 160, 35)
         else:
             button.color_manage = False
 

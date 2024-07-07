@@ -35,6 +35,10 @@ level_allowed_enemies = {
 
 }
 
+level_instant_select_towers = {
+    "1": {160: "terpila", 256: "davalka"},
+}
+
 chests_rewards = {
     "3а": {
         "evil_coin": 1,
