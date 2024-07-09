@@ -458,8 +458,6 @@ class SlotsGroup(BasePreviewGroup):
                         common_slots += 1
                     if s.allowed_rarity == ("legendary",):
                         legendary_slots += 1
-                    if s.allowed_rarity == ("common", "legendary"):
-                        pass
                     if s.allowed_rarity == ("spell",):
                         spell_slots += 1
             return common_slots + legendary_slots + spell_slots
