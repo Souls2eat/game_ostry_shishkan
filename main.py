@@ -732,6 +732,7 @@ class Level:
 
         if slots_group not in dont_clear_groups:
             select_towers_preview_group.remember_entities_empty()
+            slots_group.slots_rarity = slots_group.default_slots_rarity.copy()
             for s in slots_group:
                 if s.unit_inside:
                     s.remove_unit()
