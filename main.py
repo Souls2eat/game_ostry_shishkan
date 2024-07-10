@@ -440,31 +440,99 @@ class TowerUpgradesGroup(BasePreviewGroup):
 
 
 class SlotsGroup(BasePreviewGroup):
-    def __init__(self):
+    def __init__(self, slots_rarity: dict):
         super().__init__(Slot)
+        self.slots_rarity = slots_rarity
+        self.default_slots_rarity = self.slots_rarity.copy()
 
     def clear_units(self):
         select_towers_preview_group.remember_entities_empty()
+        self.slots_rarity = self.default_slots_rarity.copy()
         for slot_ in self:
             if slot_.unit_inside:
                 slot_.remove_unit()
 
+    # def random_add_to_slots(self):
+    #     def count_empty_slots():
+    #         nonlocal legendary_slots, common_slots, spell_slots
+    #         for s in self.entities:
+    #             if not s.unit_inside and not s.blocked:
+    #                 if s.allowed_rarity == ("common",):
+    #                     common_slots += 1
+    #                 if s.allowed_rarity == ("legendary",):
+    #                     legendary_slots += 1
+    #                 if s.allowed_rarity == ("spell",):
+    #                     spell_slots += 1
+    #         return common_slots + legendary_slots + spell_slots
+    #
+    #     legendary_slots = 0
+    #     common_slots = 0
+    #     spell_slots = 0
+    #     legendary_towers = []
+    #     common_towers = []
+    #     spell_towers = []
+    #
+    #     if count_empty_slots() == 0:
+    #         self.clear_units()
+    #         count_empty_slots()
+    #
+    #     for tower in select_towers_preview_group.entities:
+    #         if tower not in select_towers_preview_group.remember_entities and tower.name in received_towers:
+    #             if tower.rarity == "common":
+    #                 common_towers.append(tower)
+    #             if tower.rarity == "legendary":
+    #                 legendary_towers.append(tower)
+    #             if tower.rarity == "spell":
+    #                 spell_towers.append(tower)
+    #
+    #     for i in range(legendary_slots):
+    #         new_tower = choice(legendary_towers)
+    #         legendary_towers.remove(new_tower)
+    #         self.add_to_slots(new_tower)
+    #     for i in range(common_slots):
+    #         new_tower = choice(common_towers)
+    #         common_towers.remove(new_tower)
+    #         self.add_to_slots(new_tower)
+    #     for i in range(spell_slots):
+    #         new_tower = choice(spell_towers)
+    #         spell_towers.remove(new_tower)
+    #         self.add_to_slots(new_tower)
+
+    # def add_to_slots(self, tower):
+    #     if len(select_towers_preview_group.remember_entities) <= 6 - len(level.blocked_slots) or tower.in_slot:
+    #         if not tower.in_slot:
+    #             for slot_ in sorted(self.entities, key=lambda s: s.pos[1]):
+    #                 if not slot_.unit_inside:
+    #                     if tower.rarity in slot_.allowed_rarity and not slot_.blocked:
+    #                         slot_.add_unit(tower)
+    #                         tower.in_slot = True
+    #                         select_towers_preview_group.remember_entities.append(tower)
+    #                         return True
+    #         elif tower.in_slot:
+    #             for slot_ in self.entities:
+    #                 if slot_.unit_inside:
+    #                     if slot_.unit_inside.name == tower.name:
+    #                         slot_.remove_unit()
+    #                         tower.in_slot = False
+    #                         select_towers_preview_group.remember_entities.remove(tower)
+    #                         return True
+    #         return False
+    #     else:
+    #         Alert("Закончились свободные слоты", (345, 760), 75)
+
     def random_add_to_slots(self):
         def count_empty_slots():
-            nonlocal legendary_slots, common_slots, spell_slots
-            for s in self.entities:
-                if not s.unit_inside and not s.blocked:
-                    if s.allowed_rarity == ("common",):
-                        common_slots += 1
-                    if s.allowed_rarity == ("legendary",):
-                        legendary_slots += 1
-                    if s.allowed_rarity == ("spell",):
-                        spell_slots += 1
-            return common_slots + legendary_slots + spell_slots
+            nonlocal common_slots, spell_slots, legendary_common_slots, spell_common_slots
+            common_slots = self.slots_rarity["common"]
+            spell_slots = self.slots_rarity["spell"]
+            legendary_common_slots = self.slots_rarity["legendary/common"]
+            spell_common_slots = self.slots_rarity["spell/common"]
+            return common_slots + spell_slots + legendary_common_slots + spell_common_slots
 
-        legendary_slots = 0
         common_slots = 0
         spell_slots = 0
+        legendary_common_slots = 0
+        spell_common_slots = 0
         legendary_towers = []
         common_towers = []
         spell_towers = []
@@ -482,10 +550,6 @@ class SlotsGroup(BasePreviewGroup):
                 if tower.rarity == "spell":
                     spell_towers.append(tower)
 
-        for i in range(legendary_slots):
-            new_tower = choice(legendary_towers)
-            legendary_towers.remove(new_tower)
-            self.add_to_slots(new_tower)
         for i in range(common_slots):
             new_tower = choice(common_towers)
             common_towers.remove(new_tower)
@@ -494,22 +558,58 @@ class SlotsGroup(BasePreviewGroup):
             new_tower = choice(spell_towers)
             spell_towers.remove(new_tower)
             self.add_to_slots(new_tower)
+        for i in range(legendary_common_slots):
+            random_rarity = choice([legendary_towers, common_towers])
+            new_tower = choice(random_rarity)
+            random_rarity.remove(new_tower)
+            self.add_to_slots(new_tower)
+        for i in range(spell_common_slots):
+            random_rarity = choice([spell_towers, common_towers])
+            new_tower = choice(random_rarity)
+            random_rarity.remove(new_tower)
+            self.add_to_slots(new_tower)
 
     def add_to_slots(self, tower):
+        def directly_add():     # непосредственно добавление
+            slot_.add_unit(tower)
+            tower.in_slot = True
+            select_towers_preview_group.remember_entities.append(tower)
+
         if len(select_towers_preview_group.remember_entities) <= 6 - len(level.blocked_slots) or tower.in_slot:
             if not tower.in_slot:
                 for slot_ in sorted(self.entities, key=lambda s: s.pos[1]):
                     if not slot_.unit_inside:
-                        if tower.rarity in slot_.allowed_rarity and not slot_.blocked:
-                            slot_.add_unit(tower)
-                            tower.in_slot = True
-                            select_towers_preview_group.remember_entities.append(tower)
-                            return True
+                        if tower.rarity in self.slots_rarity and self.slots_rarity[tower.rarity] > 0:
+                            if not slot_.blocked:
+                                self.slots_rarity[tower.rarity] -= 1
+                                slot_.allowed_rarity = tower.rarity
+                                directly_add()
+                                return True
+                        elif f"legendary/{tower.rarity}" in self.slots_rarity and self.slots_rarity[f"legendary/{tower.rarity}"] > 0:
+                            if not slot_.blocked:
+                                self.slots_rarity[f"legendary/{tower.rarity}"] -= 1
+                                slot_.allowed_rarity = f"legendary/{tower.rarity}"
+                                directly_add()
+                                return True
+                        elif f"spell/{tower.rarity}" in self.slots_rarity and self.slots_rarity[f"spell/{tower.rarity}"] > 0:
+                            if not slot_.blocked:
+                                self.slots_rarity[f"spell/{tower.rarity}"] -= 1
+                                slot_.allowed_rarity = f"spell/{tower.rarity}"
+                                directly_add()
+                                return True
+                        elif f"{tower.rarity}/common" in self.slots_rarity and self.slots_rarity[f"{tower.rarity}/common"] > 0:
+                            if not slot_.blocked:
+                                self.slots_rarity[f"{tower.rarity}/common"] -= 1
+                                slot_.allowed_rarity = f"{tower.rarity}/common"
+                                directly_add()
+                                return True
+
             elif tower.in_slot:
                 for slot_ in self.entities:
                     if slot_.unit_inside:
                         if slot_.unit_inside.name == tower.name:
                             slot_.remove_unit()
+                            self.slots_rarity[slot_.allowed_rarity] += 1
                             tower.in_slot = False
                             select_towers_preview_group.remember_entities.remove(tower)
                             return True
@@ -540,6 +640,12 @@ class SlotsGroup(BasePreviewGroup):
                     additional_pixels = -5
                 if additional_pixels != 0:
                     surf.blit(font30.render(str(slot_.kd_time), True, (255, 255, 255)), (slot_.pos[0] + additional_pixels, slot_.pos[1] + 50))
+
+        if game_state == "tower_select":
+            screen.blit(font60.render(str(self.slots_rarity["common"]), True, (61, 243, 69)), (30, 820))
+            screen.blit(font60.render(str(self.slots_rarity["spell"]), True, (70, 109, 249)), (60, 820))
+            screen.blit(font60.render(str(self.slots_rarity["legendary/common"]), True, (202, 239, 28)), (90, 820))
+            screen.blit(font60.render(str(self.slots_rarity["spell/common"]), True, (28, 227, 239)), (120, 820))
 
     def update(self):
         for slot_ in self.entities:
@@ -620,12 +726,12 @@ class Level:
         if buttons_group not in dont_clear_groups:
             for button_ in buttons_group:
                 button_.ok = False
-        select_towers_preview_group.remember_entities_empty()
         # if ui_group not in dont_clear_groups:
         #     for ui in ui_group:
         #         ui.kill()
 
         if slots_group not in dont_clear_groups:
+            select_towers_preview_group.remember_entities_empty()
             for s in slots_group:
                 if s.unit_inside:
                     s.remove_unit()
@@ -633,7 +739,7 @@ class Level:
         for sprite_ in all_sprites_group:
             if dont_clear_groups:
                 for group in dont_clear_groups:
-                    if sprite_ not in group and sprite_ not in text_sprites_group and sprite_.name != "shovel":
+                    if sprite_ not in group and sprite_ not in text_sprites_group and hasattr(sprite_, "name") and sprite_.name != "shovel":
                         sprite_.kill()
             else:
                 if sprite_ not in text_sprites_group:
@@ -657,12 +763,12 @@ class Level:
 
         return "run"
 
-    def refresh(self):
+    def refresh(self, *dont_clear_groups):
         self.money = self.start_money
         self.level_time = self.start_level_time
         self.time_to_spawn = self.start_time_to_spawn
         self.state = "not_run"
-        self.clear()
+        self.clear(*dont_clear_groups)
 
         for slot_ in slots_group:
             if slot_.pos[1] in self.blocked_slots:
@@ -3430,13 +3536,14 @@ class Buff(sprite.Sprite):
 
 
 class Slot:
-    def __init__(self, pos, allowed_rarity=("common",)):
+    def __init__(self, pos):    # allowed_rarity=("common",)
         self.pos = pos
         self.blocked = False
         self.free_placement = False
-        self.allowed_rarity = allowed_rarity
-        self.image = image.load("images/other/slot.png").convert_alpha()
-        self.repaint()
+        # self.allowed_rarity = allowed_rarity
+        self.allowed_rarity = None
+        self.image = image.load("images/slots_rarity/default_slot.png").convert_alpha()
+        # self.repaint()
 
         self.rect = self.image.get_rect(topleft=self.pos)
         self.render_layer = 3
@@ -3451,27 +3558,38 @@ class Slot:
         self.default_kd_time = 0
         slots_group.add(self)
 
+    # def repaint(self):
+    #     if self.allowed_rarity == ("legendary",):
+    #         for i in range(190):
+    #             for j in range(94):
+    #                 pixel = self.image.get_at((i, j))
+    #                 if pixel[:-1] == (61, 243, 79):
+    #                     self.image.set_at((i, j), (243, 243, 61))
+    #                 if pixel[:-1] == (64, 211, 78):
+    #                     self.image.set_at((i, j), (215, 215, 63))
+    #                 if pixel[:-1] == (67, 183, 78):
+    #                     self.image.set_at((i, j), (196, 196, 75))
+    #     if self.allowed_rarity == ("spell",):
+    #         for i in range(190):
+    #             for j in range(94):
+    #                 pixel = self.image.get_at((i, j))
+    #                 if pixel[:-1] == (61, 243, 79):
+    #                     self.image.set_at((i, j), (70, 109, 249))
+    #                 if pixel[:-1] == (64, 211, 78):
+    #                     self.image.set_at((i, j), (67, 100, 215))
+    #                 if pixel[:-1] == (67, 183, 78):
+    #                     self.image.set_at((i, j), (71, 95, 180))
+
     def repaint(self):
-        if self.allowed_rarity == ("legendary",):
-            for i in range(190):
-                for j in range(94):
-                    pixel = self.image.get_at((i, j))
-                    if pixel[:-1] == (61, 243, 79):
-                        self.image.set_at((i, j), (243, 243, 61))
-                    if pixel[:-1] == (64, 211, 78):
-                        self.image.set_at((i, j), (215, 215, 63))
-                    if pixel[:-1] == (67, 183, 78):
-                        self.image.set_at((i, j), (196, 196, 75))
-        if self.allowed_rarity == ("spell",):
-            for i in range(190):
-                for j in range(94):
-                    pixel = self.image.get_at((i, j))
-                    if pixel[:-1] == (61, 243, 79):
-                        self.image.set_at((i, j), (70, 109, 249))
-                    if pixel[:-1] == (64, 211, 78):
-                        self.image.set_at((i, j), (67, 100, 215))
-                    if pixel[:-1] == (67, 183, 78):
-                        self.image.set_at((i, j), (71, 95, 180))
+        if self.unit_inside:
+            if self.unit_inside.rarity == "legendary":
+                self.image = image.load("images/slots_rarity/legendary_slot.png").convert_alpha()
+            if self.unit_inside.rarity == "common":
+                self.image = image.load("images/slots_rarity/common_slot.png").convert_alpha()
+            if self.unit_inside.rarity == "spell":
+                self.image = image.load("images/slots_rarity/spell_slot.png").convert_alpha()
+        else:
+            self.image = image.load("images/slots_rarity/default_slot.png").convert_alpha()
 
     def add_unit(self, unit):
         self.unit_inside = Tower(unit.name, (self.unit_rect.x - 100, self.unit_rect.y))   # x - 100 == нет всяких блакиков и ворон
@@ -3482,6 +3600,7 @@ class Slot:
         self.kd_time = 0                            # можно прям в тавер записать
         self.default_kd_time = towers_kd[unit.name]
         self.free_placement = unit.free_placement
+        self.repaint()
 
     def remove_unit(self):
         self.unit_inside.kill()
@@ -3493,6 +3612,7 @@ class Slot:
         self.kd_time = 0
         self.default_kd_time = 0
         self.unit_inside = None
+        self.repaint()
 
     def move_unit(self):
         self.unit_inside.rect = self.unit_inside.image.get_rect(center=mouse.get_pos())
@@ -3803,7 +3923,7 @@ def uniq_is_free(new_tower):
         return None, None
 
 
-def tower_placement2(slot_):
+def tower_placement(slot_):
     if is_free(slot_.unit_inside):
         if level.money - tower_costs[slot_.unit_inside.name] >= 0 or level.cheat:
             Tower(slot_.unit_inside.name, unit_pos)
@@ -3821,22 +3941,22 @@ def tower_placement2(slot_):
                     slot_.kd_time = slot_.default_kd_time
 
 
-def tower_placement(new_tower):
-    if is_free(new_tower):
-        if level.money - tower_costs[new_tower.unit_inside] >= 0:
-            Tower(new_tower.unit_inside, unit_pos)
-            if not level.cheat:
-                level.money -= tower_costs[new_tower.unit_inside]
-            new_tower.kd_time = new_tower.default_kd_time
-
-    elif new_tower.unit_inside == "gnome_cannon1" or new_tower.unit_inside == "go_bleen1":
-        ok_, tower_name = uniq_is_free(new_tower)
-        if ok_:
-            if level.money - tower_costs[new_tower.unit_inside] >= 0:
-                Tower(tower_name, unit_pos)
-                if not level.cheat:
-                    level.money -= tower_costs[new_tower.unit_inside]
-                new_tower.kd_time = new_tower.default_kd_time
+# def tower_placement(new_tower):
+#     if is_free(new_tower):
+#         if level.money - tower_costs[new_tower.unit_inside] >= 0:
+#             Tower(new_tower.unit_inside, unit_pos)
+#             if not level.cheat:
+#                 level.money -= tower_costs[new_tower.unit_inside]
+#             new_tower.kd_time = new_tower.default_kd_time
+#
+#     elif new_tower.unit_inside == "gnome_cannon1" or new_tower.unit_inside == "go_bleen1":
+#         ok_, tower_name = uniq_is_free(new_tower)
+#         if ok_:
+#             if level.money - tower_costs[new_tower.unit_inside] >= 0:
+#                 Tower(tower_name, unit_pos)
+#                 if not level.cheat:
+#                     level.money -= tower_costs[new_tower.unit_inside]
+#                 new_tower.kd_time = new_tower.default_kd_time
 
 
 # def random_add_to_slots(*blocked_slots_):    # жестко пофиксить
@@ -3846,8 +3966,8 @@ def tower_placement(new_tower):
 #             all_towers.append(tower)
 #     random_unit = choice(all_towers)
 #     add_to_slots(random_unit, *blocked_slots_)
-#
-#
+
+
 # def add_to_slots(en, *blocked_slots_):    # жестко пофиксить
 #     if len(select_towers_preview_group.remember_entities) <= 6 - len(blocked_slots_) or en.in_slot:
 #         if not en.in_slot:
@@ -3862,8 +3982,8 @@ def tower_placement(new_tower):
 #                     select_towers_preview_group.remember_entities.remove(en)
 #     else:
 #         Alert("Закончились свободные слоты", (345, 760), 75)
-#
-#
+
+
 # def first_empty_slot(blocked_slots_):
 #     ui_pos_list = {160, 256, 352, 448, 544, 640, 736} - set(blocked_slots_)
 #     fill_pos = set()
@@ -3966,8 +4086,7 @@ def menu_positioning():
             scroll_offset, \
             coin_indent_x, \
             count_of_reward_coins, \
-            current_scroll_offset_state, \
-            d_col
+            current_scroll_offset_state
 
     if game_state == "main_menu":
         screen.blit(main_menu, (0, 0))
@@ -4222,7 +4341,7 @@ def menu_positioning():
         if level.state == "run":           # белая кнопка
             if restart_button.click(screen, (582, 440)):
                 last_game_state = game_state
-                level.refresh()
+                level.refresh(slots_group)
                 game_state = "tower_select"
                 level.state = "not_run"
         else:
@@ -4291,7 +4410,7 @@ def menu_positioning():
                 level.clear(ui_group, slots_group)
                 level.state = "not_run"
                 continue_level = True
-                select_towers_preview_group.remember_entities.clear()
+                # select_towers_preview_group.remember_entities.clear()
             else:
                 Alert("Остались свободные слоты", (400, 760), 75)
         if pause_button.click(screen, (1550, 30)):
@@ -4416,7 +4535,7 @@ global_map = GlobalMap()
 tower_upgrades_group = TowerUpgradesGroup()
 text_sprites_group = sprite.Group()
 rewards_preview_group = RewardsPreviewGroup()
-slots_group = SlotsGroup()
+slots_group = SlotsGroup(slots_rarity={"common": 2, "spell": 2, "legendary/common": 2, "spell/common": 1})
 
 pause_button = Button("text", font40, "||",)
 restart_button = Button("text", font60, "Перезапустить")
@@ -4486,13 +4605,13 @@ preview_group.entity_create(3)
 select_towers_preview_group.entity_create(6)
 
 # {160, 256, 352, 448, 544, 640, 736}
-a = Slot((32, 160), allowed_rarity=("legendary",))      # редкость слота
+a = Slot((32, 160))      # редкость слота
 Slot((32, 256))
 Slot((32, 352))
 Slot((32, 448))
 Slot((32, 544))
-Slot((32, 640), allowed_rarity=("spell",))
-Slot((32, 736), allowed_rarity=("spell",))
+Slot((32, 640))
+Slot((32, 736))
 
 shovel = Shovel((1500, 800))
 
@@ -4682,5 +4801,5 @@ while running:
 
                         if 1536 > unit_pos[0] >= 384 and 832 > unit_pos[1] >= 192:
                             # if slot.path == "towers":
-                            tower_placement2(slot)
+                            tower_placement(slot)
 save_data()
