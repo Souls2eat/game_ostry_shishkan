@@ -246,7 +246,10 @@ class PreviewGroup(BasePreviewGroup):
     def go_animation(self):
         for en in self.entities:
             if en == self.hovered_entity:
-                en.state = "attack"
+                if en.name in towers_attack or en.name in enemies_attack:
+                    en.state = "attack"
+                else:
+                    en.state = "wait"
             else:
                 if isinstance(en, Tower):
                     en.state = "wait"
@@ -986,7 +989,7 @@ class Tower(sprite.Sprite):
             self.atk = 15
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.basic_attack_cooldown = self.attack_cooldown = 150
+            self.basic_attack_cooldown = self.attack_cooldown = 120     # 150
             self.damage_type = ''
             self.rarity = "common"
 
@@ -1347,12 +1350,16 @@ class Tower(sprite.Sprite):
 
     def add_anim_task(self, anim, func):
         if len(self.anim_tasks) == 0:
-            self.anim_tasks.append([anim, (4 * self.anim_duration) // self.time_indicator, func])
+            self.state = anim
+            self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator, func])
             self.anim_count = 0
         else:
             already_in = [anim[0] for anim in self.anim_tasks]
             if anim not in already_in:
-                self.anim_tasks.append([anim, (4 * self.anim_duration) // self.time_indicator, func])
+                self.state = anim
+                self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator, func])
+
+        # print(self.state, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator)
 
     def prime_anim(self, anim, func):
         if anim not in [an[0] for an in self.anim_tasks]:
@@ -1604,6 +1611,7 @@ class Tower(sprite.Sprite):
         return None
 
     def check_target_alive(self):
+        print("ff")
         if targets[id(self)]:
             if targets[id(self)].rect.x < self.rect.x:
                 targets[id(self)] = None
@@ -1932,10 +1940,12 @@ class Tower(sprite.Sprite):
         self.hiding = True
 
     def animation(self):    # эта функция вызывается каждый цикл, хотя по идее это не нужно, но пока не лагает, я исправлять не буду
-        if 0 <= self.anim_count < self.anim_duration \
-                or self.anim_duration <= self.anim_count < 2 * self.anim_duration \
-                or self.anim_duration * 2 <= self.anim_count < 3 * self.anim_duration \
-                or self.anim_duration * 3 <= self.anim_count < 4 * self.anim_duration:      # переделать
+        # if 0 <= self.anim_count < self.anim_duration \
+        #         or self.anim_duration <= self.anim_count < 2 * self.anim_duration \
+        #         or self.anim_duration * 2 <= self.anim_count < 3 * self.anim_duration \
+        #         or self.anim_duration * 3 <= self.anim_count < 4 * self.anim_duration or self.name == "boomchick":      # переделать
+        count_anim_frames = self.get_count_anim_frames()
+        if 0 <= self.anim_count < self.anim_duration * count_anim_frames:
             if self.state == "wait":
                 self.image = towers_wait[self.name][int(self.anim_count//self.anim_duration)]
             if self.state == "attack":
@@ -1948,10 +1958,22 @@ class Tower(sprite.Sprite):
             if self.state == "death":
                 ...
 
-        if self.anim_count >= 4 * self.anim_duration:   # 4 -- так как в анимации 4 кадра
+        if self.anim_count >= count_anim_frames * self.anim_duration:   # 4 -- так как в анимации 4 кадра
             self.anim_count = 0
         else:
             self.anim_count += self.time_indicator
+
+    def get_count_anim_frames(self):
+        if self.state == "wait":
+            return len(towers_wait[self.name])
+        if self.state == "attack":
+            return len(towers_attack[self.name])
+        if self.state == "give":
+            return len(towers_give[self.name])
+        if self.state == "hide":
+            return len(towers_hide[self.name])
+        if self.state == "death":   # complite
+            ...
 
     def move(self, change_pos):
         self.pos = self.pos[0], self.pos[1] + change_pos
@@ -1968,12 +1990,11 @@ class Tower(sprite.Sprite):
             if self.anim_tasks[0][1] > 0:            # -> self.anim_sequence = [("attack", 60, shoot), ("give", 50, spawn_something), ...]
                 self.state = self.anim_tasks[0][0]   # -> какая анимация, время анимации, функция после анимации
                 self.anim_tasks[0][1] -= 1
-            elif self.anim_tasks[0][1] == 0:
+            elif self.anim_tasks[0][1] == 0:        # баг?
                 self.anim_tasks[0][2]()
                 self.anim_tasks[0][1] -= 1
-            else:
                 self.anim_tasks.pop(0)
-                self.anim_count = 0
+                # self.anim_count = 0
         else:
             self.state = "wait"
 
@@ -2025,6 +2046,7 @@ class Tower(sprite.Sprite):
         surf.blit(self.image2, self.rect2)
 
     def update(self):
+        print(self.anim_count)
         self.cooldown()
         self.animation()
         self.image2 = font30.render(str(self.hp), True, (0, 0, 0))
@@ -4606,7 +4628,7 @@ preview_group.entity_create(3)
 select_towers_preview_group.entity_create(6)
 
 # {160, 256, 352, 448, 544, 640, 736}
-a = Slot((32, 160))      # редкость слота
+Slot((32, 160))      # редкость слота
 Slot((32, 256))
 Slot((32, 352))
 Slot((32, 448))
