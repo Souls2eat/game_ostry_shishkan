@@ -537,7 +537,7 @@ class SlotsGroup(BasePreviewGroup):
         common_towers = []
         spell_towers = []
 
-        if count_empty_slots() == 0:
+        if count_empty_slots() - len(level.blocked_slots) == 0:
             self.clear_units()
             count_empty_slots()
 
@@ -4578,7 +4578,7 @@ upload_data()
 # ---
 
 GlobalMapLevelButton("1", "0", (100, 714), level=Level("1", 22500, 750, 50, level_waves["1"], level_allowed_enemies["1"], level_image="2"))    # !!! все буквы русские !!!
-GlobalMapLevelButton("2", "1", (250, 544), level=Level("2", 22500, 575, 50, level_waves["2"], level_allowed_enemies["2"], level_image="2", blocked_slots=(160, 256, 352, 448, 544, 640,)))
+GlobalMapLevelButton("2", "1", (250, 544), level=Level("2", 22500, 575, 50, level_waves["2"], level_allowed_enemies["2"], level_image="2"))
 GlobalMapLevelButton("3", "2", (500, 500), level=Level("3", 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="2"))
 GlobalMapLevelButton("3а", "3", (700, 700), chest=Chest(parent_number="3а", rewards=chests_rewards["3а"]))
 GlobalMapLevelButton("4", "3", (750, 400), level=Level("4", 22500, 225, 50, level_waves["4"], level_allowed_enemies["4"], level_image="2"))
