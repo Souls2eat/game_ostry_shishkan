@@ -46,6 +46,7 @@ towers_wait = {
     "vistrel": [image.load(f"images/towers/vistrel/wait/vistrel{i}.png") for i in range(1, 5)],
     "molniya": [image.load(f"images/towers/molniya/wait/molniya{i}.png") for i in range(1, 5)],
     "tp_back": [image.load(f"images/towers/tp_back/wait/tp_back{i}.png") for i in range(1, 5)],
+    "joltiy_pomidor": [image.load(f"images/towers/joltiy_pomidor/wait/joltiy_pomidor{i}.png") for i in range(1, 5)],
 
 }
 
