@@ -19,6 +19,7 @@ level_waves = {
         "v6000": 50
     },
     "5": {
+        "v31000": 60,
         "v25000": 40,
         "v22000": 60,
         "v12000": 60,
@@ -28,7 +29,7 @@ level_waves = {
 
 level_allowed_enemies = {
     "1": ("popusk", "josky"),   # ("popusk", "josky")
-    "2": ("josky", "sportik", "popusk"),
+    "2": ("josky", "sigma", "sportik", "popusk"),
     "3": ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik"),
     "4": ("telezhnik", "rojatel", "sigma", "armorik", "zeleniy_strelok", "drobik", "klonik"),
     "5": ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik", "klonik", "teleportik")
@@ -59,6 +60,7 @@ chests_rewards = {
         "barrier_mag": "unlock",
         "drachun": "unlock",
     }
+
 }
 
 enemy_costs = {
@@ -107,6 +109,10 @@ tower_costs = {
     "electro_maga": 35,
     "inquisitor": 10,
     "priest": 10,
+    "ded_moroz": 25,
+    "uvelir": 30,
+    "krovnyak": 20,
+    "kokol": 25,
     "bomb": 35,
     "perec": 30,
     "vodka": 15,
@@ -153,6 +159,10 @@ towers_kd = {
     "electro_maga": 750,
     "inquisitor": 1125,
     "priest": 1125,
+    "ded_moroz": 450,
+    "uvelir": 900,
+    "krovnyak": 375,
+    "kokol": 375,
     "bomb": 1875,
     "perec": 1500,
     "vodka": 1500,
@@ -383,6 +393,34 @@ upgrade_costs = {
         "2b": "1 city_coin",
         "3a": "2 city_coin",
         "3b": "2 city_coin",
+    },
+    "ded_moroz": {
+        "1": "0 snow_coin",
+        "2a": "1 snow_coin",
+        "2b": "1 snow_coin",
+        "3a": "2 snow_coin",
+        "3b": "2 snow_coin",
+    },
+    "uvelir": {
+        "1": "0 mountain_coin",
+        "2a": "1 mountain_coin",
+        "2b": "1 mountain_coin",
+        "3a": "2 mountain_coin",
+        "3b": "2 mountain_coin",
+    },
+    "krovnyak": {
+        "1": "0 city_coin",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "kokol": {
+        "1": "0 forest_coin",
+        "2a": "1 forest_coin",
+        "2b": "1 forest_coin",
+        "3a": "2 forest_coin",
+        "3b": "2 forest_coin",
     },
     "bomb": {
         "1": "0 city_coin",
