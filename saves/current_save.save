@@ -1,15 +1,15 @@
-passed_levels = 0, 1, 2, 3, 3а
-received_towers = fire_mag, pukish, boomchick, davalka, kopitel, matricayshon, parasitelniy, spike, easy_money, vistrel, terpila, big_mechman
-not_received_towers = thunder, yascerica, zeus, barrier_mag, urag_anus, drachun, tolkan, knight_on_horse, gnome_cannon1, electric, struyniy, dark_druid, gribnik, pen, bolotnik, nekr, electro_maga, inquisitor, priest, bomb, perec, molniya, vodka, tp_back, joltiy_pomidor
-encountered_enemies = popusk, sigma
-not_encountered_enemies = josky, zeleniy_strelok, sportik, rojatel, mega_strelok, slabiy, armorik, telezhnik, drobik
+passed_levels = 0, 1, 2, 3, 4, 5, 6, 6а
+received_towers = fire_mag, pukish, boomchick, davalka, kopitel, matricayshon, parasitelniy, spike, easy_money, vistrel, terpila, thunder, yascerica, zeus, barrier_mag, urag_anus, big_mechman, drachun, tolkan, knight_on_horse, gnome_cannon1, electric, struyniy, dark_druid, gribnik, pen, bolotnik, nekr, electro_maga, inquisitor, priest, ded_moroz, uvelir, krovnyak, kokol, bomb, perec, molniya, vodka, tp_back, joltiy_pomidor
+not_received_towers = []
+encountered_enemies = popusk, sigma, josky, zeleniy_strelok, sportik, rojatel, mega_strelok, slabiy, armorik, telezhnik, drobik
+not_encountered_enemies = []
 completed_events = []
 -----
 city_coin = 25
-forest_coin = 30
-evil_coin = 28
+forest_coin = 25
+evil_coin = 25
 mountain_coin = 25
-snow_coin = 41
+snow_coin = 25
 -----
 fire_mag = 1
 pukish = 1
@@ -42,6 +42,10 @@ nekr = 1
 electro_maga = 1
 inquisitor = 1
 priest = 1
+ded_moroz = 1
+uvelir = 1
+krovnyak = 1
+kokol = 1
 bomb = 1
 perec = 1
 molniya = 1
