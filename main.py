@@ -5210,17 +5210,16 @@ def menu_positioning():
             rewards_preview_group.clear_rewards()
             scroller.set_scroll_offset(scroller.remembered_scroll_offset, "global_map")
 
-        if game_state == "event":
-            screen.blit(game_map, (0 + scroller.scroll_offset, 0))
-            global_map.custom_draw(screen)
-            global_map.move_element_by_scroll(vector="x")
-            global_map.hiding_map_secrets()
-
-            if global_map.event:
-                global_map.event.do()
-            else:
-                last_game_state = game_state
-                game_state = "global_map"
+    if game_state == "event":
+        screen.blit(game_map, (0 + scroller.scroll_offset, 0))
+        global_map.custom_draw(screen)
+        global_map.move_element_by_scroll(vector="x")
+        global_map.hiding_map_secrets()
+        if global_map.event:
+            global_map.event.do()
+        else:
+            last_game_state = game_state
+            game_state = "global_map"
 
     # -------
 
