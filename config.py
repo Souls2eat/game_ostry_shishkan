@@ -19,7 +19,6 @@ level_waves = {
         "v6000": 50
     },
     "5": {
-        "v31000": 60,
         "v25000": 40,
         "v22000": 60,
         "v12000": 60,
@@ -29,7 +28,7 @@ level_waves = {
 
 level_allowed_enemies = {
     "1": ("popusk", "josky"),   # ("popusk", "josky")
-    "2": ("josky", "sigma", "sportik", "popusk"),
+    "2": ("josky", "sportik", "popusk"),
     "3": ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik"),
     "4": ("telezhnik", "rojatel", "sigma", "armorik", "zeleniy_strelok", "drobik", "klonik"),
     "5": ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik", "klonik", "teleportik")
@@ -54,7 +53,12 @@ chests_rewards = {
         "zeus": "unlock",
         "thunder": "unlock",
     },
-
+    "village_event": {
+        "city_coin": 2,
+        "evil_coin": 1,
+        "barrier_mag": "unlock",
+        "drachun": "unlock",
+    }
 }
 
 enemy_costs = {
@@ -103,10 +107,6 @@ tower_costs = {
     "electro_maga": 35,
     "inquisitor": 10,
     "priest": 10,
-    "ded_moroz": 25,
-    "uvelir": 30,
-    "krovnyak": 20,
-    "kokol": 25,
     "bomb": 35,
     "perec": 30,
     "vodka": 15,
@@ -153,10 +153,6 @@ towers_kd = {
     "electro_maga": 750,
     "inquisitor": 1125,
     "priest": 1125,
-    "ded_moroz": 450,
-    "uvelir": 900,
-    "krovnyak": 375,
-    "kokol": 375,
     "bomb": 1875,
     "perec": 1500,
     "vodka": 1500,
@@ -388,34 +384,6 @@ upgrade_costs = {
         "3a": "2 city_coin",
         "3b": "2 city_coin",
     },
-    "ded_moroz": {
-        "1": "0 snow_coin",
-        "2a": "1 snow_coin",
-        "2b": "1 snow_coin",
-        "3a": "2 snow_coin",
-        "3b": "2 snow_coin",
-    },
-    "uvelir": {
-        "1": "0 mountain_coin",
-        "2a": "1 mountain_coin",
-        "2b": "1 mountain_coin",
-        "3a": "2 mountain_coin",
-        "3b": "2 mountain_coin",
-    },
-    "krovnyak": {
-        "1": "0 city_coin",
-        "2a": "1 city_coin",
-        "2b": "1 city_coin",
-        "3a": "2 city_coin",
-        "3b": "2 city_coin",
-    },
-    "kokol": {
-        "1": "0 forest_coin",
-        "2a": "1 forest_coin",
-        "2b": "1 forest_coin",
-        "3a": "2 forest_coin",
-        "3b": "2 forest_coin",
-    },
     "bomb": {
         "1": "0 city_coin",
         "2a": "1 city_coin",
@@ -459,3 +427,58 @@ upgrade_costs = {
         "3b": "2 city_coin",
     }
 }
+
+keys_ru = {
+    "a": "ф",
+    "b": "и",
+    "c": "с",
+    "d": "в",
+    "e": "у",
+    "f": "а",
+    "g": "п",
+    "h": "р",
+    "i": "ш",
+    "j": "о",
+    "k": "л",
+    "l": "д",
+    "m": "ь",
+    "n": "т",
+    "o": "щ",
+    "p": "з",
+    "q": "й",
+    "r": "к",
+    "s": "ы",
+    "t": "е",
+    "u": "г",
+    "v": "м",
+    "w": "ц",
+    "x": "ч",
+    "y": "н",
+    "z": "я",
+    "0": "0",
+    "1": "1",
+    "2": "2",
+    "3": "3",
+    "4": "4",
+    "5": "5",
+    "6": "6",
+    "7": "7",
+    "8": "8",
+    "9": "9",
+    ",": "б",
+    ".": "ю",
+    "/": ".",
+    "`": "ё",
+    "[": "х",
+    "]": "ъ",
+    ";": "ж",
+    "'": "э",
+    " ": " "
+}
+KEYS_EN = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
+           "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
+           "u", "v", "w", "x", "y", "z", "0", "1", "2", "3",
+           "4", "5", "6", "7", "8", "9", ",", ".", "/", "`",
+           "[", "]", ";", "'", " "]
+kEYS_CODES = [x for x in range(97, 123)] + [x for x in range(48, 58)] + [44, 46, 47, 96, 91, 93, 59, 39, 32]
+KEYS = dict(zip(kEYS_CODES, KEYS_EN))   # я хз куда это, но в мейн нах не надо

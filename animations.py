@@ -38,10 +38,6 @@ towers_wait = {
     "electro_maga": [image.load(f"images/towers/electro_maga/wait/electro_maga{i}.png") for i in range(1, 5)],
     "inquisitor": [image.load(f"images/towers/inquisitor/wait/inquisitor{i}.png") for i in range(1, 5)],
     "priest": [image.load(f"images/towers/priest/wait/priest{i}.png") for i in range(1, 5)],
-    "ded_moroz": [image.load(f"images/towers/ded_moroz/wait/ded_moroz{i}.png") for i in range(1, 5)],
-    "uvelir": [image.load(f"images/towers/uvelir/wait/uvelir{i}.png") for i in range(1, 5)],
-    "krovnyak": [image.load(f"images/towers/krovnyak/wait/krovnyak{i}.png") for i in range(1, 5)],
-    "kokol": [image.load(f"images/towers/kokol/wait/kokol{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/wait/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/wait/perec{i}.png") for i in range(1, 5)],
@@ -82,10 +78,6 @@ towers_attack = {
     "electro_maga": [image.load(f"images/towers/electro_maga/attack/electro_maga{i}.png") for i in range(1, 5)],
     "inquisitor": [image.load(f"images/towers/inquisitor/attack/inquisitor{i}.png") for i in range(1, 5)],
     "priest": [image.load(f"images/towers/priest/attack/priest{i}.png") for i in range(1, 5)],
-    "ded_moroz": [image.load(f"images/towers/ded_moroz/attack/ded_moroz{i}.png") for i in range(1, 5)],
-    "uvelir": [image.load(f"images/towers/uvelir/attack/uvelir{i}.png") for i in range(1, 5)],
-    "krovnyak": [image.load(f"images/towers/krovnyak/attack/krovnyak{i}.png") for i in range(1, 5)],
-    "kokol": [image.load(f"images/towers/kokol/attack/kokol{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/attack/go_bleen1{i}.png") for i in range(1, 3)],
 
 }
@@ -94,7 +86,6 @@ towers_give = {
     "barrier_mag": [image.load(f"images/towers/barrier_mag/give/barrier_mag{i}.png") for i in range(1, 5)],
     "kopitel": [image.load(f"images/towers/kopitel/give/kopitel{i}.png") for i in range(1, 5)],
     "davalka": [image.load(f"images/towers/davalka/give/davalka{i}.png") for i in range(1, 5)],
-    "uvelir": [image.load(f"images/towers/uvelir/give/uvelir{i}.png") for i in range(1, 5)],
 }
 
 towers_hide = {
