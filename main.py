@@ -91,6 +91,8 @@ class ExtendedGroup(sprite.Group):
             if level.rect_visible:
                 if hasattr(sprite_, "rect"):
                     draw.rect(screen, (0, 200, 0), sprite_.rect, 5)
+                if hasattr(sprite_, "rect_pen"):
+                    draw.rect(screen, (200, 0, 0), sprite_.rect_pen, 5)
 
     @staticmethod
     def sort_by_layer(obj_):
@@ -602,7 +604,13 @@ class SlotsGroup(BasePreviewGroup):
             random_rarity.remove(new_tower)
             self.add_to_slots(new_tower)
         for i in range(spell_common_slots):
-            random_rarity = choice([spell_towers, common_towers])
+            random_rarity = spell_towers
+            if spell_towers and common_towers:
+                random_rarity = choice([spell_towers, common_towers])
+            if common_towers:
+                random_rarity = common_towers
+            if spell_towers:
+                random_rarity = spell_towers
             new_tower = choice(random_rarity)
             random_rarity.remove(new_tower)
             self.add_to_slots(new_tower)
@@ -4558,7 +4566,12 @@ def render_text(text, surf, pos, max_width, color_=(0, 0, 0), font_=font25):
             word_pos = pos[0], word_pos[1] + get_font_height()
             lines += 1
         surf.blit(font_.render(word, True, color_), word_pos)
+        if level.rect_visible:
+            draw.rect(screen, (0, 200, 0), font_.render(word, True, color_).get_rect(topleft=word_pos), 5)  # отображение границы слова
         word_pos = word_pos[0] + word_width + get_whitespace_width(), word_pos[1]
+
+    if level.rect_visible:
+        draw.rect(screen, (200, 0, 0), Rect(pos[0], pos[1], max_width, get_font_height() * lines), 5)   # отображение границы текста
 
 
 def is_free(new_tower):
@@ -4991,7 +5004,7 @@ def menu_positioning():
 
                 modification_preview_menu.blit(line_, (0, 510))
         else:
-            modification_preview_menu.blit(line_, (0, 560))
+            modification_preview_menu.blit(line_, (0, 600))
             if preview_group.pushed_entity.name in upgrade_costs:
                 up_cost = upgrade_costs[preview_group.pushed_entity.name][tower_upgrades_group.pushed_entity.number].split()
                 upgrade_cost = int(up_cost[0])
@@ -5004,10 +5017,10 @@ def menu_positioning():
                 modification_preview_menu.blit(coins[upgrade_coin_name], (430, 300))
 
                 if tower_upgrades_group.pushed_entity.number not in upgrades[preview_group.pushed_entity.name] and tower_upgrades_group.possible_upgrade_path():
-                    modification_preview_menu.blit(font60.render(str(upgrade_cost), True, (0, 0, 0)), (310, 470))
-                    modification_preview_menu.blit(coins[upgrade_coin_name], (355, 480))
+                    modification_preview_menu.blit(font60.render(str(upgrade_cost), True, (0, 0, 0)), (310, 510))
+                    modification_preview_menu.blit(coins[upgrade_coin_name], (355, 520))
 
-                    if buy_upgrade_button.click(modification_preview_menu, (80, 470), col=(0, 0, 0), offset_pos=(830, 120)) and your_coins[upgrade_coin_name] >= upgrade_cost:
+                    if buy_upgrade_button.click(modification_preview_menu, (80, 510), col=(0, 0, 0), offset_pos=(830, 120)) and your_coins[upgrade_coin_name] >= upgrade_cost:
                         upgrades[preview_group.pushed_entity.name].append(tower_upgrades_group.pushed_entity.number)
                         your_coins[upgrade_coin_name] -= upgrade_cost
 
@@ -5015,6 +5028,7 @@ def menu_positioning():
                         modification_preview_menu.blit(font30.render("Можно выбрать только 1 ветку !!!", True, (200, 0, 0)), (5, 580))
 
             # бла бла бла, screen.blit(описание)
+            render_text(upgrade_descriptions[preview_group.pushed_entity.name][tower_upgrades_group.pushed_entity.number], screen, (850, 420), 320, font_=font25)
 
         if back_button.click(screen, (1000, 750), col=(0, 0, 0)):
             game_state, last_game_state = last_game_state, game_state
@@ -5520,10 +5534,10 @@ while running:
             if e.key == K_KP_3:
                 Enemy("klonik", (1508, 704))
 
-            # if e.key == K_a:
-            #     scroll_offset += 600
-            # if e.key == K_d:
-            #     scroll_offset -= 600
+            if e.key == K_a:
+                level.rect_visible = False
+            if e.key == K_d:
+                level.rect_visible = True
 
             if e.key == K_r:
                 level.give_reward()
