@@ -2406,7 +2406,7 @@ class Enemy(sprite.Sprite):
         # СТАТЫ начало
 
         if self.name == 'popusk':
-            self.hp = 200
+            self.hp = 250
             self.atk = 100
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
@@ -2414,7 +2414,7 @@ class Enemy(sprite.Sprite):
             self.damage_type = 'bludgeoning'
 
         if self.name == 'josky':
-            self.hp = 400
+            self.hp = 500
             self.atk = 100
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
@@ -2422,7 +2422,7 @@ class Enemy(sprite.Sprite):
             self.damage_type = 'bludgeoning'
 
         if self.name == 'sigma':
-            self.hp = 800
+            self.hp = 1000
             self.atk = 200
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
@@ -2430,8 +2430,8 @@ class Enemy(sprite.Sprite):
             self.damage_type = 'bludgeoning'
 
         if self.name == 'armorik':
-            self.hp = 300
-            self.armor = 300
+            self.hp = 375
+            self.armor = 375
             self.have_armor = True
             self.atk = 100
             self.atk2 = 150
@@ -2445,7 +2445,7 @@ class Enemy(sprite.Sprite):
             self.vulnerables_and_resists['bludgeoning'] = -25
 
         if self.name == 'slabiy':
-            self.hp = 100
+            self.hp = 125
             self.atk = 50
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
@@ -2454,7 +2454,7 @@ class Enemy(sprite.Sprite):
             self.back_to_line()
 
         if self.name == 'rojatel':
-            self.hp = 500
+            self.hp = 625
             self.atk = 50
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
@@ -2462,7 +2462,7 @@ class Enemy(sprite.Sprite):
             self.damage_type = 'slashing'
 
         if self.name == 'sportik':  # надо пофиксить таргеты у пукиша
-            self.hp = 200
+            self.hp = 250
             self.atk = 140
             self.speed = 1
             self.attack_cooldown = self.basic_attack_cooldown = 60
@@ -2470,7 +2470,7 @@ class Enemy(sprite.Sprite):
             self.damage_type = 'slashing'
 
         if self.name == 'klonik':
-            self.hp = 200
+            self.hp = 250
             self.atk = 100
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
@@ -2479,7 +2479,7 @@ class Enemy(sprite.Sprite):
             self.damage_type = 'slashing'
 
         if self.name == 'teleportik':
-            self.hp = 200
+            self.hp = 250
             self.atk = 100
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
@@ -2488,7 +2488,7 @@ class Enemy(sprite.Sprite):
             self.damage_type = 'piercing'
 
         if self.name == "zeleniy_strelok":
-            self.hp = 200
+            self.hp = 250
             self.atk = 75
             self.bullet_speed_x = -5
             self.bullet_speed_y = 0
@@ -2498,8 +2498,8 @@ class Enemy(sprite.Sprite):
             self.damage_type = 'piercing'
 
         if self.name == "telezhnik":
-            self.hp = 370
-            self.armor = 30
+            self.hp = 460
+            self.armor = 40
             self.have_armor = True
             self.atk = 70
             self.atk2 = 100
@@ -2513,7 +2513,7 @@ class Enemy(sprite.Sprite):
             self.damage_type = 'piercing'
 
         if self.name == "drobik":
-            self.hp = 450
+            self.hp = 550
             self.atk = 70
             self.bullet_speed_x = -5
             self.bullet_speed_y = 4
@@ -2523,7 +2523,7 @@ class Enemy(sprite.Sprite):
             self.damage_type = 'piercing'
 
         if self.name == 'mega_strelok':
-            self.hp = 600
+            self.hp = 750
             self.atk = 100
             self.bullet_speed_x = -5
             self.bullet_speed_y = 0
@@ -2874,8 +2874,8 @@ class Enemy(sprite.Sprite):
         if hasattr(self, "attack_cooldown"):      # там буквально 3 тика раз в 100 тиков голимые
             if self.attack_cooldown > 0:          # на определённой башне    !!!=
                 self.attack_cooldown -= 1         # если я вам не скажу, вы и не заметите    ЗАМЕТИМ(наверн)
-            else:
-                self.check_target_alive()         # когда башня перезарядилась -> чекаем врага
+            # else:
+            #     self.check_target_alive()         # когда башня перезарядилась -> чекаем врага
 
         if self.name == 'klonik':
             if self.klonirovanie_cooldown > 0:
@@ -2971,12 +2971,14 @@ class Creep(sprite.Sprite):
         self.alive = True
         self.have_barrier = False
         self.barrier = None
+        self.onyx_barrier = None
         self.target = None
         self.parent.creeps.add(self)
         self.summon_cooldown = self.parent.basic_attack_cooldown
         self.stunned = False
         self.banished = False
-        self.resists = {}  # dict()  # 'damage_type' : resist%
+        self.vulnerables_and_resists = {}  # dict()  # 'damage_type' : resist%
+        self.unvulnerable = 0
 
         if self.name == 'nekr_skelet':
             self.hp = 100
@@ -4136,69 +4138,6 @@ class Buff(sprite.Sprite):
         return f"Я {self.name}"
 
 
-# class UI(sprite.Sprite):
-#     def __init__(self, pos, path, unit_inside, free_placement, kd_time=0):
-#         super().__init__(ui_group, all_sprites_group)
-#         self.image = image.load(f"images/{path}/images_inside/{unit_inside}_inside.png").convert_alpha()
-#         self.pos = pos
-#         self.default_pos = pos
-#         self.rect = self.image.get_rect(topleft=self.pos)
-#         self.image3 = image.load("images/other/nothing.png").convert_alpha()
-#         self.rect3 = self.image3.get_rect(topleft=self.default_pos)
-#         self.path = path
-#         self.unit_inside = unit_inside
-#         self.free_placement = free_placement
-#         self.is_move = False
-#         self.kd_time = 0
-#         self.default_kd_time = kd_time
-#         self.render_layer = 3
-#
-#         if self.path == "towers":
-#             self.cost = tower_costs[unit_inside]
-#             self.image2 = font30.render(str(self.cost), True, (255, 255, 255))
-#             self.rect2 = self.image2.get_rect(topleft=(self.default_pos[0] - 49, self.default_pos[1] + 4))
-#
-#     def wait(self):
-#         self.pos = mouse.get_pos()
-#         self.rect = self.image.get_rect(center=self.pos)
-#         self.render_layer = 9
-#
-#     def back_to_default(self):
-#         self.image = image.load(f"images/{self.path}/images_inside/{self.unit_inside}_inside.png").convert_alpha()
-#         self.rect = self.image.get_rect(topleft=self.default_pos)
-#         self.pos = self.default_pos
-#         self.render_layer = 3
-#
-#     def draw2(self, surf):
-#         surf.blit(self.image2, self.rect2)
-#
-#     def draw3(self, surf):
-#         surf.blit(self.image3, self.rect3)
-#
-#     def update(self):
-#         if level.cheat:
-#             self.kd_time = -1
-#
-#         if self.is_move and self.kd_time == -1:                                     # если нажал кнопку и кд откатилось
-#             self.image = image.load(f"images/{self.path}/{self.unit_inside}/wait/{self.unit_inside}1.png").convert_alpha()
-#             self.wait()
-#         if self.is_move and self.kd_time != -1:                                     # если нажал кнопку и кд не откатилось
-#             self.is_move = False
-#         if self.is_move is not True and self.pos != self.default_pos:               # если отжал кнопку и не на дефолтной позиции.
-#             self.back_to_default()
-#
-#         if self.kd_time == self.default_kd_time:                                    # когда  обновилось кд, загрузить картинку закрытого слота
-#             self.image3 = image.load("images/other/kd_slota.png").convert_alpha()
-#         if self.kd_time == 0:                                                       # когда кд дошло до нуля, загрузить картину юнита
-#             self.image3 = image.load(f"images/other/nothing.png").convert_alpha()
-#             self.kd_time = -1                                                       # чтобы картинка загрузилась только 1 раз, а потом проверка не пройдёт
-#
-#         if self.kd_time > 0:                                                        # уменьшает кд с каждым циклом
-#             self.kd_time -= 1
-#
-#         screen.blit(font30.render(str(self.kd_time), True, (255, 255, 255)), (self.default_pos[0] - 49, self.default_pos[1] + 50))  # потом будет графически так что пох что пропадает
-
-
 class Slot:
     def __init__(self, pos):    # allowed_rarity=("common",)
         self.pos = pos
@@ -4633,59 +4572,6 @@ def tower_placement(slot_):
                     slot_.kd_time = slot_.default_kd_time
 
 
-# def tower_placement(new_tower):
-#     if is_free(new_tower):
-#         if level.money - tower_costs[new_tower.unit_inside] >= 0:
-#             Tower(new_tower.unit_inside, unit_pos)
-#             if not level.cheat:
-#                 level.money -= tower_costs[new_tower.unit_inside]
-#             new_tower.kd_time = new_tower.default_kd_time
-#
-#     elif new_tower.unit_inside == "gnome_cannon1" or new_tower.unit_inside == "go_bleen1":
-#         ok_, tower_name = uniq_is_free(new_tower)
-#         if ok_:
-#             if level.money - tower_costs[new_tower.unit_inside] >= 0:
-#                 Tower(tower_name, unit_pos)
-#                 if not level.cheat:
-#                     level.money -= tower_costs[new_tower.unit_inside]
-#                 new_tower.kd_time = new_tower.default_kd_time
-
-
-# def random_add_to_slots(*blocked_slots_):    # жестко пофиксить
-#     all_towers = []
-#     for tower in select_towers_preview_group.entities:
-#         if tower not in select_towers_preview_group.remember_entities and tower.name in received_towers:
-#             all_towers.append(tower)
-#     random_unit = choice(all_towers)
-#     add_to_slots(random_unit, *blocked_slots_)
-
-
-# def add_to_slots(en, *blocked_slots_):    # жестко пофиксить
-#     if len(select_towers_preview_group.remember_entities) <= 6 - len(blocked_slots_) or en.in_slot:
-#         if not en.in_slot:
-#             UI((94, first_empty_slot(blocked_slots_)), "towers", en.name, en.free_placement, towers_kd[en.name])
-#             en.in_slot = True
-#             select_towers_preview_group.remember_entities.append(en)
-#         elif en.in_slot:
-#             for ui in ui_group:
-#                 if ui.unit_inside == en.name:
-#                     ui.kill()
-#                     en.in_slot = False
-#                     select_towers_preview_group.remember_entities.remove(en)
-#     else:
-#         Alert("Закончились свободные слоты", (345, 760), 75)
-
-
-# def first_empty_slot(blocked_slots_):
-#     ui_pos_list = {160, 256, 352, 448, 544, 640, 736} - set(blocked_slots_)
-#     fill_pos = set()
-#     for ui in ui_group:
-#         if ui.rect.y in ui_pos_list:
-#             fill_pos.add(ui.rect.y)
-#
-#     return min(ui_pos_list - fill_pos)
-
-
 def upload_data(default=False):
     global passed_levels, \
         received_towers, \
@@ -4746,10 +4632,6 @@ def save_data():
         file.write(f"-----\n")
         for k, v in your_coins.items():
             file.write(f"{k} = {v}\n")
-        # file.write(f"forest_coins = {forest_coins}\n")
-        # file.write(f"evil_coins = {evil_coins}\n")
-        # file.write(f"mountain_coins = {mountain_coins}\n")
-        # file.write(f"snow_coins = {snow_coins}\n")
         file.write(f"-----\n")
         for k, v in upgrades.items():
             file.write(f"{k} = " + str(v).replace("['", "").replace("']", "").replace("'", "") + "\n")
