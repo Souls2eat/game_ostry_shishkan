@@ -88,6 +88,10 @@ class ExtendedGroup(sprite.Group):
             else:
                 surf.blit(sprite_.image, sprite_.rect)
 
+            if level.rect_visible:
+                if hasattr(sprite_, "rect"):
+                    draw.rect(screen, (0, 200, 0), sprite_.rect, 5)
+
     @staticmethod
     def sort_by_layer(obj_):
         return obj_.render_layer
@@ -718,6 +722,7 @@ class Level:
         self.level_time = self.start_level_time = level_time
         self.start_time_to_spawn = self.time_to_spawn = time_to_spawn
         self.cheat = True
+        self.rect_visible = False
         self.waves = waves
         self.allowed_enemies = allowed_enemies
         self.allowed_cords = allowed_cords
@@ -5180,13 +5185,21 @@ def menu_positioning():
         if back_button.click(screen, (709, 520)):
             game_state = last_game_state
 
-        if cheat_button.click(screen, (736, 280)):
+        if cheat_button.click(screen, (650, 280)):
             if level.cheat:
                 cheat_button.ok = False
                 level.cheat = False
             else:
                 cheat_button.ok = True
                 level.cheat = True
+
+        if rect_visible_button.click(screen, (850, 280)):
+            if level.rect_visible:
+                rect_visible_button.ok = False
+                level.rect_visible = False
+            else:
+                rect_visible_button.ok = True
+                level.rect_visible = True
 
         if unlock_all_button.click(screen, (600, 420)):
             unlock_all_button.ok = True
@@ -5314,6 +5327,7 @@ new_game_button = Button("text", font60, "Новая игра",)
 level_select_button = Button("text", font60, "Выбрать уровень")
 to_map_button = Button("text", font60, "На карту")
 cheat_button = Button("img", "menu", "cheat")
+rect_visible_button = Button("img", "other", "rect_visible")
 start_level_button = Button("text", font60, "Начать")
 random_choice_button = Button("text", font50, "Случайно")
 preview_button = Button("text", font60, "Справочник")
