@@ -66,7 +66,6 @@ scroll_offset = 0
 coin_indent_x = 0
 count_of_reward_coins = 0
 current_scroll_offset_state = game_state
-continue_level = False
 free_money = default_free_money = 750
 upgrades = {}
 your_coins = {}
@@ -403,13 +402,12 @@ class GlobalMap(BasePreviewGroup):
             screen.blit(map_secret_6, (274 + scroller.scroll_offset, 75))
 
     def use_clicked_object(self):
-        global scroll_offset, continue_level, last_game_state, game_state, level, passed_levels, event_stage
+        global scroll_offset, last_game_state, game_state, level, passed_levels, event_stage
 
         def go_level():
-            global continue_level, last_game_state, game_state, level
+            global last_game_state, game_state, level
             level = self.pushed_entity.level
             scroller.scroll_offset = 0
-            continue_level = True
             level.refresh()
             last_game_state = game_state
             game_state = "tower_select"
@@ -663,11 +661,18 @@ class SlotsGroup(BasePreviewGroup):
         else:
             Alert("Закончились свободные слоты", (345, 760), 75)
 
+    @staticmethod
+    def sort_by_layer(slot_):
+        if slot_.unit_inside:
+            return slot_.unit_inside.render_layer
+        return 0
+
     def custom_draw(self, surf):
         for slot_ in self.entities:
             surf.blit(slot_.image, slot_.rect)
+
             if slot_.unit_inside:
-                surf.blit(slot_.unit_inside.image, slot_.unit_inside.rect)      # cost... cd...
+                # surf.blit(slot_.unit_inside.image, slot_.unit_inside.rect)      # cost... cd...
 
                 img = font30.render(str(slot_.unit_cost), True, (255, 255, 255))
                 if slot_.unit_cost > 9:
@@ -686,6 +691,11 @@ class SlotsGroup(BasePreviewGroup):
                     additional_pixels = -5
                 if additional_pixels != 0:
                     surf.blit(font30.render(str(slot_.kd_time), True, (255, 255, 255)), (slot_.pos[0] + additional_pixels, slot_.pos[1] + 50))
+
+        for slot_ in sorted(self.entities, key=self.sort_by_layer):
+            if slot_.unit_inside:
+                surf.blit(slot_.unit_inside.image, slot_.unit_inside.rect)
+
 
         if game_state == "tower_select":
             screen.blit(font60.render(str(self.slots_rarity["common"]), True, (61, 243, 69)), (30, 820))
@@ -783,6 +793,10 @@ class Level:
             for s in slots_group:
                 if s.unit_inside:
                     s.remove_unit()
+        else:
+            for s in slots_group:
+                if s.unit_inside:
+                    s.kd_time = -1
 
         for sprite_ in all_sprites_group:
             if dont_clear_groups:
@@ -4247,7 +4261,7 @@ class Slot:
         self.unit_inside.rect = self.unit_inside.image.get_rect(topleft=(self.pos[0] + 62, self.pos[1]))
         self.unit_default_rect = self.unit_inside.rect
         self.unit_cost = tower_costs[unit.name]   # можно прям в тавер записать
-        self.kd_time = 0                            # можно прям в тавер записать
+        self.kd_time = -1                            # можно прям в тавер записать
         self.default_kd_time = towers_kd[unit.name]
         self.free_placement = unit.free_placement
         self.repaint()
@@ -4266,13 +4280,13 @@ class Slot:
 
     def move_unit(self):
         self.unit_inside.rect = self.unit_inside.image.get_rect(center=mouse.get_pos())
-        self.render_layer = 9
+        self.unit_inside.render_layer = 9
         self.unit_inside.image = towers_wait[self.unit_inside.name][0]
 
     def back_to_default(self):
         self.unit_inside.image = image.load(f"images/towers/images_inside/{self.unit_inside.name}_inside.png").convert_alpha()
         self.unit_inside.rect = self.unit_default_rect
-        self.render_layer = 3
+        self.unit_inside.render_layer = 3
 
     def magic_cooldown(self):
         pass
@@ -4673,8 +4687,7 @@ def tower_placement(slot_):
 
 
 def upload_data(default=False):
-    global continue_level, \
-        passed_levels, \
+    global passed_levels, \
         received_towers, \
         not_received_towers, \
         encountered_enemies, \
@@ -4847,7 +4860,6 @@ def return_fiery_vasilky_event():
 
 def menu_positioning():
     global game_state,\
-            continue_level,\
             running,\
             last_game_state,\
             passed_levels, \
@@ -4861,19 +4873,19 @@ def menu_positioning():
         screen.blit(main_menu, (0, 0))
         screen.blit(game_name, (416, 10))
 
-        if new_game_button.click(screen, (30, 380)):
+        if new_game_button.click(screen, (30, 460)):    # 380
             last_game_state = game_state
             game_state = "yes_no_window"  # новая игра
 
-        if continue_level:
-            if resume_button.click(screen, (30, 460)):
-                last_game_state = game_state
-                if level.state == "run":
-                    game_state = "run"
-                else:
-                    game_state = "global_map"
-        else:
-            resume_button.click(screen, (30, 460), col=(130, 130, 130))
+        # if continue_level:
+        #     if resume_button.click(screen, (30, 460)):
+        #         last_game_state = game_state
+        #         if level.state == "run":
+        #             game_state = "run"
+        #         else:
+        #             game_state = "global_map"
+        # else:
+        #     resume_button.click(screen, (30, 460), col=(130, 130, 130))
 
         if to_map_button.click(screen, (30, 540)):
             last_game_state = game_state
@@ -5025,7 +5037,7 @@ def menu_positioning():
                         your_coins[upgrade_coin_name] -= upgrade_cost
 
                     if buy_upgrade_button.on_hover(offset_pos=(830, 120)):
-                        modification_preview_menu.blit(font30.render("Можно выбрать только 1 ветку !!!", True, (200, 0, 0)), (5, 580))
+                        modification_preview_menu.blit(font30.render("Можно выбрать только 1 ветку !!!", True, (200, 0, 0)), (5, 610))
 
             # бла бла бла, screen.blit(описание)
             render_text(upgrade_descriptions[preview_group.pushed_entity.name][tower_upgrades_group.pushed_entity.number], screen, (850, 420), 320, font_=font25)
@@ -5119,6 +5131,7 @@ def menu_positioning():
             if restart_button.click(screen, (582, 440), col=(130, 130, 130)):  # 2 кнопка серая
                 pass
         if main_menu_button.click(screen, (567, 520)):
+            level.refresh()
             last_game_state = game_state
             game_state = "main_menu"
         if pause_button.click(screen, (1550, 30)):
@@ -5180,7 +5193,6 @@ def menu_positioning():
                 game_state = "run"
                 level.clear(ui_group, slots_group)
                 level.state = "not_run"
-                continue_level = True
                 # select_towers_preview_group.remember_entities.clear()
             else:
                 Alert("Остались свободные слоты", (400, 760), 75)
@@ -5241,7 +5253,6 @@ def menu_positioning():
             level.refresh()
             game_state = "tower_select"
         if main_menu_button.click(screen, (567, 520)):
-            continue_level = False
             last_game_state = game_state
             game_state = "main_menu"
 
@@ -5267,8 +5278,6 @@ def menu_positioning():
         screen.blit(pause_menu_w, (480, 250))
         pause_menu_w.blit(pause_menu_w_copy, (0, 0))
         pause_menu_w.blit(font60.render("Награда", True, (0, 0, 0)), (195, 0))
-
-        
 
         for i, (k, v) in enumerate(global_map.chest.rewards.items()):
             if k in coins:
@@ -5427,9 +5436,8 @@ while running:
 
     for button in buttons_group:
         if button.on_hover():
-            if button != resume_button or continue_level:
-                button.color_manage = True
-                button.new_color = (230, 160, 35)
+            button.color_manage = True
+            button.new_color = (230, 160, 35)
         else:
             button.color_manage = False
 
