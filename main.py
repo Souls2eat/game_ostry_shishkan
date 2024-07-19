@@ -960,6 +960,7 @@ class Tower(sprite.Sprite):
         self.time_indicator = 1
         self.anim_tasks = []
         self.anim_count = 0
+        self.last_anim_frame = -1
         self.anim_duration = 15     # сколько кадров будет оставаться 1 спрайт
         self.state = "wait"         # потом будет "attack", "death" и какие придумаете
 
@@ -1468,7 +1469,6 @@ class Tower(sprite.Sprite):
         # СТАТЫ конец
         self.image2 = font30.render(str(self.hp), True, (0, 0, 0))
         self.rect2 = self.image.get_rect(topleft=(self.rect.x + 32, self.rect.y - 32))
-    
 
     def add_anim_task(self, anim, func):
         if len(self.anim_tasks) == 0:
@@ -1819,6 +1819,8 @@ class Tower(sprite.Sprite):
                 if targets[id(self)].alive:
                     self.attack_cooldown = self.basic_attack_cooldown
                     self.add_anim_task("attack", self.shoot)
+            else:                                       # если баг, то убрать это
+                self.add_anim_task("wait", lambda: ...)
 
     def dealing_damage(self, enemy):
         self.damage = self.atk
@@ -2166,26 +2168,24 @@ class Tower(sprite.Sprite):
     def stop_hiding(self):
         self.hiding = True
 
-    def animation(self):    # эта функция вызывается каждый цикл, хотя по идее это не нужно, но пока не лагает, я исправлять не буду
-        # if 0 <= self.anim_count < self.anim_duration \
-        #         or self.anim_duration <= self.anim_count < 2 * self.anim_duration \
-        #         or self.anim_duration * 2 <= self.anim_count < 3 * self.anim_duration \
-        #         or self.anim_duration * 3 <= self.anim_count < 4 * self.anim_duration or self.name == "boomchick":      # переделать
+    def animation(self):
         count_anim_frames = self.get_count_anim_frames()
         if 0 <= self.anim_count < self.anim_duration * count_anim_frames:
-            if self.state == "wait":
-                self.image = towers_wait[self.name][int(self.anim_count//self.anim_duration)]
-            if self.state == "attack":
-                if self.name in towers_attack:      # чтобы не ломались юниты без анимации атаки
-                    self.image = towers_attack[self.name][int(self.anim_count//self.anim_duration)]
-            if self.state == "give":
-                self.image = towers_give[self.name][int(self.anim_count//self.anim_duration)]
-            if self.state == "hide":
-                self.image = towers_hide[self.name][int(self.anim_count//self.anim_duration)]
-            if self.state == "death":
-                ...
+            if int(self.anim_count//self.anim_duration) != self.last_anim_frame:
+                self.last_anim_frame = int(self.anim_count//self.anim_duration)
+                if self.state == "wait":
+                    self.image = towers_wait[self.name][int(self.anim_count//self.anim_duration)]
+                if self.state == "attack":
+                    if self.name in towers_attack:
+                        self.image = towers_attack[self.name][int(self.anim_count//self.anim_duration)]
+                if self.state == "give":
+                    self.image = towers_give[self.name][int(self.anim_count//self.anim_duration)]
+                if self.state == "hide":
+                    self.image = towers_hide[self.name][int(self.anim_count//self.anim_duration)]
+                if self.state == "death":
+                    ...
 
-        if self.anim_count >= count_anim_frames * self.anim_duration:   # 4 -- так как в анимации 4 кадра
+        if self.anim_count >= count_anim_frames * self.anim_duration:
             self.anim_count = 0
         else:
             self.anim_count += self.time_indicator
@@ -2211,7 +2211,8 @@ class Tower(sprite.Sprite):
             if self.attack_cooldown > 0:          # на определённой башне    !!!=
                 self.attack_cooldown -= 1         # если я вам не скажу, вы и не заметите    ЗАМЕТИМ(наверн)
             else:
-                self.check_target_alive()         # когда башня перезарядилась -> чекаем врага
+                # self.check_target_alive()         # если баг, то откоменьтить
+                pass
 
         if self.anim_tasks:                          # порядок анимации
             if self.anim_tasks[0][1] > 0:            # -> self.anim_sequence = [("attack", 60, shoot), ("give", 50, spawn_something), ...]
@@ -2221,9 +2222,16 @@ class Tower(sprite.Sprite):
                 self.anim_tasks[0][2]()
                 self.anim_tasks[0][1] -= 1
                 self.anim_tasks.pop(0)
-                # self.anim_count = 0
         else:
-            self.state = "wait"
+            if hasattr(self, "attack_cooldown"):                    # если баг, то закоментить
+                if self.attack_cooldown <= 0:                       #
+                    self.check_target_alive()                       #
+                else:                                               #
+                    self.add_anim_task("wait", lambda: ...)         #
+            else:                                                   #
+                self.add_anim_task("wait", lambda: ...)             #
+            # self.state = "wait"                                   # а это откоментить
+            # self.add_anim_task("wait", lambda: print(1+1))        # не трогать
 
         if hasattr(self, "attack_cooldown2"):
             if self.is_additional_attack_allow():
@@ -2295,6 +2303,7 @@ class Tower(sprite.Sprite):
         surf.blit(self.image3, self.rect3)
 
     def update(self):
+
         if self.onyx_barrier:
             self.image3 = font30.render(str(self.onyx_barrier.hp), True, (0, 0, 200))
             self.rect3 = self.image.get_rect(topleft=(self.rect.x + 32, self.rect.y - 64))
@@ -2365,6 +2374,7 @@ class Enemy(sprite.Sprite):
         self.anim_duration = 15     # сколько кадров будет оставаться 1 спрайт
         self.state = "wait"
         self.anim_stage = "default"
+        self.last_anim_frame = -1
 
         # СТАТЫ начало
 
@@ -2626,29 +2636,45 @@ class Enemy(sprite.Sprite):
 
     def animation(self):
         # эта функция вызывается каждый цикл, хотя по идее это не нужно, но пока не лагает, я исправлять не буду
-        if 0 <= self.anim_count < self.anim_duration \
-                or self.anim_duration <= self.anim_count < 2 * self.anim_duration \
-                or self.anim_duration * 2 <= self.anim_count < 3 * self.anim_duration \
-                or self.anim_duration * 3 <= self.anim_count < 4 * self.anim_duration:      # переделать
-            if self.state == "wait":
-                self.image = enemies_wait[self.name][int(self.anim_count // self.anim_duration)]
-            if self.state == "attack":
-                self.image = enemies_attack[self.name][int(self.anim_count//self.anim_duration)]
-            if self.state == "move":
-                self.image = enemies_move[self.name][int(self.anim_count//self.anim_duration)]
+        count_anim_frames = self.get_count_anim_frames()
+        if 0 <= self.anim_count < self.anim_duration * count_anim_frames:
+            if int(self.anim_count//self.anim_duration) != self.last_anim_frame:
+                self.last_anim_frame = int(self.anim_count//self.anim_duration)
+                if self.state == "wait":
+                    self.image = enemies_wait[self.name][int(self.anim_count // self.anim_duration)]
+                if self.state == "attack":
+                    self.image = enemies_attack[self.name][int(self.anim_count//self.anim_duration)]
+                if self.state == "move":
+                    self.image = enemies_move[self.name][int(self.anim_count//self.anim_duration)]
 
-            if self.state == "rage_wait":
-                self.image = enemies_rage_wait[self.name][int(self.anim_count // self.anim_duration)]
-            if self.state == "rage_attack":
-                self.image = enemies_rage_attack[self.name][int(self.anim_count//self.anim_duration)]
-            if self.state == "rage_move":
-                self.image = enemies_rage_move[self.name][int(self.anim_count//self.anim_duration)]
+                if self.state == "rage_wait":
+                    self.image = enemies_rage_wait[self.name][int(self.anim_count // self.anim_duration)]
+                if self.state == "rage_attack":
+                    self.image = enemies_rage_attack[self.name][int(self.anim_count//self.anim_duration)]
+                if self.state == "rage_move":
+                    self.image = enemies_rage_move[self.name][int(self.anim_count//self.anim_duration)]
 
-        if self.anim_count >= 4 * self.anim_duration:   # 4 -- так как в анимации 4 кадра
+        if self.anim_count >= count_anim_frames * self.anim_duration:   # 4 -- так как в анимации 4 кадра
             self.anim_count = 0
         else:
             self.anim_count += self.time_indicator
             # , zeleniy_strelok, sportik, rojatel, mega_strelok, slabiy, armorik, telezhnik, drobik
+
+    def get_count_anim_frames(self):
+        if self.state == "wait":
+            return len(enemies_wait[self.name])
+        if self.state == "attack":
+            return len(enemies_attack[self.name])
+        if self.state == "move":
+            return len(enemies_move[self.name])
+        if self.state == "rage_wait":
+            return len(enemies_rage_wait[self.name])
+        if self.state == "rage_attack":
+            return len(enemies_rage_attack[self.name])
+        if self.state == "rage_move":
+            return len(enemies_rage_move[self.name])
+        if self.state == "death":   # complite
+            ...
 
     def armor_check(self):
         if hasattr(self, "armor") and self.have_armor:
@@ -2772,6 +2798,18 @@ class Enemy(sprite.Sprite):
                                 self.add_anim_task("attack", self.shoot)
                             if self.anim_stage == "rage":
                                 self.add_anim_task("rage_attack", self.shoot)
+                else:
+                    if self.anim_stage == "default":
+                        if self.stop:
+                            self.add_anim_task("wait", lambda: ...)
+                        else:
+                            self.add_anim_task("move", lambda: ...)
+                    if self.anim_stage == "rage":
+                        if self.stop:
+                            self.add_anim_task("rage_wait", lambda: ...)
+                        else:
+                            self.add_anim_task("rage_move", lambda: ...)
+
         else:
             targets[id(self)] = self.find_target()
             if targets[id(self)]:
@@ -2787,6 +2825,17 @@ class Enemy(sprite.Sprite):
                             self.add_anim_task("attack", self.shoot)
                         if self.anim_stage == "rage":
                             self.add_anim_task("rage_attack", self.shoot)
+            else:
+                if self.anim_stage == "default":
+                    if self.stop:
+                        self.add_anim_task("wait", lambda: ...)
+                    else:
+                        self.add_anim_task("move", lambda: ...)
+                if self.anim_stage == "rage":
+                    if self.stop:
+                        self.add_anim_task("rage_wait", lambda: ...)
+                    else:
+                        self.add_anim_task("rage_move", lambda: ...)
 
     def in_stun(self):
         if self.stunned_time > 0:
@@ -2817,32 +2866,42 @@ class Enemy(sprite.Sprite):
             self.vulnerabled -= 1
 
         if self.anim_tasks:                          # порядок анимации
-            if self.anim_tasks[0][1] > 0:            # -> self.anim_tasks = [("attack", 60, shoot), ("give", 50, spawn_something), ...]
+            if self.anim_tasks[0][1] > 0:            # -> self.anim_sequence = [("attack", 60, shoot), ("give", 50, spawn_something), ...]
                 self.state = self.anim_tasks[0][0]   # -> какая анимация, время анимации, функция после анимации
                 self.anim_tasks[0][1] -= 1
-            elif self.anim_tasks[0][1] == 0:
+            elif self.anim_tasks[0][1] == 0:        # баг?
                 self.anim_tasks[0][2]()
                 self.anim_tasks[0][1] -= 1
-            else:
                 self.anim_tasks.pop(0)
-                self.anim_count = 0
         else:
-            if self.anim_stage == "default":
-                if self.stop:
-                    self.state = "wait"
-                else:
-                    self.state = "move"
-            if self.anim_stage == "rage":
-                if self.stop:
-                    self.state = "rage_wait"
-                else:
-                    self.state = "rage_move"
-            # self.state = "wait"
+            # if self.anim_stage == "default":
+            #     if self.stop:
+            #         self.state = "wait"
+            #     else:
+            #         self.state = "move"
+            # if self.anim_stage == "rage":
+            #     if self.stop:
+            #         self.state = "rage_wait"
+            #     else:
+            #         self.state = "rage_move"
+            if hasattr(self, "attack_cooldown"):                            # если баг, то закоментить
+                if self.attack_cooldown <= 0:                               #
+                    self.check_target_alive()                               #
+                else:                                                       #
+                    if self.anim_stage == "default":                        #
+                        if self.stop:                                       #
+                            self.add_anim_task("wait", lambda: ...)         #
+                        else:                                               #
+                            self.add_anim_task("move", lambda: ...)         #
+                    if self.anim_stage == "rage":                           #
+                        if self.stop:                                       #
+                            self.add_anim_task("rage_wait", lambda: ...)    #
+                        else:                                               #
+                            self.add_anim_task("rage_move", lambda: ...)    #
 
     def update(self):
         # self.stop, self.target = self.is_should_stop_to_attack()
 
-        # print(self.name, self.stop, self.state, self.anim_count, targets[id(self)])
         if not self.stunned:
             self.cooldown()
             self.movement()
