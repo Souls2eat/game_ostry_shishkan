@@ -59,6 +59,12 @@ chests_rewards = {
         "evil_coin": 1,
         "barrier_mag": "unlock",
         "drachun": "unlock",
+    },
+    "9в": {
+        "forest_coin": 2,
+        "evil_coin": 1,
+        "gribnik": "unlock",
+        "bolotnik": "unlock",
     }
 
 }

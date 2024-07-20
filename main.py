@@ -43,6 +43,7 @@ ok = image.load("images/buttons_states/ok.png").convert_alpha()
 upgrade_tower_red = image.load("images/buttons_states/upgrade_tower_red.png").convert_alpha()
 upgrade_tower_green = image.load("images/buttons_states/upgrade_tower_green.png").convert_alpha()
 upgrade_tower_select = image.load("images/buttons_states/upgrade_tower_select.png").convert_alpha()
+current_tower_upgrade = image.load("images/buttons_states/current_tower_upgrade.png").convert_alpha()
 upgrade_path = image.load("images/other/upgrade_path.png").convert_alpha()
 new_bg = image.load("images/other/new_bg.png").convert_alpha()
 map_secret_3 = image.load("images/maps/global_map/secrets/map_3_secret.png").convert_alpha()
@@ -458,6 +459,9 @@ class TowerUpgradesGroup(BasePreviewGroup):
             else:
                 upgrade.repaint_to_default()
 
+            if upgrade.number in upgrades[preview_group.pushed_entity.name] and preview_group.pushed_entity.upgrade_level == upgrade.number:
+                surf.blit(current_tower_upgrade, (upgrade.rect.x - offset_pos[0], upgrade.rect.y - offset_pos[1]))
+
             if preview_group.turn == Tower:
                 if upgrade.number in upgrades[preview_group.pushed_entity.name]:
                     upgrade.set_active(True)
@@ -466,10 +470,10 @@ class TowerUpgradesGroup(BasePreviewGroup):
 
     @staticmethod
     def possible_upgrade_path():
-        for up in upgrades[preview_group.pushed_entity.name]:
-            if tower_upgrades_group.pushed_entity.number != "1" and up != "1":
-                if up[1] != tower_upgrades_group.pushed_entity.number[1]:
-                    return False
+        # for up in upgrades[preview_group.pushed_entity.name]:
+        #     if tower_upgrades_group.pushed_entity.number != "1" and up != "1":
+        #         if up[1] != tower_upgrades_group.pushed_entity.number[1]:
+        #             return False
 
         last_update = str(int(tower_upgrades_group.pushed_entity.number[0]) - 1) + tower_upgrades_group.pushed_entity.number[1]
         if last_update in upgrades[preview_group.pushed_entity.name] or last_update[0] == "1":
@@ -695,7 +699,6 @@ class SlotsGroup(BasePreviewGroup):
         for slot_ in sorted(self.entities, key=self.sort_by_layer):
             if slot_.unit_inside:
                 surf.blit(slot_.unit_inside.image, slot_.unit_inside.rect)
-
 
         if game_state == "tower_select":
             screen.blit(font60.render(str(self.slots_rarity["common"]), True, (61, 243, 69)), (30, 820))
@@ -4663,7 +4666,7 @@ def village_event():
 
     if "6" not in completed_events:
         screen.blit(font40.render("Задание", True, (0, 0, 0)), (350, 250))
-        if first_event.click(screen, (370, 300)):
+        if first_event_button.click(screen, (370, 300)):
             if "6г" not in completed_events:
                 global_map.event = Event(give_fiery_vasilky_event)
             else:
@@ -4738,6 +4741,26 @@ def return_fiery_vasilky_event():
         game_state = "reward_first_stage"
         if "6" not in completed_events:
             completed_events.append("6")
+
+
+def boloto_event():
+    global game_state, last_game_state, event_stage
+    screen.blit(select_menu, (320, 150))
+    select_menu.blit(select_menu_copy, (0, 0))
+    select_menu.blit(font60.render("Что то с болотом", True, (0, 0, 0)), (352, 10))
+
+    if back_button.click(screen, (709, 650), col=(0, 0, 0)):
+        last_game_state, game_state = game_state, last_game_state
+
+
+def cave_event():
+    global game_state, last_game_state, event_stage
+    screen.blit(select_menu, (320, 150))
+    select_menu.blit(select_menu_copy, (0, 0))
+    select_menu.blit(font60.render("Что то с пещерой", True, (0, 0, 0)), (352, 10))
+
+    if back_button.click(screen, (709, 650), col=(0, 0, 0)):
+        last_game_state, game_state = game_state, last_game_state
 
 
 def menu_positioning():
@@ -4904,25 +4927,35 @@ def menu_positioning():
                 upgrade_cost = int(up_cost[0])
                 upgrade_coin_name = up_cost[1]
 
-                if your_coins[upgrade_coin_name] < 10:
-                    modification_preview_menu.blit(font60.render(str(your_coins[upgrade_coin_name]), True, (0, 0, 0)), (385, 290))
-                else:                                                                                        # больше 100 не будет
-                    modification_preview_menu.blit(font60.render(str(your_coins[upgrade_coin_name]), True, (0, 0, 0)), (350, 290))
-                modification_preview_menu.blit(coins[upgrade_coin_name], (430, 300))
+                # if your_coins[upgrade_coin_name] < 10:
+                #     modification_preview_menu.blit(font60.render(str(your_coins[upgrade_coin_name]), True, (0, 0, 0)), (385, 290))
+                # else:                                                                                        # больше 100 не будет
+                #     modification_preview_menu.blit(font60.render(str(your_coins[upgrade_coin_name]), True, (0, 0, 0)), (350, 290))
+                # modification_preview_menu.blit(coins[upgrade_coin_name], (430, 300))
 
                 if tower_upgrades_group.pushed_entity.number not in upgrades[preview_group.pushed_entity.name] and tower_upgrades_group.possible_upgrade_path():
-                    modification_preview_menu.blit(font60.render(str(upgrade_cost), True, (0, 0, 0)), (310, 510))
-                    modification_preview_menu.blit(coins[upgrade_coin_name], (355, 520))
+                    modification_preview_menu.blit(font60.render(str(f"{your_coins[upgrade_coin_name]}/{upgrade_cost}"), True, (0, 0, 0)), (270, 510))
+                    offset = font60.render(str(f"{your_coins[upgrade_coin_name]}/{upgrade_cost}"), True, (0, 0, 0)).get_width()
+                    modification_preview_menu.blit(coins[upgrade_coin_name], (280 + offset, 520))    # 355
 
-                    if buy_upgrade_button.click(modification_preview_menu, (80, 510), col=(0, 0, 0), offset_pos=(830, 120)) and your_coins[upgrade_coin_name] >= upgrade_cost:
+                    if buy_upgrade_button.click(screen, (870, 630), col=(0, 0, 0)) and your_coins[upgrade_coin_name] >= upgrade_cost:
                         upgrades[preview_group.pushed_entity.name].append(tower_upgrades_group.pushed_entity.number)
                         your_coins[upgrade_coin_name] -= upgrade_cost
 
-                    if buy_upgrade_button.on_hover(offset_pos=(830, 120)):
-                        modification_preview_menu.blit(font30.render("Можно выбрать только 1 ветку !!!", True, (200, 0, 0)), (5, 610))
+                if tower_upgrades_group.pushed_entity.number not in upgrades[preview_group.pushed_entity.name] and not tower_upgrades_group.possible_upgrade_path():
+                    render_text("Нужен предыдущий навык", screen, (875, 660), 450, (255, 0, 0), font_=font30)
+
+                if tower_upgrades_group.pushed_entity.number in upgrades[preview_group.pushed_entity.name] and preview_group.pushed_entity.upgrade_level == tower_upgrades_group.pushed_entity.number:
+                    render_text("Выбрано", screen, (960, 630), 300, (255, 0, 0), font_=font60)
+
+                if tower_upgrades_group.pushed_entity.number in upgrades[preview_group.pushed_entity.name] and preview_group.pushed_entity.upgrade_level != tower_upgrades_group.pushed_entity.number:
+                    if choice_button.click(screen, (960, 630), col=(0, 0, 0)):
+                        preview_group.pushed_entity.upgrade_level = tower_upgrades_group.pushed_entity.number
+                        selected_upgrade_level = upgrades[preview_group.pushed_entity.name].pop(upgrades[preview_group.pushed_entity.name].index(tower_upgrades_group.pushed_entity.number))
+                        upgrades[preview_group.pushed_entity.name].append(selected_upgrade_level)
 
             # бла бла бла, screen.blit(описание)
-            render_text(upgrade_descriptions[preview_group.pushed_entity.name][tower_upgrades_group.pushed_entity.number], screen, (850, 420), 320, font_=font25)
+            render_text(upgrade_descriptions[preview_group.pushed_entity.name][tower_upgrades_group.pushed_entity.number], screen, (850, 420), 450, font_=font25)
 
         if back_button.click(screen, (1000, 750), col=(0, 0, 0)):
             game_state, last_game_state = last_game_state, game_state
@@ -5243,7 +5276,8 @@ unlock_all_button = Button("text", font60, "Открыть всё")
 buy_upgrade_button = Button("text", font60, "Купить")
 clear_button = Button("text", font50, "Очистить")
 take_button = Button("text", font60, "Забрать")
-first_event = Button("img", "buffs", "boloto")
+first_event_button = Button("img", "buffs", "boloto")
+choice_button = Button("text", font60, "Выбрать")
 
 TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death", "cheat", "settings_menu"))
 level_num = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
@@ -5276,7 +5310,20 @@ GlobalMapLevelButton("6б", "6а", (750, 100), chest=Chest(parent_number="6б", 
 GlobalMapLevelButton("6в", "6б", (500, 100), level=Level("6в", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))  # поменять
 GlobalMapLevelButton("6г", "6в", (250, 200), event=Event(found_fiery_vasilky_event, "fiery_vasilky", "6г"))  # поменять
 GlobalMapLevelButton("7", "6", (1400, 200), required_done_events=("6",), level=Level("7", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-GlobalMapLevelButton("8", "7", (1650, 200), level=Level("8", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+GlobalMapLevelButton("8", "7", (1650, 165), level=Level("8", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+GlobalMapLevelButton("9", "8", (1890, 150), event=Event(boloto_event, "boloto_event", "9"))    # поменять
+GlobalMapLevelButton("9а", "9", (1910, 300), level=Level("9а", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+GlobalMapLevelButton("9б", "9а", (2100, 400), level=Level("9б", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+GlobalMapLevelButton("9в", "9б", (2230, 620), chest=Chest(parent_number="9в", rewards=chests_rewards["9в"]))    # поменять
+GlobalMapLevelButton("9г", "9б", (1970, 580), level=Level("9г", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+GlobalMapLevelButton("9д", "9г", (1780, 580), level=Level("9д", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+GlobalMapLevelButton("10", "9", (2200, 140), level=Level("10", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+GlobalMapLevelButton("11", "10", (2514, 140), event=Event(cave_event, "cave_event", parent_number="11"))    # поменять
+GlobalMapLevelButton("11а", "11", (2514, 340), level=Level("11а", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+GlobalMapLevelButton("11б", "11а", (2530, 620), level=Level("11б", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+GlobalMapLevelButton("11в", "11б", (2920, 690), level=Level("11в", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+GlobalMapLevelButton("12", "11", (2800, 150), level=Level("12", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+GlobalMapLevelButton("13", "12", (3050, 160), level=Level("13", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
 
 level = global_map.entities[0].level
 
@@ -5335,9 +5382,10 @@ while running:
     alert_group.draw(screen)
     if mouse.get_focused():
         screen.blit(cursor, mouse_pos)
-        # screen.blit(font30.render(str(mouse_pos), True, (255, 0, 0)), (mouse_pos[0] - 60, mouse_pos[1] - 40))
-        # draw.line(screen, (0, 0, 0), (800, 0), (800, 900), 5)
-        # draw.line(screen, (0, 0, 0), (0, 450), (1600, 450), 5)
+        # screen.blit(font30.render(str(f"{mouse_pos[0] - scroller.scroll_offset}, {mouse_pos[1]}"), True, (255, 0, 0)), (mouse_pos[0] - 60, mouse_pos[1] - 40))
+        # for ii in range(10):
+        #     draw.line(screen, (0, 0, 0), (ii * 160, 0), (ii * 160, 900), 5)
+        #     draw.line(screen, (0, 0, 0), (0, ii * 90), (1600, ii * 90), 5)
 
     for enemy in enemies_group:
         if enemy.rect.x <= 150:
