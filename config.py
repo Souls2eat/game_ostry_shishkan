@@ -119,6 +119,7 @@ tower_costs = {
     "uvelir": 30,
     "krovnyak": 20,
     "kokol": 25,
+    "sliz": 20,
     "bomb": 35,
     "perec": 30,
     "vodka": 15,
@@ -169,6 +170,7 @@ towers_kd = {
     "uvelir": 900,
     "krovnyak": 375,
     "kokol": 375,
+    "sliz": 600,
     "bomb": 1875,
     "perec": 1500,
     "vodka": 1500,
@@ -427,6 +429,13 @@ upgrade_costs = {
         "2b": "1 forest_coin",
         "3a": "2 forest_coin",
         "3b": "2 forest_coin",
+    },
+    "sliz": {
+        "1": "0 city_coin",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
     },
     "bomb": {
         "1": "0 city_coin",
@@ -725,6 +734,13 @@ upgrade_descriptions = {
         "2b": "1 forest_coin",
         "3a": "2 forest_coin",
         "3b": "2 forest_coin",
+    },
+    "sliz": {
+        "1": "Бросает во врага слизь которая не будет давать врагу двигаться пока её не убьют",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
     },
     "bomb": {
         "1": "Моментально взрывается нанося большой урон в области взрыва",

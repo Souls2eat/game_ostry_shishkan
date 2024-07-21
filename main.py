@@ -1003,8 +1003,7 @@ class Tower(sprite.Sprite):
             self.atk = 10
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
-            self.basic_attack_cooldown = 60
-            self.attack_cooldown = self.basic_attack_cooldown
+            self.attack_cooldown = self.basic_attack_cooldown = 60
             self.damage_type = 'fire'
             self.rarity = "common"
             if self.upgrade_level == "2a" or self.upgrade_level == '3a':  # циферки поменять мб
@@ -1093,6 +1092,19 @@ class Tower(sprite.Sprite):
             self.basic_attack_cooldown = 60
             self.attack_cooldown = self.basic_attack_cooldown
             self.damage_type = 'ice'
+            self.rarity = "common"
+
+        if self.name == 'sliz':
+            self.hp = self.max_hp = 200
+            self.sliz_hp = 500
+            self.atk = 0
+            self.bullet_speed_x = 5
+            self.bullet_speed_y = 0
+            self.attack_cooldown = self.basic_attack_cooldown = 300
+            self.damage_type = 'water'
+            self.vulnerables_and_resists['piercing'] = -75
+            self.vulnerables_and_resists['slashing'] = -75
+            self.vulnerables_and_resists['bludgeoning'] = -75
             self.rarity = "common"
 
         if self.name == 'zeus':
@@ -1689,6 +1701,7 @@ class Tower(sprite.Sprite):
                 or self.name == 'gribnik'\
                 or self.name == 'ded_moroz'\
                 or self.name == 'kokol'\
+                or self.name == 'sliz'\
                 or self.name == 'electro_maga': 
             for enemy in enemies_group:
                 if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
@@ -1899,6 +1912,9 @@ class Tower(sprite.Sprite):
 
         if self.name == "ded_moroz":
             Bullet("snejok", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'snejok', self)
+
+        if self.name == "sliz":
+            Bullet("sliz_bul", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'sliz_bul', self)
 
         if self.name == "kokol":
             Bullet("ab_kokol", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kok', self)
@@ -2389,6 +2405,7 @@ class Enemy(sprite.Sprite):
         self.damaged = False
         self.gribs = 0
         self.snegs = 0
+        self.sliz = None
         self.slowed = False
         self.slowed_time = 0
         self.stunned = False
@@ -2498,6 +2515,7 @@ class Enemy(sprite.Sprite):
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 700
+            self.bullets = 1
             self.damage_type = 'piercing'
 
         if self.name == "telezhnik":
@@ -2513,6 +2531,7 @@ class Enemy(sprite.Sprite):
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 768
             self.attack_range2 = 0
+            self.bullets = 1
             self.damage_type = 'piercing'
 
         if self.name == "drobik":
@@ -2523,6 +2542,7 @@ class Enemy(sprite.Sprite):
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 120
             self.attack_range = 128
+            self.bullets = 3
             self.damage_type = 'piercing'
 
         if self.name == 'mega_strelok':
@@ -2535,6 +2555,7 @@ class Enemy(sprite.Sprite):
             self.attack_cooldown2 = self.basic_attack_cooldown2 = 600
             self.ammo = self.basic_ammo = 30
             self.attack_range = 640
+            self.bullets = 1
             self.damage_type = 'piercing'
 
         # СТАТЫ конец
@@ -2561,28 +2582,33 @@ class Enemy(sprite.Sprite):
     #                 self.shoot()
 
     def shoot(self):
-        if self.name == "zeleniy_strelok" or self.name == 'telezhnik':
-            Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
+        if targets[id(self)] == self.sliz:
+            targets[id(self)].hp -= self.atk * self.bullets
+        else:
+            if self.name == "zeleniy_strelok" or self.name == 'telezhnik':
+                Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
 
-        if self.name == 'mega_strelok':
-            if self.ammo > 0:
-                Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery+randint(-16, 16), self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
-                self.ammo -= 1
-            else:
-                self.ammo = self.basic_ammo
-                self.attack_cooldown2 = self.basic_attack_cooldown2
+            if self.name == 'mega_strelok':
+                if self.ammo > 0:
+                    Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery+randint(-16, 16), self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
+                    self.ammo -= 1
+                else:
+                    self.ammo = self.basic_ammo
+                    self.attack_cooldown2 = self.basic_attack_cooldown2
 
-        if self.name == 'drobik':
-            Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, 0, "anti_hrom", self)
-            if self.rect.centery-138 >= 192:
-                Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y*-1, "anti_hrom", self)
-            if self.rect.centery+138 <= 832:
-                Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, "anti_hrom", self)
+            if self.name == 'drobik':
+                Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, 0, "anti_hrom", self)
+                if self.rect.centery-138 >= 192:
+                    Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y*-1, "anti_hrom", self)
+                if self.rect.centery+138 <= 832:
+                    Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, "anti_hrom", self)
 
     def melee_attack(self):
         # if self.name == "popusk":
         #     targets[id(self)].hp -= self.atk
-        if targets[id(self)]:
+        if targets[id(self)] == self.sliz:
+            targets[id(self)].hp -= self.atk
+        elif targets[id(self)]:
             if targets[id(self)].barrier:                     # проверка барьера
                 targets[id(self)].barrier.hp -= self.atk
             elif targets[id(self)].onyx_barrier:                     # проверка барьера
@@ -2621,6 +2647,8 @@ class Enemy(sprite.Sprite):
     def movement(self):
         if not self.stop:
             self.real_x -= self.speed
+            if self.sliz:
+                self.stop = True
         self.rect.x = int(self.real_x)
         self.rect.y = int(self.real_y)
 
@@ -2797,8 +2825,11 @@ class Enemy(sprite.Sprite):
 
     def check_target_alive(self):
         if targets[id(self)]:
-            if targets[id(self)].rect.x < self.rect.x:
+            if targets[id(self)].rect.x < self.rect.x or targets[id(self)].name == 'sliz_luja_parasite':
                 targets[id(self)] = None
+
+        if self.sliz:
+            targets[id(self)] = self.sliz
 
         if targets[id(self)]:
             if targets[id(self)].alive:
@@ -3496,7 +3527,7 @@ class Bullet(sprite.Sprite):
                         break
         for enemy in enemies_group:
             if sprite.collide_rect(enemy, self) and enemy.hp > 0:
-                if self.name == 'default' or self.name == 'hrom' or self.name == 'boom' or self.name == 'struya' or self.name == 'spore' or self.name == 'snejok' or self.name == 'stone' or self.name == 'obsidian' or self.name == 'opal' or self.name == 'es' or self.name == 'kok':
+                if self.name == 'default' or self.name == 'hrom' or self.name == 'boom' or self.name == 'struya' or self.name == 'spore' or self.name == 'snejok' or self.name == 'sliz_bul' or self.name == 'stone' or self.name == 'obsidian' or self.name == 'opal' or self.name == 'es' or self.name == 'kok':
                     self.dealing_damage(enemy)
                     if self.name == 'boom':
                         Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self.parent)
@@ -3511,6 +3542,11 @@ class Bullet(sprite.Sprite):
                             Parasite('grib_parasite', enemy.rect.centerx+self.parent.parasix, enemy.rect.centery+self.parent.parasiy, '', 0, enemy, self.parent)
                         elif self.name == 'snejok':
                             Parasite('sneg_parasite', enemy.rect.centerx+self.parent.parasix, enemy.rect.centery+self.parent.parasiy, '', 0, enemy, self.parent)
+                    elif self.name == 'sliz_bul':
+                        if enemy.sliz:
+                            enemy.sliz.hp += self.parent.sliz_hp
+                        else:
+                            Parasite('sliz_luja_parasite', enemy.rect.centerx, enemy.rect.centery+32, self.parent.damage_type, 0, enemy, self.parent)
                     elif self.name == 'es':
                         Bullet('electro_maga_explosion', self.rect.centerx, self.rect.centery, self.damage_type, 0, 0, 0, 'razlet', self.parent)
                     if self.bullet_sprite == 'fireball' and (self.parent.upgrade_level == '2b' or self.parent.upgrade_level == '3b'):
@@ -3587,6 +3623,10 @@ class Parasite(sprite.Sprite):
             if self.name == 'barrier':
                 self.life_time = self.parent.basic_spawn_something_cooldown
 
+        if self.name == 'sliz_luja_parasite':
+                self.hp = self.parent.sliz_hp
+                self.owner.sliz = self
+
         if self.name == 'metka_inq':
             self.atk = self.owner.atk // 5
             self.owner.parasites.add(self)
@@ -3636,6 +3676,8 @@ class Parasite(sprite.Sprite):
                 self.owner.parasite_parents.remove(self.parent)
         if self.name == 'barrier':
             self.owner.have_barrier = False
+        if self.name == 'sliz_luja_parasite':
+            self.owner.sliz = None
         if self.name == 'raven':
             if self.owner != self.parent and self.parent in self.owner.parasite_parents:
                 self.owner.parasite_parents.remove(self.parent)
@@ -3648,7 +3690,7 @@ class Parasite(sprite.Sprite):
             self.cashback_list.clear()
 
     def prisasivanie(self):  # если честно то это по сути delat_chtoto но для паразитов, когда-нибудь сделаем по-человечески
-        if self.parent and self.name != 'ogonek_parasite' and self.name != 'sneg_parasite' and self.name != 'mol' and self.name != 'terpila_debuff' and self.name != 'onyx_barrier':
+        if self.parent and self.name != 'ogonek_parasite' and self.name != 'sneg_parasite' and self.name != 'sliz_luja_parasite' and self.name != 'mol' and self.name != 'terpila_debuff' and self.name != 'onyx_barrier':
             if self.parent not in all_sprites_group: 
                 if self.name == 'raven' and (self.owner != self.parent or (hasattr(self, 'lifetime') and self.lifetime > 0)):
                     pass
@@ -3680,6 +3722,8 @@ class Parasite(sprite.Sprite):
         elif self.name == 'onyx_barrier' and self.hp <= 0:
             self.kill()
             self.owner.onyx_barrier = None
+        elif self.name == 'sliz_luja_parasite' and self.hp <= 0:
+            self.dead()
 
         if self.name == 'sosun' or self.name == 'grib_parasite' or self.name == 'sneg_parasite' or self.name == 'ogonek_parasite' or self.name == 'metka_inq':
             self.rect.centerx = self.owner.rect.centerx+self.parasix
@@ -3947,6 +3991,7 @@ class Buff(sprite.Sprite):
                             or tower.name == "uvelir"\
                             or tower.name == "krovnyak"\
                             or tower.name == "kokol"\
+                            or tower.name == "sliz"\
                             or tower.name == 'electro_maga':
 
                             if tower.basic_attack_cooldown // 2 <= 180:
@@ -4066,6 +4111,7 @@ class Buff(sprite.Sprite):
                         or tower.name == "uvelir"\
                         or tower.name == "krovnyak"\
                         or tower.name == "kokol"\
+                        or tower.name == "sliz"\
                         or tower.name == 'electro_maga':
                     if not self.max_buff:
                         tower.basic_attack_cooldown *= 2

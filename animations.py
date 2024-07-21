@@ -42,6 +42,7 @@ towers_wait = {
     "uvelir": [image.load(f"images/towers/uvelir/wait/uvelir{i}.png") for i in range(1, 5)],
     "krovnyak": [image.load(f"images/towers/krovnyak/wait/krovnyak{i}.png") for i in range(1, 5)],
     "kokol": [image.load(f"images/towers/kokol/wait/kokol{i}.png") for i in range(1, 5)],
+    "sliz": [image.load(f"images/towers/sliz/wait/sliz{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/wait/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/wait/perec{i}.png") for i in range(1, 5)],
@@ -86,6 +87,7 @@ towers_attack = {
     "uvelir": [image.load(f"images/towers/uvelir/attack/uvelir{i}.png") for i in range(1, 5)],
     "krovnyak": [image.load(f"images/towers/krovnyak/attack/krovnyak{i}.png") for i in range(1, 5)],
     "kokol": [image.load(f"images/towers/kokol/attack/kokol{i}.png") for i in range(1, 5)],
+    "sliz": [image.load(f"images/towers/sliz/attack/sliz{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/attack/go_bleen1{i}.png") for i in range(1, 3)],
 
 }
