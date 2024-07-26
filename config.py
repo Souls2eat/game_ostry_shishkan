@@ -120,6 +120,7 @@ tower_costs = {
     "krovnyak": 20,
     "kokol": 25,
     "sliz": 20,
+    "klonys": 20,
     "bomb": 35,
     "perec": 30,
     "vodka": 15,
@@ -171,6 +172,7 @@ towers_kd = {
     "krovnyak": 375,
     "kokol": 375,
     "sliz": 600,
+    "klonys": 525,
     "bomb": 1875,
     "perec": 1500,
     "vodka": 1500,
@@ -431,6 +433,13 @@ upgrade_costs = {
         "3b": "2 forest_coin",
     },
     "sliz": {
+        "1": "0 city_coin",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "klonys": {
         "1": "0 city_coin",
         "2a": "1 city_coin",
         "2b": "1 city_coin",
@@ -737,6 +746,13 @@ upgrade_descriptions = {
     },
     "sliz": {
         "1": "Бросает во врага слизь которая не будет давать врагу двигаться пока её не убьют",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "klonys": {
+        "1": "Атакует врага своими иллюзиями. Чем ближе враг тем больше иллюзий нанесут ему урон",
         "2a": "1 city_coin",
         "2b": "1 city_coin",
         "3a": "2 city_coin",

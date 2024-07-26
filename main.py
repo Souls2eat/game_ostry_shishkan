@@ -1285,8 +1285,7 @@ class Tower(sprite.Sprite):
         if self.name == 'drachun':
             self.hp = self.max_hp = 700
             self.atk = self.basic_atk = 30
-            self.basic_attack_cooldown = 60
-            self.attack_cooldown = self.basic_attack_cooldown
+            self.attack_cooldown = self.basic_attack_cooldown = 60
             self.damage_type = 'bludgeoning'
             self.rarity = "common"
             if self.upgrade_level == "2b" or self.upgrade_level == '3b':
@@ -1331,6 +1330,14 @@ class Tower(sprite.Sprite):
             self.kulak_time = 15
             self.attack_cooldown = self.basic_attack_cooldown = 300
             self.damage_type = 'slashing'  # рубящий
+            self.rarity = "common"
+
+        if self.name == 'klonys':
+            self.hp = self.max_hp = 200
+            self.atk = self.basic_atk = 30
+            self.attack_cooldown = self.basic_attack_cooldown = 420
+            self.illusions = self.basic_illusions = 5
+            self.damage_type = 'bludgeoning'
             self.rarity = "common"
 
         # for i in range(16):                           # гоблина нет, потому что 16 папок это тупизм
@@ -1814,6 +1821,11 @@ class Tower(sprite.Sprite):
             for enemy in enemies_group:
                 if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 384 and enemy.alive:
                     return enemy
+                
+        if self.name == "klonys":
+            for enemy in enemies_group:
+                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= ((self.basic_illusions+1) * 128) and enemy.alive:
+                    return enemy
 
         if self.name == "pukish":
             for enemy in enemies_group:
@@ -2071,6 +2083,11 @@ class Tower(sprite.Sprite):
 
         if self.name == "knight":
             Bullet("pike", self.rect.centerx + 128, self.rect.centery, self.damage_type, self.atk, 0, 0, 'drachun_gulag', self)
+
+        if self.name == "klonys":
+            self.illusions = self.basic_illusions
+            klonys_pose = randint(1, 5)
+            Bullet("klonys_punch" + str(klonys_pose), self.rect.centerx + 128, self.rect.centery, self.damage_type, self.atk, 0, 0, 'klonys_punch', self)
 
         if self.name == "gnome_flamethrower":
             self.fire = Bullet("fire", self.rect.right + 64, self.rect.centery, self.damage_type, self.atk, 0, 0, "fire", self)
@@ -2808,6 +2825,9 @@ class Enemy(sprite.Sprite):
                         self.real_y = self.rect.y + (128*self.y_direction)
                     self.movement()
                     self.back_to_line()
+                    for tower in towers_group:
+                        targets[id(tower)] = None  # если будет лагать закомментить
+                        
 
         self.damaged = False
 
@@ -3153,6 +3173,10 @@ class Bullet(sprite.Sprite):
                 self.pushl = 128
         if self.name == "drachun_gulag" or self.name == "tolkan_bux":
             self.off = 15
+        if self.name == "klonys_punch":
+            self.mimo = True
+            self.off = self.parent.illusions * 15
+            self.klonys_off = 15
         if self.name == "fire":
             self.off = 61
 
@@ -3436,7 +3460,7 @@ class Bullet(sprite.Sprite):
                                     self.kill()
                                     break
 
-        if self.name == 'ls' or self.name == 'explosion' or self.name == 'joltiy_explosion' or self.name == 'opal_explosion' or self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux" or self.name == 'razlet':
+        if self.name == 'ls' or self.name == 'explosion' or self.name == 'joltiy_explosion' or self.name == 'opal_explosion' or self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux" or self.name == 'razlet' or self.name == "klonys_punch":
             for enemy in enemies_group:
                 if sprite.collide_rect(enemy, self) and enemy.hp > 0 and self not in enemy.only_one_hit_bullets:
                     if not self.name == 'joltiy_explosion':
@@ -3456,8 +3480,10 @@ class Bullet(sprite.Sprite):
                         enemy.stunned_time += self.parent.enemy_stunned_time
                     if self.name == 'opal_explosion':
                         enemy.vulnerabled += 375
+                    if self.name == "klonys_punch":
+                        self.mimo = False
                     enemy.only_one_hit_bullets.add(self)
-            if self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux":
+            if self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux" or self.name == "klonys_punch":
                 targets[id(self.parent)] = None
 
         if self.name == 'emerald' or self.name == 'ruby' or self.name == 'amethyst' or self.name == 'onyx':
@@ -3576,6 +3602,15 @@ class Bullet(sprite.Sprite):
                 self.kill()
             else:
                 self.off -= 1
+
+        if hasattr(self, 'klonys_off'):
+            if self.klonys_off > 0:
+                self.klonys_off -= 1
+                if self.klonys_off <= 0:
+                    self.parent.illusions -= 1
+                    if self.parent.illusions > 0:
+                        klonys_pose = randint(1, 5)
+                        Bullet("klonys_punch" + str(klonys_pose), self.rect.centerx + self.mimo*128, self.rect.centery, self.parent.damage_type, self.parent.atk, 0, 0, 'klonys_punch', self.parent)
 
     def update(self):
         self.bullet_movement()
@@ -3992,6 +4027,7 @@ class Buff(sprite.Sprite):
                             or tower.name == "krovnyak"\
                             or tower.name == "kokol"\
                             or tower.name == "sliz"\
+                            or tower.name == "klonys"\
                             or tower.name == 'electro_maga':
 
                             if tower.basic_attack_cooldown // 2 <= 180:
@@ -4112,6 +4148,7 @@ class Buff(sprite.Sprite):
                         or tower.name == "krovnyak"\
                         or tower.name == "kokol"\
                         or tower.name == "sliz"\
+                        or tower.name == "klonys"\
                         or tower.name == 'electro_maga':
                     if not self.max_buff:
                         tower.basic_attack_cooldown *= 2
@@ -4524,10 +4561,10 @@ class Scroller:
         self.back_to_start_position = True
         self.last_offset_state = "main_menu"
         self.rules = {
-            "manual_menu": {"min": -1350, "max": 0},
+            "manual_menu": {"min": -1700, "max": 0},
             "global_map": {"min": -1600, "max": 0},
             "reward_second_stage": {"min": -1600, "max": 0},
-            "tower_select": {"min": -500, "max": 0}
+            "tower_select": {"min": -650, "max": 0}
         }
         self.remembered_scroll_offset = 0
 
