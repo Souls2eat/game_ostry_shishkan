@@ -4309,7 +4309,9 @@ class Slot:
         self.unit_inside.image = towers_wait[self.unit_inside.name][0]
 
     def back_to_default(self):
-        self.unit_inside.image = image.load(f"images/towers/images_inside/{self.unit_inside.name}_inside.png").convert_alpha()
+        # self.unit_inside.image = image.load(f"images/towers/images_inside/{self.unit_inside.name}_inside.png").convert_alpha()
+        self.unit_inside.image = image.load(f"images/towers/{self.unit_inside.name}/{self.unit_inside.name}_preview.png").convert_alpha()
+
         self.unit_inside.rect = self.unit_default_rect
         self.unit_inside.render_layer = 3
 
