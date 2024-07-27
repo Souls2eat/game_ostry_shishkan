@@ -4282,7 +4282,7 @@ class Slot:
 
     def add_unit(self, unit):
         self.unit_inside = Tower(unit.name, (self.unit_rect.x - 100, self.unit_rect.y))   # x - 100 == нет всяких блакиков и ворон
-        self.unit_inside.image = image.load(f"images/towers/images_inside/{unit.name}_inside.png").convert_alpha()
+        self.unit_inside.image = image.load(f"images/towers/{self.unit_inside.name}/{self.unit_inside.name}_preview.png").convert_alpha()
         self.unit_inside.rect = self.unit_inside.image.get_rect(topleft=(self.pos[0] + 62, self.pos[1]))
         self.unit_default_rect = self.unit_inside.rect
         self.unit_cost = tower_costs[unit.name]   # можно прям в тавер записать
