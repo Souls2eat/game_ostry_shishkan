@@ -153,6 +153,10 @@ enemies_attack = {
     "telezhnik": [image.load(f"images/enemies/telezhnik/attack/telezhnik{i}.png") for i in range(1, 5)],
 }
 
+enemies_death = {
+    "popusk": [image.load(f"images/enemies/popusk/death/popusk{i}.png") for i in range(1, 5)],
+}
+
 enemies_rage_wait = {
     "armorik": [image.load(f"images/enemies/armorik/rage_wait/armorik_zloy{i}.png") for i in range(1, 5)],
     "telezhnik": [image.load(f"images/enemies/telezhnik/rage_wait/telezhnik_zloy{i}.png") for i in range(1, 5)],
@@ -166,6 +170,14 @@ enemies_rage_move = {
 enemies_rage_attack = {
     "armorik": [image.load(f"images/enemies/armorik/rage_attack/armorik_zloy{i}.png") for i in range(1, 5)],
     "telezhnik": [image.load(f"images/enemies/telezhnik/rage_attack/telezhnik_zloy{i}.png") for i in range(1, 5)],
+}
+
+bullets_move = {
+    "fireball": [image.load(f"images/bullets/fireball/move/fireball{i}.png") for i in range(1, 5)]
+}
+
+bullets_death = {
+    "fireball": [image.load(f"images/bullets/fireball/death/fireball{i}.png") for i in range(1, 5)]
 }
 
 coins = {
