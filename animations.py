@@ -66,7 +66,7 @@ towers_attack = {
     "zeus": [image.load(f"images/towers/zeus/attack/zeus{i}.png") for i in range(1, 5)],
     "urag_anus": [image.load(f"images/towers/urag_anus/attack/urag_anus{i}.png") for i in range(1, 5)],
     "big_mechman": [image.load(f"images/towers/big_mechman/attack/big_mechman{i}.png") for i in range(1, 5)],
-    "boomchick": [image.load(f"images/towers/boomchick/attack/boomchick{i}.png") for i in range(1, 11)],     # тут
+    "boomchick": [image.load(f"images/towers/boomchick/attack/boomchick{i}.png") for i in range(1, 5)],     # тут
     "pukish": [image.load(f"images/towers/pukish/attack/pukish{i}.png") for i in range(1, 5)],
     "drachun": [image.load(f"images/towers/drachun/attack/drachun{i}.png") for i in range(1, 5)],
     "tolkan": [image.load(f"images/towers/tolkan/attack/tolkan{i}.png") for i in range(1, 5)],
