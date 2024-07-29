@@ -3171,8 +3171,9 @@ class Creep(sprite.Sprite):
 class Bullet(sprite.Sprite):
     def __init__(self, bullet_sprite, x, y, damage_type, atk, speed_x, speed_y, name, parent):
         super().__init__(all_sprites_group, bullets_group)
-        try:    # убрать
-            self.image = image.load(f"images/bullets/{bullet_sprite}.png").convert_alpha()
+        # self.image = image.load(f"images/bullets/{bullet_sprite}/move/{bullet_sprite}1.png").convert_alpha()
+        try:
+            self.image = image.load(f"images/bullets/{bullet_sprite}/{bullet_sprite}.png").convert_alpha()
         except:
             self.image = image.load(f"images/bullets/{bullet_sprite}/move/{bullet_sprite}1.png").convert_alpha()
         self.rect = self.image.get_rect(center=(x, y))
@@ -3699,7 +3700,7 @@ class Bullet(sprite.Sprite):
     def update(self):
         self.cooldowns()
         self.bullet_movement()
-        self.animation()
+        # self.animation()
         self.check_collision()
         self.check_parent()
 
