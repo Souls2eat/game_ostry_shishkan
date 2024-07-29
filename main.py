@@ -744,6 +744,8 @@ class Level:
         self.start_time_to_spawn = self.time_to_spawn = time_to_spawn
         self.cheat = True
         self.rect_visible = False
+        self.no_death_animation = True
+        self.kill_enemy_on_click = False
         self.waves = waves
         self.allowed_enemies = allowed_enemies
         self.allowed_cords = allowed_cords
@@ -1522,7 +1524,7 @@ class Tower(sprite.Sprite):
     def add_anim_task(self, anim, func):
         if len(self.anim_tasks) == 0:
             self.state = anim
-            self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator, func])
+            self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator, func])  # (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator
             self.anim_count = 0
         else:
             already_in = [anim[0] for anim in self.anim_tasks]
@@ -1626,14 +1628,14 @@ class Tower(sprite.Sprite):
         if self.name == "joltiy_pomidor":
             Bullet("joltiy_explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'joltiy_explosion', self)
 
-        if self.name == 'drachun' and self.upgrade_level == '3b':
+        if self.name == 'drachun' and self.upgrade_level == '3b':   # работает неправильно наверно!!!
             if self.kill_time > 0:
                 self.kill_time -= 1
             else:
                 self.kill()
                 self.alive = False
         else:
-            self.alive = False
+            # self.alive = False
             self.kill()     # + потом анимация смерти
 
     def check_hp(self):
@@ -1684,7 +1686,6 @@ class Tower(sprite.Sprite):
                 if len(self.krovs) < 8:
                     Bullet("krov_bul", self.rect.centerx - (len(self.krovs) % 2 + 1) * 21, self.rect.centery + 48 - (32*(len(self.krovs) // 2)), self.damage_type, 0, self.bullet_speed_x, self.bullet_speed_y, 'krov_bul', self).remove(bullets_group)
                 self.not_damaged_time = 1800
-            
 
         self.damaged = False
 
@@ -2246,7 +2247,7 @@ class Tower(sprite.Sprite):
                 if self.state == "hide":
                     self.image = towers_hide[self.name][int(self.anim_count//self.anim_duration)]
                 if self.state == "death":
-                    ...
+                    self.image = towers_death[self.name][int(self.anim_count//self.anim_duration)]
 
         if self.anim_count >= count_anim_frames * self.anim_duration:
             self.anim_count = 0
@@ -2262,8 +2263,8 @@ class Tower(sprite.Sprite):
             return len(towers_give[self.name])
         if self.state == "hide":
             return len(towers_hide[self.name])
-        if self.state == "death":   # complite
-            ...
+        if self.state == "death":
+            return len(towers_death[self.name])
 
     def move(self, change_pos):
         self.pos = self.pos[0], self.pos[1] + change_pos
@@ -2371,11 +2372,19 @@ class Tower(sprite.Sprite):
             self.image3 = font30.render(str(self.onyx_barrier.hp), True, (0, 0, 200))
             self.rect3 = self.image.get_rect(topleft=(self.rect.x + 32, self.rect.y - 64))
         if self.hp <= 0:
-            self.dead()
+            if not level.no_death_animation:
+                self.alive = False
+                self.prime_anim("death", self.dead)
+            else:
+                self.dead()
             self.hp = 0
         if self.name == 'knight_on_horse':
             if self.horse_hp <= 0 or self.knight_hp <= 0:
-                self.dead()
+                if not level.no_death_animation:
+                    self.alive = False
+                    self.prime_anim("death", self.dead)
+                else:
+                    self.dead()
 
         if not self.stunned:
             self.cooldown()
@@ -2702,12 +2711,17 @@ class Enemy(sprite.Sprite):
 
     def add_anim_task(self, anim, func):
         if len(self.anim_tasks) == 0:
-            self.anim_tasks.append([anim, (4 * self.anim_duration) // self.time_indicator, func])
+            self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator, func])
             self.anim_count = 0
         else:
             already_in = [anim[0] for anim in self.anim_tasks]
             if anim not in already_in:
-                self.anim_tasks.append([anim, (4 * self.anim_duration) // self.time_indicator, func])
+                self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator, func])
+
+    def prime_anim(self, anim, func):
+        if anim not in [an[0] for an in self.anim_tasks]:
+            self.anim_tasks.clear()
+            self.add_anim_task(anim, func)
 
     def animation(self):
         # эта функция вызывается каждый цикл, хотя по идее это не нужно, но пока не лагает, я исправлять не буду
@@ -2721,6 +2735,8 @@ class Enemy(sprite.Sprite):
                     self.image = enemies_attack[self.name][int(self.anim_count//self.anim_duration)]
                 if self.state == "move":
                     self.image = enemies_move[self.name][int(self.anim_count//self.anim_duration)]
+                if self.state == "death":
+                    self.image = enemies_death[self.name][int(self.anim_count//self.anim_duration)]
 
                 if self.state == "rage_wait":
                     self.image = enemies_rage_wait[self.name][int(self.anim_count // self.anim_duration)]
@@ -2748,8 +2764,8 @@ class Enemy(sprite.Sprite):
             return len(enemies_rage_attack[self.name])
         if self.state == "rage_move":
             return len(enemies_rage_move[self.name])
-        if self.state == "death":   # complite
-            ...
+        if self.state == "death":
+            return len(enemies_death[self.name])
 
     def armor_check(self):
         if hasattr(self, "armor") and self.have_armor:
@@ -2805,12 +2821,16 @@ class Enemy(sprite.Sprite):
                 Buff('fire_luja', (384 + ((self.rect.centerx+1 - 384) // 128) * 128), (192 + ((self.rect.y - 192) // 128) * 128), self)
                 break
 
-        self.alive = False
         self.kill()
 
     def check_hp(self):
         if self.hp <= 0:
-            self.dead()
+            self.alive = False
+            if not level.no_death_animation:
+                self.stop = True
+                self.prime_anim("death", self.dead)
+            else:
+                self.dead()
 
         if not self.stunned:
             if self.name == 'teleportik' and self.damaged:
@@ -2836,7 +2856,7 @@ class Enemy(sprite.Sprite):
 
     def find_target(self):
         for entity in [*towers_group, *creeps_group]:
-            if -64 < entity.rect.centery - self.rect.centery < 64 and -64 < self.rect.centerx - entity.rect.centerx < self.attack_range + 64 and self.rect.x < 1472:
+            if -64 < entity.rect.centery - self.rect.centery < 64 and -64 < self.rect.centerx - entity.rect.centerx < self.attack_range + 64 and self.rect.x < 1472 and entity.alive:
                 self.stop = True
                 return entity
 
@@ -2998,7 +3018,6 @@ class Enemy(sprite.Sprite):
 
             self.armor_check()
             # self.additional_cooldowns()
-            
 
             self.image2 = font30.render(str(self.hp), True, (0, 0, 0))
             self.rect2 = self.image.get_rect(topleft=(self.rect.x + 32, self.rect.y - 32))
@@ -3152,7 +3171,10 @@ class Creep(sprite.Sprite):
 class Bullet(sprite.Sprite):
     def __init__(self, bullet_sprite, x, y, damage_type, atk, speed_x, speed_y, name, parent):
         super().__init__(all_sprites_group, bullets_group)
-        self.image = image.load(f"images/bullets/{bullet_sprite}.png").convert_alpha()
+        try:    # убрать
+            self.image = image.load(f"images/bullets/{bullet_sprite}.png").convert_alpha()
+        except:
+            self.image = image.load(f"images/bullets/{bullet_sprite}/move/{bullet_sprite}1.png").convert_alpha()
         self.rect = self.image.get_rect(center=(x, y))
         self.render_layer = 7
         self.bullet_sprite = bullet_sprite  # так надо
@@ -3164,6 +3186,13 @@ class Bullet(sprite.Sprite):
         self.parent = parent
         self.penned = 0
         self.target = None
+
+        self.time_indicator = 1
+        self.anim_tasks = []
+        self.anim_count = 0
+        self.last_anim_frame = -1
+        self.anim_duration = 15     # сколько кадров будет оставаться 1 спрайт
+        self.state = "move"         # потом будет "attack", "death" и какие придумаете
 
         if self.name == 'ls':
             self.off = 30
@@ -3350,13 +3379,13 @@ class Bullet(sprite.Sprite):
                     if self.rect.colliderect(tower.rect):
                         if tower.barrier:
                             tower.barrier.hp -= self.atk
-                            self.kill()
+                            self.dead()         # тут был кил
                         elif tower.onyx_barrier:
                             tower.onyx_barrier.hp -= self.atk
-                            self.kill()
+                            self.dead()         # тут был кил
                         elif tower.name == "knight_on_horse":
                             tower.knight_hp -= self.atk
-                            self.kill()
+                            self.dead()         # тут был кил
                         else:
                             self.damage = self.atk
                             if tower.unvulnerable > 0:
@@ -3369,7 +3398,7 @@ class Bullet(sprite.Sprite):
                             if tower.name == 'terpila' and (tower.upgrade_level == '2b' or tower.upgrade_level == '3b' or tower.upgrade_level == '3a'):
                                 tower.received_damage += self.damage
                             tower.check_hp()
-                            self.kill()
+                            self.dead()         # тут был кил
                         for parasite in self.parent.parasites:
                             if parasite.name == 'metka_inq':
                                 parasite.cashback_list.append(225)
@@ -3377,11 +3406,11 @@ class Bullet(sprite.Sprite):
                 if self.rect.colliderect(creep.rect):
                     if creep.barrier:
                         creep.barrier.hp -= self.atk
-                        self.kill()
+                        self.dead()         # тут был кил
                     else:
                         creep.hp -= self.atk
                         creep.check_hp()
-                        self.kill()
+                        self.dead()         # тут был кил
                     for parasite in self.parent.parasites:
                         if parasite.name == 'metka_inq':
                             parasite.cashback_list.append(225)
@@ -3453,11 +3482,11 @@ class Bullet(sprite.Sprite):
                                     self.atk //= 2
                             if self.parent.upgrade_level == '2a' or self.parent.upgrade_level == '3a':
                                 if self.enemies_in_group >= 5:
-                                    self.kill()
+                                    self.dead()         # тут был кил
                                     break
                             else:
                                 if self.enemies_in_group >= 3:
-                                    self.kill()
+                                    self.dead()         # тут был кил
                                     break
 
         if self.name == 'ls' or self.name == 'explosion' or self.name == 'joltiy_explosion' or self.name == 'opal_explosion' or self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux" or self.name == 'razlet' or self.name == "klonys_punch":
@@ -3494,7 +3523,7 @@ class Bullet(sprite.Sprite):
                             self.target.hp += self.heal
                         else:
                             self.target.hp = self.target.max_hp
-                        self.kill()
+                        self.dead()         # тут был кил
                     elif self.name == 'ruby':
                         self.rect.x = self.target.rect.centerx
                         self.speed_x *= -1
@@ -3505,10 +3534,10 @@ class Bullet(sprite.Sprite):
                             self.rubied -= 1
                             if self.rubied <= 0:
                                 self.target.atk //= 2
-                                self.kill()
+                                self.dead()         # тут был кил
                     elif self.name == 'amethyst':
                         self.target.unvulnerable += 120
-                        self.kill()
+                        self.dead()         # тут был кил
                     elif self.name == 'onyx':
                         if self.target.onyx_barrier:
                             self.target.onyx_barrier.hp += self.barrier_hp
@@ -3519,7 +3548,7 @@ class Bullet(sprite.Sprite):
                         # if self.target.barrier not in all_sprites_group:
                         #     self.target.have_barrier = True
                         #     self.target.barrier = Parasite('barrier', self.target.rect.centerx, self.target.rect.centery, '', 0, self.target, self)
-                        self.kill()
+                        self.dead()         # тут был кил
 
         # if self.name == "mech" or self.name == "drachun_gulag":
         #     for enemy in enemies_group:
@@ -3545,11 +3574,11 @@ class Bullet(sprite.Sprite):
                             enemy.add(self.probitie_group)
                             self.enemies_in_group += 1
                             if self.enemies_in_group >= 2:  # через len() нельзя тк там кое какие неприятные нюансы
-                                self.kill()
+                                self.dead()         # тут был кил
                                 break
                     else:
                         self.dealing_damage(enemy)
-                        self.kill()
+                        self.dead()         # тут был кил
                         break
         for enemy in enemies_group:
             if sprite.collide_rect(enemy, self) and enemy.hp > 0:
@@ -3579,17 +3608,17 @@ class Bullet(sprite.Sprite):
                         self.parent.parasix = randint(-32, 32)
                         self.parent.parasiy = randint(-48, 48)
                         Parasite('ogonek_parasite', enemy.rect.centerx+self.parent.parasix, enemy.rect.centery+self.parent.parasiy, '', self.parent.atk_dot, enemy, self.parent)
-                    self.kill()
+                    self.dead()         # тут был кил
 
                 break
 
     def check_parent(self):
         if self.name == 'kopilka' or self.name == 'stone' or self.name == 'obsidian' or self.name == 'diamond' or self.name == 'opal' or self.name == 'sapphire' or self.name == 'emerald' or self.name == 'amethyst' or self.name == 'onyx' or self.name == 'ruby' or self.name == 'nephrite':
             if self.parent not in all_sprites_group and self.speed_x == 0:
-                self.kill()
+                self.dead()         # тут был кил
         if self.name == 'yas' or self.name == 'krov_bul':
             if self.parent not in all_sprites_group:
-                self.kill()
+                self.dead()         # тут был кил
 
     def cooldowns(self):
         # if self.name == 'yas' and self.sumon == 'wait':  # я хз что это и зачем поэтому решил закомментить
@@ -3597,6 +3626,17 @@ class Bullet(sprite.Sprite):
         #         self.parent.attack_cooldown -= 1
 
         # if self.name == 'ls' or self.name == 'explosion' or self.name == 'joltiy_explosion' or self.name == 'opal_explosion' or self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux" or self.name == "fire" or self.name == 'razlet':
+        if self.anim_tasks:                          # порядок анимации
+            if self.anim_tasks[0][1] > 0:            # -> self.anim_sequence = [("attack", 60, shoot), ("give", 50, spawn_something), ...]
+                self.state = self.anim_tasks[0][0]   # -> какая анимация, время анимации, функция после анимации
+                self.anim_tasks[0][1] -= 1
+            elif self.anim_tasks[0][1] == 0:        # баг?
+                self.anim_tasks[0][2]()
+                self.anim_tasks[0][1] -= 1
+                self.anim_tasks.pop(0)
+        else:
+            self.state = "move"
+
         if hasattr(self, 'off'):
             if self.off <= 0:
                 self.kill()
@@ -3612,9 +3652,54 @@ class Bullet(sprite.Sprite):
                         klonys_pose = randint(1, 5)
                         Bullet("klonys_punch" + str(klonys_pose), self.rect.centerx + self.mimo*128, self.rect.centery, self.parent.damage_type, self.parent.atk, 0, 0, 'klonys_punch', self.parent)
 
+    def add_anim_task(self, anim, func):
+        if len(self.anim_tasks) == 0:
+            self.state = anim
+            self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator, func])
+            self.anim_count = 0
+        else:
+            already_in = [anim[0] for anim in self.anim_tasks]
+            if anim not in already_in:
+                self.state = anim
+                self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator, func])
+
+        # print(self.state, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator)
+
+    def get_count_anim_frames(self):
+        if self.state == "move":
+            return len(bullets_move[self.bullet_sprite])     # переделать на name
+        if self.state == "death":
+            return len(bullets_death[self.bullet_sprite])     # переделать на name
+
+    def animation(self):
+        count_anim_frames = self.get_count_anim_frames()
+        if 0 <= self.anim_count < self.anim_duration * count_anim_frames:
+            if int(self.anim_count//self.anim_duration) != self.last_anim_frame:
+                self.last_anim_frame = int(self.anim_count//self.anim_duration)
+                if self.state == "move":
+                    self.image = bullets_move[self.bullet_sprite][int(self.anim_count//self.anim_duration)]     # переделать на name
+                if self.state == "death":
+                    self.image = bullets_death[self.bullet_sprite][int(self.anim_count//self.anim_duration)]     # переделать на name
+
+        if self.anim_count >= count_anim_frames * self.anim_duration:
+            self.anim_count = 0
+        else:
+            self.anim_count += self.time_indicator
+
+    def dead(self):
+        if not level.no_death_animation:
+            self.atk = 0
+            self.speed_x = 0
+            self.add_anim_task("death", self.kill)
+        else:
+            self.kill()
+
+        # можно будет сделать чтобы если копитель умерал, то его мечи вниз падали прикольно. А при попадании меча во врага другая анимация
+
     def update(self):
-        self.bullet_movement()
         self.cooldowns()
+        self.bullet_movement()
+        self.animation()
         self.check_collision()
         self.check_parent()
 
@@ -5110,6 +5195,17 @@ def menu_positioning():
             Alert("Пауза", (700, 200), 75)
             game_state = "paused"
 
+        if level.cheat:
+            if kill_enemy_on_click_button.click(screen, (1400, 800)):
+                if level.kill_enemy_on_click:
+                    kill_enemy_on_click_button.ok = False
+                    level.kill_enemy_on_click = False
+                else:
+                    kill_enemy_on_click_button.ok = True
+                    level.kill_enemy_on_click = True
+        else:
+            level.kill_enemy_on_click = False
+
     if game_state == "paused":
         screen.blit(pause_menu, (480, 250))
         if resume_button.click(screen, (614, 280)):
@@ -5211,7 +5307,7 @@ def menu_positioning():
         if back_button.click(screen, (709, 520)):
             game_state = last_game_state
 
-        if cheat_button.click(screen, (650, 280)):
+        if cheat_button.click(screen, (550, 280)):
             if level.cheat:
                 cheat_button.ok = False
                 level.cheat = False
@@ -5219,13 +5315,22 @@ def menu_positioning():
                 cheat_button.ok = True
                 level.cheat = True
 
-        if rect_visible_button.click(screen, (850, 280)):
+        if rect_visible_button.click(screen, (735, 280)):
             if level.rect_visible:
                 rect_visible_button.ok = False
                 level.rect_visible = False
             else:
                 rect_visible_button.ok = True
                 level.rect_visible = True
+
+        if no_death_animation.click(screen, (930, 280)):
+            if level.no_death_animation:
+                no_death_animation.ok = False
+                level.no_death_animation = False
+            else:
+                no_death_animation.ok = True
+                level.no_death_animation = True
+                Alert("Анимации смерти выключена", (100, 450), 150)
 
         if unlock_all_button.click(screen, (600, 420)):
             unlock_all_button.ok = True
@@ -5351,6 +5456,8 @@ level_select_button = Button("text", font60, "Выбрать уровень")
 to_map_button = Button("text", font60, "На карту")
 cheat_button = Button("img", "menu", "cheat")
 rect_visible_button = Button("img", "other", "rect_visible")
+no_death_animation = Button("img", "other", "no_death_animation")
+no_death_animation.ok = True
 start_level_button = Button("text", font60, "Начать")
 random_choice_button = Button("text", font50, "Случайно")
 preview_button = Button("text", font60, "Справочник")
@@ -5363,6 +5470,7 @@ clear_button = Button("text", font50, "Очистить")
 take_button = Button("text", font60, "Забрать")
 first_event_button = Button("img", "buffs", "boloto")
 choice_button = Button("text", font60, "Выбрать")
+kill_enemy_on_click_button = Button("img", "other", "kill_enemy_onclick")
 
 TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death", "cheat", "settings_menu"))
 level_num = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
@@ -5595,6 +5703,12 @@ while running:
                 event_stage += 1
             mouse_pos = mouse.get_pos()
             unit_pos = (384 + ((mouse_pos[0] - 384) // 128) * 128), (192 + ((mouse_pos[1] - 192) // 128) * 128)
+
+            if level.kill_enemy_on_click:
+                for enemy in enemies_group:
+                    if enemy.rect.collidepoint(mouse_pos):
+                        enemy.alive = False
+                        enemy.kill()
 
             # for el in ui_group:
             #     if el.rect.collidepoint(mouse_pos):                                          # если элемент отпущен
