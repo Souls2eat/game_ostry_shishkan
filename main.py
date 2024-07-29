@@ -3006,7 +3006,7 @@ class Enemy(sprite.Sprite):
         if not self.stunned:
             self.cooldown()
             self.movement()
-            self.animation()
+            # self.animation()
 
             # if self.name == 'mega_strelok':
             #     if self.attack_cooldown2 > 0:
