@@ -3006,7 +3006,7 @@ class Enemy(sprite.Sprite):
         if not self.stunned:
             self.cooldown()
             self.movement()
-            # self.animation()
+            self.animation()
 
             # if self.name == 'mega_strelok':
             #     if self.attack_cooldown2 > 0:
@@ -3172,10 +3172,7 @@ class Bullet(sprite.Sprite):
     def __init__(self, bullet_sprite, x, y, damage_type, atk, speed_x, speed_y, name, parent):
         super().__init__(all_sprites_group, bullets_group)
         # self.image = image.load(f"images/bullets/{bullet_sprite}/move/{bullet_sprite}1.png").convert_alpha()
-        try:
-            self.image = image.load(f"images/bullets/{bullet_sprite}/{bullet_sprite}.png").convert_alpha()
-        except:
-            self.image = image.load(f"images/bullets/{bullet_sprite}/move/{bullet_sprite}1.png").convert_alpha()
+        self.image = image.load(f"images/bullets/{bullet_sprite}/move/{bullet_sprite}1.png").convert_alpha()
         self.rect = self.image.get_rect(center=(x, y))
         self.render_layer = 7
         self.bullet_sprite = bullet_sprite  # так надо
@@ -3700,8 +3697,8 @@ class Bullet(sprite.Sprite):
     def update(self):
         self.cooldowns()
         self.bullet_movement()
-        # self.animation()
-        self.check_collision()
+        self.animation()
+        self.check_vxccollision()
         self.check_parent()
 
 
