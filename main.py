@@ -2533,6 +2533,51 @@ class Enemy(sprite.Sprite):
             self.attack_range = 0
             self.damage_type = 'piercing'
 
+        if self.name == 'fire_res':
+            self.hp = 100
+            self.atk = 50
+            self.speed = 0.5
+            self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.attack_range = 0
+            self.damage_type = 'fire'
+            self.vulnerables_and_resists['fire'] = -100
+
+        if self.name == 'ice_res':
+            self.hp = 100
+            self.atk = 50
+            self.speed = 0.5
+            self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.attack_range = 0
+            self.damage_type = 'ice'
+            self.vulnerables_and_resists['ice'] = -100
+
+        if self.name == 'water_res':
+            self.hp = 100
+            self.atk = 50
+            self.speed = 0.5
+            self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.attack_range = 0
+            self.damage_type = 'water'
+            self.vulnerables_and_resists['water'] = -100
+
+        if self.name == 'poison_res':
+            self.hp = 100
+            self.atk = 50
+            self.speed = 0.5
+            self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.attack_range = 0
+            self.damage_type = 'poison'
+            self.vulnerables_and_resists['poison'] = -100
+
+        if self.name == 'light_res':
+            self.hp = 100
+            self.atk = 50
+            self.speed = 0.5
+            self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.attack_range = 0
+            self.damage_type = 'light'
+            self.vulnerables_and_resists['light'] = -100
+
         if self.name == "zeleniy_strelok":
             self.hp = 250
             self.atk = 75
@@ -3247,6 +3292,7 @@ class Bullet(sprite.Sprite):
         elif self.name == 'onyx':
             self.barrier_hp = 100
 
+
     def bullet_movement(self):
         self.rect.x += self.speed_x
         self.rect.y += self.speed_y
@@ -3665,9 +3711,9 @@ class Bullet(sprite.Sprite):
 
     def get_count_anim_frames(self):
         if self.state == "move":
-            return len(bullets_move[self.bullet_sprite])     # переделать на name
+            return len(bullets_move[self.bullet_sprite])     # переделать на name  # НЕТ!!! не будим
         if self.state == "death":
-            return len(bullets_death[self.bullet_sprite])     # переделать на name
+            return len(bullets_death[self.bullet_sprite])     # переделать на name  # НЕТ!!! не будим
 
     def animation(self):
         count_anim_frames = self.get_count_anim_frames()
@@ -3675,9 +3721,9 @@ class Bullet(sprite.Sprite):
             if int(self.anim_count//self.anim_duration) != self.last_anim_frame:
                 self.last_anim_frame = int(self.anim_count//self.anim_duration)
                 if self.state == "move":
-                    self.image = bullets_move[self.bullet_sprite][int(self.anim_count//self.anim_duration)]     # переделать на name
+                    self.image = bullets_move[self.bullet_sprite][int(self.anim_count//self.anim_duration)]     # переделать на name  # НЕТ!!! не будим
                 if self.state == "death":
-                    self.image = bullets_death[self.bullet_sprite][int(self.anim_count//self.anim_duration)]     # переделать на name
+                    self.image = bullets_death[self.bullet_sprite][int(self.anim_count//self.anim_duration)]     # переделать на name  # НЕТ!!! не будим
 
         if self.anim_count >= count_anim_frames * self.anim_duration:
             self.anim_count = 0
@@ -3692,13 +3738,13 @@ class Bullet(sprite.Sprite):
         else:
             self.kill()
 
-        # можно будет сделать чтобы если копитель умерал, то его мечи вниз падали прикольно. А при попадании меча во врага другая анимация
+        # можно будет сделать чтобы если копитель умирал, то его мечи вниз падали прикольно. А при попадании меча во врага другая анимация
 
     def update(self):
         self.cooldowns()
         self.bullet_movement()
         self.animation()
-        self.check_vxccollision()
+        self.check_collision()
         self.check_parent()
 
 
@@ -5662,6 +5708,12 @@ while running:
                 Enemy("drobik", (1508, 704))
             if e.key == K_KP_3:
                 Enemy("klonik", (1508, 704))
+            if e.key == K_KP_0:
+                Enemy("fire_res", (1508, 192))
+                Enemy("ice_res", (1508, 320))
+                Enemy("water_res", (1508, 448))
+                Enemy("poison_res", (1508, 576))
+                Enemy("light_res", (1508, 704))
 
             if e.key == K_a:
                 level.rect_visible = False

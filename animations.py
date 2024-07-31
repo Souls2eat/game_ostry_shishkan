@@ -174,6 +174,11 @@ enemies_wait = {
     "teleportik": [image.load(f"images/enemies/teleportik/wait/teleportik{i}.png") for i in range(1, 5)],
     "armorik": [image.load(f"images/enemies/armorik/wait/armorik{i}.png") for i in range(1, 5)],
     "telezhnik": [image.load(f"images/enemies/telezhnik/wait/telezhnik{i}.png") for i in range(1, 5)],
+    "fire_res": [image.load(f"images/enemies/fire_res/wait/fire_res{i}.png") for i in range(1, 5)],
+    "ice_res": [image.load(f"images/enemies/ice_res/wait/ice_res{i}.png") for i in range(1, 5)],
+    "water_res": [image.load(f"images/enemies/water_res/wait/water_res{i}.png") for i in range(1, 5)],
+    "poison_res": [image.load(f"images/enemies/poison_res/wait/poison_res{i}.png") for i in range(1, 5)],
+    "light_res": [image.load(f"images/enemies/light_res/wait/light_res{i}.png") for i in range(1, 5)],
 }
 
 enemies_move = {
@@ -190,6 +195,11 @@ enemies_move = {
     "teleportik": [image.load(f"images/enemies/teleportik/move/teleportik{i}.png") for i in range(1, 5)],
     "armorik": [image.load(f"images/enemies/armorik/move/armorik{i}.png") for i in range(1, 5)],
     "telezhnik": [image.load(f"images/enemies/telezhnik/move/telezhnik{i}.png") for i in range(1, 5)],
+    "fire_res": [image.load(f"images/enemies/fire_res/move/fire_res{i}.png") for i in range(1, 5)],
+    "ice_res": [image.load(f"images/enemies/ice_res/move/ice_res{i}.png") for i in range(1, 5)],
+    "water_res": [image.load(f"images/enemies/water_res/move/water_res{i}.png") for i in range(1, 5)],
+    "poison_res": [image.load(f"images/enemies/poison_res/move/poison_res{i}.png") for i in range(1, 5)],
+    "light_res": [image.load(f"images/enemies/light_res/move/light_res{i}.png") for i in range(1, 5)],
 }
 
 enemies_attack = {
@@ -206,10 +216,20 @@ enemies_attack = {
     "teleportik": [image.load(f"images/enemies/teleportik/attack/teleportik{i}.png") for i in range(1, 5)],
     "armorik": [image.load(f"images/enemies/armorik/attack/armorik{i}.png") for i in range(1, 5)],
     "telezhnik": [image.load(f"images/enemies/telezhnik/attack/telezhnik{i}.png") for i in range(1, 5)],
+    "fire_res": [image.load(f"images/enemies/fire_res/attack/fire_res{i}.png") for i in range(1, 5)],
+    "ice_res": [image.load(f"images/enemies/ice_res/attack/ice_res{i}.png") for i in range(1, 5)],
+    "water_res": [image.load(f"images/enemies/water_res/attack/water_res{i}.png") for i in range(1, 5)],
+    "poison_res": [image.load(f"images/enemies/poison_res/attack/poison_res{i}.png") for i in range(1, 5)],
+    "light_res": [image.load(f"images/enemies/light_res/attack/light_res{i}.png") for i in range(1, 5)],
 }
 
 enemies_death = {
     "popusk": [image.load(f"images/enemies/popusk/death/popusk{i}.png") for i in range(1, 5)],
+    "fire_res": [image.load(f"images/enemies/fire_res/death/fire_res{i}.png") for i in range(1, 5)],
+    "ice_res": [image.load(f"images/enemies/ice_res/death/ice_res{i}.png") for i in range(1, 5)],
+    "water_res": [image.load(f"images/enemies/water_res/death/water_res{i}.png") for i in range(1, 5)],
+    "poison_res": [image.load(f"images/enemies/poison_res/death/poison_res{i}.png") for i in range(1, 5)],
+    "light_res": [image.load(f"images/enemies/light_res/death/light_res{i}.png") for i in range(1, 5)],
     # "josky": [image.load(f"images/enemies/josky/death/josky{i}.png") for i in range(1, 5)],
     # "sigma": [image.load(f"images/enemies/sigma/death/sigma{i}.png") for i in range(1, 5)],
     # "zeleniy_strelok": [image.load(f"images/enemies/zeleniy_strelok/death/zeleniy_strelok{i}.png") for i in range(1, 5)],
