@@ -756,6 +756,7 @@ class Level:
         self.w = 1151
         self.h = 40
 
+
     def draw_level_time(self):      # надо бы написать по-понятней
         ratio = self.level_time / self.start_level_time
         draw.rect(screen, (233, 126, 72), (self.x, self.y, self.w, self.h))
@@ -809,16 +810,16 @@ class Level:
                     if sprite_ not in group and sprite_ not in text_sprites_group and sprite_ not in clouds_group and hasattr(sprite_, "name") and sprite_.name != "shovel":
                         sprite_.kill()
             else:
-                if sprite_ not in text_sprites_group and sprite_ not in clouds_group:
+                if sprite_ not in text_sprites_group and sprite_ not in clouds_group :
                     if hasattr(sprite_, "name"):
-                        if sprite_.name != "shovel":
+                        if sprite_.name != "shovel" and sprite_.name != "krest":
                             sprite_.kill()
                     else:
                         sprite_.kill()
 
     @staticmethod
     def spawn():
-
+        
         return "run"
 
     def refresh(self, *dont_clear_groups):
@@ -892,6 +893,37 @@ class Level:
                     Alert("БомБом", (750, 450), 225)
         if self.state == "not_run":
             self.state = self.spawn()
+            row1 = False  # ну блин сорян
+            row2 = False
+            row3 = False
+            row4 = False
+            row5 = False
+            for i in self.allowed_cords:
+                if i == 192:
+                    row1 = True
+                elif i == 320:
+                    row2 = True
+                elif i == 448:
+                    row3 = True
+                elif i == 576:
+                    row4 = True
+                elif i == 704:
+                    row5 = True
+            if not row1:
+                for i in range(9):
+                    Tower('krest', (384 + (i * 128), 192))
+            if not row2:
+                for i in range(9):
+                    Tower('krest', (384 + (i * 128), 320))
+            if not row3:
+                for i in range(9):
+                    Tower('krest', (384 + (i * 128), 448))
+            if not row4:
+                for i in range(9):
+                    Tower('krest', (384 + (i * 128), 576))
+            if not row5:
+                for i in range(9):
+                    Tower('krest', (384 + (i * 128), 704))
         if not self.cheat:
             if self.level_time > 0:
                 if self.time_to_spawn > 0:
@@ -1516,6 +1548,13 @@ class Tower(sprite.Sprite):
             self.money_per_enemy = 5
             self.enemy_stunned_time = 225
             self.rarity = "spell"
+
+        if self.name == 'krest':
+            self.hp = self.max_hp = 1
+            self.atk = 0
+            self.damage_type = ''
+            self.rarity = "spell"
+            krests_group.add(self)
 
         # СТАТЫ конец
         self.image2 = font30.render(str(self.hp), True, (0, 0, 0))
@@ -5480,6 +5519,7 @@ all_sprites_group = ExtendedGroup()
 clouds_group = sprite.Group()
 alert_group = sprite.Group()
 level_group = sprite.Group()
+krests_group = sprite.Group()
 preview_group = PreviewGroup(Tower, Enemy)
 select_towers_preview_group = PreviewGroup(Tower)
 global_map = GlobalMap()
@@ -5535,8 +5575,8 @@ snow_coins = 0
 upload_data()
 # ---
 
-GlobalMapLevelButton("1", "0", (100, 714), level=Level("1", 22500, 750, 50, level_waves["1"], level_allowed_enemies["1"], level_image="2"))    # !!! все буквы русские !!!
-GlobalMapLevelButton("2", "1", (250, 544), level=Level("2", 22500, 575, 50, level_waves["2"], level_allowed_enemies["2"], level_image="2"))
+GlobalMapLevelButton("1", "0", (100, 714), level=Level("1", 22500, 750, 50, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))    # !!! все буквы русские !!!
+GlobalMapLevelButton("2", "1", (250, 544), level=Level("2", 22500, 575, 50, level_waves["2"], level_allowed_enemies["2"], allowed_cords=(320, 448, 576), level_image="2"))
 GlobalMapLevelButton("3", "2", (500, 500), level=Level("3", 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="2"))
 GlobalMapLevelButton("3а", "3", (700, 700), chest=Chest(parent_number="3а", rewards=chests_rewards["3а"]))
 GlobalMapLevelButton("4", "3", (750, 400), level=Level("4", 22500, 225, 50, level_waves["4"], level_allowed_enemies["4"], level_image="2"))
@@ -5544,7 +5584,7 @@ GlobalMapLevelButton("5", "4", (1000, 400), level=Level("5", 31500, 225, 50, lev
 GlobalMapLevelButton("6", "5", (1200, 300), event=Event(village_event, image_="village", parent_number="6", repeat=True))    # на 6 поменять
 GlobalMapLevelButton("6а", "6", (1000, 100), level=Level("6а", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))  # поменять
 GlobalMapLevelButton("6б", "6а", (750, 100), chest=Chest(parent_number="6б", rewards=chests_rewards["6б"]))
-GlobalMapLevelButton("6в", "6б", (500, 100), level=Level("6в", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))  # поменять
+GlobalMapLevelButton("6в", "6б", (400, 100), level=Level("6в", 31500, 225, 50, level_waves["5"], level_allowed_enemies["6в"], level_image="1"))  # поменять
 GlobalMapLevelButton("6г", "6в", (250, 200), event=Event(found_fiery_vasilky_event, "fiery_vasilky", "6г"))  # поменять
 GlobalMapLevelButton("7", "6", (1400, 200), required_done_events=("6",), level=Level("7", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
 GlobalMapLevelButton("8", "7", (1650, 165), level=Level("8", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
@@ -5779,13 +5819,14 @@ while running:
             if shovel.rect.collidepoint(mouse_pos):
                 shovel.is_move = False
                 for obj in [*towers_group, *nekusaemie_group]:                  # Сразу по 2 группам
-                    if obj.rect.collidepoint(shovel.rect.centerx, shovel.rect.centery):
-                        if not level.cheat:
-                            level.money += tower_costs[obj.name] // 2
-                        if hasattr(obj, "bullet"):
-                            obj.bullet.kill()
-                        obj.alive = False
-                        obj.kill()
+                    if not obj.name == 'krest':
+                        if obj.rect.collidepoint(shovel.rect.centerx, shovel.rect.centery):
+                            if not level.cheat:
+                                level.money += tower_costs[obj.name] // 2
+                            if hasattr(obj, "bullet"):
+                                obj.bullet.kill()
+                            obj.alive = False
+                            obj.kill()
 
             for slot in slots_group.entities:
                 if slot.unit_inside:

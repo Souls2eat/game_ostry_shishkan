@@ -28,11 +28,12 @@ level_waves = {
 }
 
 level_allowed_enemies = {
-    "1": ("popusk", "josky"),   # ("popusk", "josky")
-    "2": ("josky", "sportik", "popusk"),
-    "3": ("josky", "sigma", "sportik", "armorik", "zeleniy_strelok", "popusk", "teleportik"),
-    "4": ("telezhnik", "rojatel", "sigma", "armorik", "zeleniy_strelok", "drobik", "klonik"),
-    "5": ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik", "klonik", "teleportik")
+    "1": ("popusk", "popusk"),   # ("popusk", "josky")
+    "2": ("popusk", "josky"),
+    "3": ("josky", "sportik", "popusk"),
+    "4": ("josky", "sigma", "sportik", "popusk", "rojatel"),
+    "5": ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik", "klonik", "teleportik"),
+    "6в": ("popusk", "josky", "sportik", "rojatel", "fire_res")
 
 }
 

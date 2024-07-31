@@ -53,6 +53,7 @@ towers_wait = {
     "molniya": [image.load(f"images/towers/molniya/wait/molniya{i}.png") for i in range(1, 5)],
     "tp_back": [image.load(f"images/towers/tp_back/wait/tp_back{i}.png") for i in range(1, 5)],
     "joltiy_pomidor": [image.load(f"images/towers/joltiy_pomidor/wait/joltiy_pomidor{i}.png") for i in range(1, 5)],
+    "krest": [image.load(f"images/towers/krest/wait/krest{i}.png") for i in range(1, 5)],
 
 }
 
@@ -158,6 +159,7 @@ towers_death = {
     "molniya": [image.load(f"images/towers/molniya/death/molniya{i}.png") for i in range(1, 5)],
     "tp_back": [image.load(f"images/towers/tp_back/death/tp_back{i}.png") for i in range(1, 5)],
     "joltiy_pomidor": [image.load(f"images/towers/joltiy_pomidor/death/joltiy_pomidor{i}.png") for i in range(1, 5)],
+    "krest": [image.load(f"images/towers/krest/death/krest{i}.png") for i in range(1, 5)],
 }
 
 enemies_wait = {
