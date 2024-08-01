@@ -3059,6 +3059,8 @@ class Enemy(sprite.Sprite):
     def check_hp(self):
         if self.hp <= 0:
             self.alive = False
+            self.stunned = False
+            self.stunned_time = 0
             if not level.no_death_animation:
                 self.stop = True
                 self.prime_anim("death", self.dead)
@@ -3924,6 +3926,7 @@ class Bullet(sprite.Sprite):
 
     def dead(self):
         if not level.no_death_animation:
+            bullets_group.remove(self)
             self.atk = 0
             self.speed_x = 0
             self.add_anim_task("death", self.kill)
@@ -3933,11 +3936,12 @@ class Bullet(sprite.Sprite):
         # можно будет сделать чтобы если копитель умирал, то его мечи вниз падали прикольно. А при попадании меча во врага другая анимация
 
     def update(self):
-        self.cooldowns()
-        self.bullet_movement()
+        if self in bullets_group:
+            self.cooldowns()
+            self.bullet_movement()
+            self.check_collision()
+            self.check_parent()
         self.animation()
-        self.check_collision()
-        self.check_parent()
 
 
 class Parasite(sprite.Sprite):
