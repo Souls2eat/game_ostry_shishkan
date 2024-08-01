@@ -137,6 +137,7 @@ tower_costs = {
     "klonys": 20,
     "kot": 20,
     "furry_druid": 99,  # типа хзз
+    "oruzhik": 99,  # типа хзз
     "bomb": 35,
     "perec": 30,
     "vodka": 15,
@@ -152,6 +153,9 @@ tower_costs = {
     "furry_medved": 0,
     "furry_volk": 0,
     "furry_zayac": 0,
+    "oruzhik_claymore": 0,
+    "oruzhik_daggers": 0,
+    "oruzhik_bow": 0,
 
 }
 
@@ -194,6 +198,7 @@ towers_kd = {
     "klonys": 525,
     "kot": 1875,
     "furry_druid": 9999,  #xz
+    "oruzhik": 9999,  #xz
     "bomb": 1875,
     "perec": 1500,
     "vodka": 1500,
@@ -480,6 +485,13 @@ upgrade_costs = {
         "2b": "1 forest_coin",
         "3a": "2 forest_coin",
         "3b": "2 forest_coin",
+    },
+    "oruzhik": {
+        "1": "0 city_coin",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
     },
     "bomb": {
         "1": "0 city_coin",
@@ -806,6 +818,13 @@ upgrade_descriptions = {
         "2b": "1 forest_coin",
         "3a": "2 forest_coin",
         "3b": "2 forest_coin",
+    },
+    "oruzhik": {
+        "1": "бла бла бла",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
     },
     "bomb": {
         "1": "Моментально взрывается нанося большой урон в области взрыва",

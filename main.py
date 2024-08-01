@@ -1533,6 +1533,43 @@ class Tower(sprite.Sprite):
             self.damage_type = 'bludgeoning'
             self.rarity = "common"
 
+        if self.name == 'oruzhik':
+            self.hp = self.max_hp = 0
+            self.rarity = "common"
+
+        if self.name == 'oruzhik_claymore':
+            self.hp = self.max_hp = 5500
+            self.atk = 100
+            self.received_damage = 0
+            self.max_received_damage = 1000
+            self.damage_type = 'slashing'
+            self.rarity = "common"
+
+        if self.name == 'oruzhik_daggers':
+            self.hp = self.max_hp = 200
+            self.atk = 10
+            self.bullet_speed_x = 5
+            self.bullet_speed_y = 0
+            self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.daggers = ['fire_dagger', 'ice_dagger']
+            self.daggers_damage_type = ['fire', 'ice']
+            self.dagger = 0
+            self.target_phase = None
+            self.damage_type = ''
+            self.rarity = "common"
+
+        if self.name == 'oruzhik_bow':
+            self.hp = self.max_hp = 200
+            self.atk = 10
+            self.bullet_speed_x = 5
+            self.bullet_speed_y = 0
+            self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.arrows = ['fire_arrow', 'ice_arrow', 'electric_arrow', 'earth_arrow', 'water_arrow']
+            self.arrows_damage_type = ['fire', 'ice', 'electric', 'piercing', 'water']  # не кайф земляную стрелу переименовывать
+            self.arrow = 0  # номер текущей стрелы
+            self.damage_type = ''
+            self.rarity = "common"
+
         # я решил спеллы внизу писать
 
         if self.name == 'bomb':
@@ -1674,6 +1711,13 @@ class Tower(sprite.Sprite):
             elif 768 > self.rect.x >= 384:
                 Tower("furry_zayac", self.pos)
 
+        elif self.name == 'oruzhik':
+            if 1536 > self.rect.x >= 1152:
+                Tower("oruzhik_claymore", self.pos)
+            elif 1152 > self.rect.x >= 768:
+                Tower("oruzhik_daggers", self.pos)
+            elif 768 > self.rect.x >= 384:
+                Tower("oruzhik_bow", self.pos)
         # спеллы
 
         elif self.name == "bomb":
@@ -1772,6 +1816,11 @@ class Tower(sprite.Sprite):
                             enemy.real_x += 128
                             if self.upgrade_level == '3b':
                                 Parasite('terpila_debuff', enemy.rect.centerx, enemy.rect.centery, '', 0, enemy, self)
+
+        if self.name == 'oruzhik_claymore':
+            if self.received_damage >= self.max_received_damage:
+                self.received_damage -= self.max_received_damage
+                Bullet("earth_claymore", self.rect.right + 64, self.rect.centery, self.damage_type, self.atk, 0, 0, 'drachun_gulag', self)
         
         if self.name == 'krovnyak':
             if self.damaged:
@@ -1803,6 +1852,7 @@ class Tower(sprite.Sprite):
                 or self.name == 'kokol'\
                 or self.name == 'sliz'\
                 or self.name == 'furry_zayac'\
+                or self.name == 'oruzhik_bow'\
                 or self.name == 'electro_maga': 
             for enemy in enemies_group:
                 if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
@@ -1868,7 +1918,7 @@ class Tower(sprite.Sprite):
                     self.target_phase = 'center'
                     return enemy
 
-        if self.name == "electric":
+        if self.name == "electric" or self.name == 'oruzhik_daggers':
             for enemy in enemies_group:
                 if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256 and enemy.alive:
                     self.target_phase = 'close'
@@ -1947,7 +1997,7 @@ class Tower(sprite.Sprite):
         if targets[id(self)]:
             if targets[id(self)].rect.x < self.rect.x:
                 targets[id(self)] = None
-            elif (self.name == 'thunder' and self.target_phase == 'center') or (self.name == 'electric' and self.target_phase == 'far') or self.name == 'urag_anus' or self.name == 'priest' or self.name == 'uvelir':
+            elif (self.name == 'thunder' and self.target_phase == 'center') or (self.name == 'electric' and self.target_phase == 'far') or (self.name == 'oruzhik_daggers' and self.target_phase == 'far') or self.name == 'urag_anus' or self.name == 'priest' or self.name == 'uvelir':
                 targets[id(self)] = None
             elif targets[id(self)].name == 'teleportik':
                 targets[id(self)] = None
@@ -2025,6 +2075,13 @@ class Tower(sprite.Sprite):
         if self.name == "furry_zayac":
             for i in range(3):
                 Bullet("zayac_krol", self.rect.centerx+(i*32), self.rect.centery+randint(-32, 32), self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'zayac_krol', self)
+
+        if self.name == "oruzhik_bow":
+            Bullet(self.arrows[self.arrow], self.rect.centerx, self.rect.centery, self.arrows_damage_type[self.arrow], self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
+            self.arrow += 1
+            if self.arrow >= len(self.arrows):
+                self.arrow = 0
+                
 
         if self.name == "kokol":
             Bullet("ab_kokol", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'kok', self)
@@ -2120,6 +2177,16 @@ class Tower(sprite.Sprite):
             elif self.target_phase == 'far':  # я мог бы просто написать else, но пусть лучше так
                 self.bursting = True
 
+        if self.name == "oruzhik_daggers":
+            if self.target_phase == 'close':
+                Bullet("ice_dagger_slash", self.rect.right + 64, self.rect.centery, 'ice', self.atk, 0, 0, 'drachun_gulag', self)
+                Bullet("fire_dagger_slash", self.rect.right + 64, self.rect.centery, 'fire', self.atk, 0, 0, 'drachun_gulag', self)
+            elif self.target_phase == 'far':  # я мог бы просто написать else, но пусть лучше так
+                Bullet(self.daggers[self.dagger], self.rect.centerx, self.rect.centery, self.daggers_damage_type[self.dagger], self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
+                self.dagger += 1
+                if self.dagger >= len(self.daggers):
+                    self.dagger = 0
+
         if self.name == "struyniy":
             self.bursting = True
             self.attack_cooldown = self.basic_attack_cooldown
@@ -2155,7 +2222,7 @@ class Tower(sprite.Sprite):
 
         if self.name == 'spike':    # fix?
             for enemy in enemies_group:
-                if enemy.rect.colliderect:
+                if enemy.rect.colliderect(self.rect):
                     self.dealing_damage(enemy)
             targets[id(self)] = None
 
@@ -2814,7 +2881,9 @@ class Enemy(sprite.Sprite):
                         self.damage *= (100 + v)/100
                 targets[id(self)].hp -= self.damage
                 targets[id(self)].damaged = True
-                if targets[id(self)].name == 'terpila' and (targets[id(self)].upgrade_level == '2b' or targets[id(self)].upgrade_level == '3b' or targets[id(self)].upgrade_level == '3a'):
+                # if targets[id(self)].name == 'terpila' and (targets[id(self)].upgrade_level == '2b' or targets[id(self)].upgrade_level == '3b' or targets[id(self)].upgrade_level == '3a'):
+                #     targets[id(self)].received_damage += self.damage
+                if hasattr(targets[id(self)], 'received_damage'):
                     targets[id(self)].received_damage += self.damage
                 targets[id(self)].check_hp()
             for parasite in self.parasites:
@@ -3557,7 +3626,9 @@ class Bullet(sprite.Sprite):
                                     self.damage *= (100 + v)/100
                             tower.hp -= self.damage
                             tower.damaged = True
-                            if tower.name == 'terpila' and (tower.upgrade_level == '2b' or tower.upgrade_level == '3b' or tower.upgrade_level == '3a'):
+                            # if tower.name == 'terpila' and (tower.upgrade_level == '2b' or tower.upgrade_level == '3b' or tower.upgrade_level == '3a'):
+                            #     tower.received_damage += self.damage
+                            if hasattr(tower, 'received_damage'):
                                 tower.received_damage += self.damage
                             tower.check_hp()
                             self.dead()         # тут был кил
@@ -4278,6 +4349,11 @@ class Buff(sprite.Sprite):
                             or tower.name == "kokol"\
                             or tower.name == "sliz"\
                             or tower.name == "klonys"\
+                            or tower.name == "furry_medved"\
+                            or tower.name == "furry_volk"\
+                            or tower.name == "furry_zayac"\
+                            or tower.name == "oruzhik_daggers"\
+                            or tower.name == "oruzhik_bow"\
                             or tower.name == 'electro_maga':
 
                             if tower.basic_attack_cooldown // 2 <= 180:
@@ -4399,6 +4475,9 @@ class Buff(sprite.Sprite):
                         or tower.name == "kokol"\
                         or tower.name == "sliz"\
                         or tower.name == "klonys"\
+                        or tower.name == "furry_medved"\
+                        or tower.name == "furry_volk"\
+                        or tower.name == "furry_zayac"\
                         or tower.name == 'electro_maga':
                     if not self.max_buff:
                         tower.basic_attack_cooldown *= 2

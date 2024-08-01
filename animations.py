@@ -49,6 +49,10 @@ towers_wait = {
     "furry_medved": [image.load(f"images/towers/furry_medved/wait/furry_medved{i}.png") for i in range(1, 5)],
     "furry_volk": [image.load(f"images/towers/furry_volk/wait/furry_volk{i}.png") for i in range(1, 5)],
     "furry_zayac": [image.load(f"images/towers/furry_zayac/wait/furry_zayac{i}.png") for i in range(1, 5)],
+    "oruzhik": [image.load(f"images/towers/oruzhik/wait/oruzhik{i}.png") for i in range(1, 5)],
+    "oruzhik_claymore": [image.load(f"images/towers/oruzhik_claymore/wait/oruzhik_claymore{i}.png") for i in range(1, 5)],
+    "oruzhik_daggers": [image.load(f"images/towers/oruzhik_daggers/wait/oruzhik_daggers{i}.png") for i in range(1, 5)],
+    "oruzhik_bow": [image.load(f"images/towers/oruzhik_bow/wait/oruzhik_bow{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/wait/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/wait/perec{i}.png") for i in range(1, 5)],
@@ -99,6 +103,9 @@ towers_attack = {
     "furry_medved": [image.load(f"images/towers/furry_medved/attack/furry_medved{i}.png") for i in range(1, 5)],
     "furry_volk": [image.load(f"images/towers/furry_volk/attack/furry_volk{i}.png") for i in range(1, 5)],
     "furry_zayac": [image.load(f"images/towers/furry_zayac/attack/furry_zayac{i}.png") for i in range(1, 5)],
+    "oruzhik_claymore": [image.load(f"images/towers/oruzhik_claymore/attack/oruzhik_claymore{i}.png") for i in range(1, 5)],
+    "oruzhik_daggers": [image.load(f"images/towers/oruzhik_daggers/attack/oruzhik_daggers{i}.png") for i in range(1, 5)],
+    "oruzhik_bow": [image.load(f"images/towers/oruzhik_bow/attack/oruzhik_bow{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/attack/go_bleen1{i}.png") for i in range(1, 3)],
 
 }
@@ -164,6 +171,10 @@ towers_death = {
     "furry_medved": [image.load(f"images/towers/furry_medved/death/furry_medved{i}.png") for i in range(1, 5)],
     "furry_volk": [image.load(f"images/towers/furry_volk/death/furry_volk{i}.png") for i in range(1, 5)],
     "furry_zayac": [image.load(f"images/towers/furry_zayac/death/furry_zayac{i}.png") for i in range(1, 5)],
+    "oruzhik": [image.load(f"images/towers/oruzhik/death/oruzhik{i}.png") for i in range(1, 5)],
+    "oruzhik_claymore": [image.load(f"images/towers/oruzhik_claymore/death/oruzhik_claymore{i}.png") for i in range(1, 5)],
+    "oruzhik_daggers": [image.load(f"images/towers/oruzhik_daggers/death/oruzhik_daggers{i}.png") for i in range(1, 5)],
+    "oruzhik_bow": [image.load(f"images/towers/oruzhik_bow/death/oruzhik_bow{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/death/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/death/perec{i}.png") for i in range(1, 5)],
@@ -335,6 +346,16 @@ bullets_move = {
     "medved_lapa": [image.load(f"images/bullets/medved_lapa/move/medved_lapa{i}.png") for i in range(1, 5)],
     "volk_lapa": [image.load(f"images/bullets/volk_lapa/move/volk_lapa{i}.png") for i in range(1, 5)],
     "zayac_krol": [image.load(f"images/bullets/zayac_krol/move/zayac_krol{i}.png") for i in range(1, 5)],
+    "fire_arrow": [image.load(f"images/bullets/fire_arrow/move/fire_arrow{i}.png") for i in range(1, 5)],
+    "ice_arrow": [image.load(f"images/bullets/ice_arrow/move/ice_arrow{i}.png") for i in range(1, 5)],
+    "water_arrow": [image.load(f"images/bullets/water_arrow/move/water_arrow{i}.png") for i in range(1, 5)],
+    "earth_arrow": [image.load(f"images/bullets/earth_arrow/move/earth_arrow{i}.png") for i in range(1, 5)],
+    "electric_arrow": [image.load(f"images/bullets/electric_arrow/move/electric_arrow{i}.png") for i in range(1, 5)],
+    "fire_dagger": [image.load(f"images/bullets/fire_dagger/move/fire_dagger{i}.png") for i in range(1, 5)],
+    "ice_dagger": [image.load(f"images/bullets/ice_dagger/move/ice_dagger{i}.png") for i in range(1, 5)],
+    "fire_dagger_slash": [image.load(f"images/bullets/fire_dagger_slash/move/fire_dagger_slash{i}.png") for i in range(1, 5)],
+    "ice_dagger_slash": [image.load(f"images/bullets/ice_dagger_slash/move/ice_dagger_slash{i}.png") for i in range(1, 5)],
+    "earth_claymore": [image.load(f"images/bullets/earth_claymore/move/earth_claymore{i}.png") for i in range(1, 5)],
 }
 
 bullets_death = {
@@ -397,6 +418,16 @@ bullets_death = {
     "medved_lapa": [image.load(f"images/bullets/medved_lapa/death/medved_lapa{i}.png") for i in range(1, 5)],
     "volk_lapa": [image.load(f"images/bullets/volk_lapa/death/volk_lapa{i}.png") for i in range(1, 5)],
     "zayac_krol": [image.load(f"images/bullets/zayac_krol/death/zayac_krol{i}.png") for i in range(1, 5)],
+    "fire_arrow": [image.load(f"images/bullets/fire_arrow/death/fire_arrow{i}.png") for i in range(1, 5)],
+    "ice_arrow": [image.load(f"images/bullets/ice_arrow/death/ice_arrow{i}.png") for i in range(1, 5)],
+    "water_arrow": [image.load(f"images/bullets/water_arrow/death/water_arrow{i}.png") for i in range(1, 5)],
+    "earth_arrow": [image.load(f"images/bullets/earth_arrow/death/earth_arrow{i}.png") for i in range(1, 5)],
+    "electric_arrow": [image.load(f"images/bullets/electric_arrow/death/electric_arrow{i}.png") for i in range(1, 5)],
+    "fire_dagger": [image.load(f"images/bullets/fire_dagger/death/fire_dagger{i}.png") for i in range(1, 5)],
+    "ice_dagger": [image.load(f"images/bullets/ice_dagger/death/ice_dagger{i}.png") for i in range(1, 5)],
+    "fire_dagger_slash": [image.load(f"images/bullets/fire_dagger_slash/death/fire_dagger_slash{i}.png") for i in range(1, 5)],
+    "ice_dagger_slash": [image.load(f"images/bullets/ice_dagger_slash/death/ice_dagger_slash{i}.png") for i in range(1, 5)],
+    "earth_claymore": [image.load(f"images/bullets/earth_claymore/death/earth_claymore{i}.png") for i in range(1, 5)],
 }
 
 coins = {
