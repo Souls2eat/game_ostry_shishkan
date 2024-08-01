@@ -1,13 +1,21 @@
 level_waves = {
     "1": {
-        "a22000": 0,    # a -- alert -- в разработке :)
-        "v18000": 10,   # v -- visible -- !
-        "n16000": 5,    # n -- invisible -- no!
-        "v8000": 20,
+                        # a -- alert -- в разработке :)
+                        # v -- visible -- !
+                        # n -- invisible -- no!
+        "n6700": 1,
+        "n5000": 2,
+        "n3000": 3,
+        "v500": 5,    
     },
     "2": {
-        "v18000": 30,
-        "v8000": 40,
+        "n13250": 1,
+        "n11000": 2,
+        "n8500": 3,
+        "n6500": 3,
+        "n5000": 5,
+        "n2500": 7,
+        "v500": 10,
     },
     "3": {
         "v18000": 30,
@@ -28,7 +36,7 @@ level_waves = {
 }
 
 level_allowed_enemies = {
-    "1": ("popusk", "popusk"),   # ("popusk", "josky")
+    "1": ("popusk", ),   # ("popusk", "josky")
     "2": ("popusk", "josky"),
     "3": ("josky", "sportik", "popusk"),
     "4": ("josky", "sigma", "sportik", "popusk", "rojatel"),
@@ -127,11 +135,13 @@ tower_costs = {
     "kokol": 25,
     "sliz": 20,
     "klonys": 20,
+    "kot": 20,
+    "furry_druid": 99,  # типа хзз
     "bomb": 35,
     "perec": 30,
     "vodka": 15,
     "easy_money": 0,
-    "vistrel": 0,
+    "vistrel": 1,
     "molniya": 35,
     "tp_back": 20,
     "joltiy_pomidor": 15,
@@ -139,6 +149,9 @@ tower_costs = {
     "grib1": 0,
     "grib2": 0,
     "grib3": 0,
+    "furry_medved": 0,
+    "furry_volk": 0,
+    "furry_zayac": 0,
 
 }
 
@@ -179,6 +192,8 @@ towers_kd = {
     "kokol": 375,
     "sliz": 600,
     "klonys": 525,
+    "kot": 1875,
+    "furry_druid": 9999,  #xz
     "bomb": 1875,
     "perec": 1500,
     "vodka": 1500,
@@ -451,6 +466,20 @@ upgrade_costs = {
         "2b": "1 city_coin",
         "3a": "2 city_coin",
         "3b": "2 city_coin",
+    },
+    "kot": {
+        "1": "0 city_coin",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "furry_druid": {
+        "1": "0 forest_coin",
+        "2a": "1 forest_coin",
+        "2b": "1 forest_coin",
+        "3a": "2 forest_coin",
+        "3b": "2 forest_coin",
     },
     "bomb": {
         "1": "0 city_coin",
@@ -763,6 +792,20 @@ upgrade_descriptions = {
         "2b": "1 city_coin",
         "3a": "2 city_coin",
         "3b": "2 city_coin",
+    },
+    "kot": {
+        "1": "Жирни кот. У него 9 жизней и каждый раз когда его хп кончаются вместо того чтобы покинуть поле он какое-то время отдыхает, чтобы потом снова жоска танчить вплоть до 9 раз",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "furry_druid": {
+        "1": "бля как же я заебся... 5:30 утра... ну он типа кароч может в медведя танка который бьёт лапой превращаться и в волка и в зайца и всё конец",
+        "2a": "1 forest_coin",
+        "2b": "1 forest_coin",
+        "3a": "2 forest_coin",
+        "3b": "2 forest_coin",
     },
     "bomb": {
         "1": "Моментально взрывается нанося большой урон в области взрыва",

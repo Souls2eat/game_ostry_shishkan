@@ -44,6 +44,11 @@ towers_wait = {
     "kokol": [image.load(f"images/towers/kokol/wait/kokol{i}.png") for i in range(1, 5)],
     "sliz": [image.load(f"images/towers/sliz/wait/sliz{i}.png") for i in range(1, 5)],
     "klonys": [image.load(f"images/towers/klonys/wait/klonys{i}.png") for i in range(1, 5)],
+    "kot": [image.load(f"images/towers/kot/wait/kot{i}.png") for i in range(1, 5)],
+    "furry_druid": [image.load(f"images/towers/furry_druid/wait/furry_druid{i}.png") for i in range(1, 5)],
+    "furry_medved": [image.load(f"images/towers/furry_medved/wait/furry_medved{i}.png") for i in range(1, 5)],
+    "furry_volk": [image.load(f"images/towers/furry_volk/wait/furry_volk{i}.png") for i in range(1, 5)],
+    "furry_zayac": [image.load(f"images/towers/furry_zayac/wait/furry_zayac{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/wait/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/wait/perec{i}.png") for i in range(1, 5)],
@@ -91,6 +96,9 @@ towers_attack = {
     "kokol": [image.load(f"images/towers/kokol/attack/kokol{i}.png") for i in range(1, 5)],
     "sliz": [image.load(f"images/towers/sliz/attack/sliz{i}.png") for i in range(1, 5)],
     "klonys": [image.load(f"images/towers/klonys/attack/klonys{i}.png") for i in range(1, 5)],
+    "furry_medved": [image.load(f"images/towers/furry_medved/attack/furry_medved{i}.png") for i in range(1, 5)],
+    "furry_volk": [image.load(f"images/towers/furry_volk/attack/furry_volk{i}.png") for i in range(1, 5)],
+    "furry_zayac": [image.load(f"images/towers/furry_zayac/attack/furry_zayac{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/attack/go_bleen1{i}.png") for i in range(1, 3)],
 
 }
@@ -104,6 +112,7 @@ towers_give = {
 
 towers_hide = {
     "pukish": [image.load(f"images/towers/pukish/hide/pukish{i}.png") for i in range(1, 5)],
+    "kot": [image.load(f"images/towers/kot/hide/kot{i}.png") for i in range(1, 5)],
 }
 
 towers_death = {
@@ -150,6 +159,11 @@ towers_death = {
     "kokol": [image.load(f"images/towers/kokol/death/kokol{i}.png") for i in range(1, 5)],
     "sliz": [image.load(f"images/towers/sliz/death/sliz{i}.png") for i in range(1, 5)],
     "klonys": [image.load(f"images/towers/klonys/death/klonys{i}.png") for i in range(1, 5)],
+    "kot": [image.load(f"images/towers/kot/death/kot{i}.png") for i in range(1, 5)],
+    "furry_druid": [image.load(f"images/towers/furry_druid/death/furry_druid{i}.png") for i in range(1, 5)],
+    "furry_medved": [image.load(f"images/towers/furry_medved/death/furry_medved{i}.png") for i in range(1, 5)],
+    "furry_volk": [image.load(f"images/towers/furry_volk/death/furry_volk{i}.png") for i in range(1, 5)],
+    "furry_zayac": [image.load(f"images/towers/furry_zayac/death/furry_zayac{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/death/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/death/perec{i}.png") for i in range(1, 5)],
@@ -318,6 +332,9 @@ bullets_move = {
     "vistrel_bullet": [image.load(f"images/bullets/vistrel_bullet/move/vistrel_bullet{i}.png") for i in range(1, 5)],
     "yellow_bullet": [image.load(f"images/bullets/yellow_bullet/move/yellow_bullet{i}.png") for i in range(1, 5)],
     "zeleniy_strelok_bullet": [image.load(f"images/bullets/zeleniy_strelok_bullet/move/zeleniy_strelok_bullet{i}.png") for i in range(1, 5)],
+    "medved_lapa": [image.load(f"images/bullets/medved_lapa/move/medved_lapa{i}.png") for i in range(1, 5)],
+    "volk_lapa": [image.load(f"images/bullets/volk_lapa/move/volk_lapa{i}.png") for i in range(1, 5)],
+    "zayac_krol": [image.load(f"images/bullets/zayac_krol/move/zayac_krol{i}.png") for i in range(1, 5)],
 }
 
 bullets_death = {
@@ -377,6 +394,9 @@ bullets_death = {
     "vistrel_bullet": [image.load(f"images/bullets/vistrel_bullet/death/vistrel_bullet{i}.png") for i in range(1, 5)],
     "yellow_bullet": [image.load(f"images/bullets/yellow_bullet/death/yellow_bullet{i}.png") for i in range(1, 5)],
     "zeleniy_strelok_bullet": [image.load(f"images/bullets/zeleniy_strelok_bullet/death/zeleniy_strelok_bullet{i}.png") for i in range(1, 5)],
+    "medved_lapa": [image.load(f"images/bullets/medved_lapa/death/medved_lapa{i}.png") for i in range(1, 5)],
+    "volk_lapa": [image.load(f"images/bullets/volk_lapa/death/volk_lapa{i}.png") for i in range(1, 5)],
+    "zayac_krol": [image.load(f"images/bullets/zayac_krol/death/zayac_krol{i}.png") for i in range(1, 5)],
 }
 
 coins = {
