@@ -5,13 +5,13 @@ encountered_enemies = popusk, sigma, josky, zeleniy_strelok, sportik, rojatel, m
 not_encountered_enemies = []
 completed_events = []
 -----
-city_coin = 25
+city_coin = 22
 forest_coin = 25
 evil_coin = 25
 mountain_coin = 25
 snow_coin = 25
 -----
-fire_mag = 1
+fire_mag = 1, 3b, 2b
 pukish = 1
 boomchick = 1
 davalka = 1
