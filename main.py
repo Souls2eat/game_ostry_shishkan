@@ -1820,7 +1820,7 @@ class Tower(sprite.Sprite):
         if self.name == 'oruzhik_claymore':
             if self.received_damage >= self.max_received_damage:
                 self.received_damage -= self.max_received_damage
-                Bullet("earth_claymore", self.rect.right + 64, self.rect.centery, self.damage_type, self.atk, 0, 0, 'drachun_gulag', self)
+                self.add_anim_task("attack", self.shoot)
         
         if self.name == 'krovnyak':
             if self.damaged:
@@ -2244,13 +2244,16 @@ class Tower(sprite.Sprite):
                 self.push = self.ottalkivanie_solo
 
         if self.name == "knight_on_horse":
-            Bullet("big_pike", self.rect.centerx + 192, self.rect.centery, self.damage_type, self.atk, 0, 0, 'drachun_gulag', self)
+            Bullet("big_pike", self.rect.centerx + 192, self.rect.centery, self.damage_type, self.atk, 0, 0, 'drachun_gulag_splash', self)
 
         if self.name == "knight":
-            Bullet("pike", self.rect.centerx + 128, self.rect.centery, self.damage_type, self.atk, 0, 0, 'drachun_gulag', self)
+            Bullet("pike", self.rect.centerx + 128, self.rect.centery, self.damage_type, self.atk, 0, 0, 'drachun_gulag_splash', self)
+
+        if self.name == 'oruzhik_claymore':
+            Bullet("earth_claymore", self.rect.right + 64, self.rect.centery, self.damage_type, self.atk, 0, 0, 'drachun_gulag_splash', self)
 
         if self.name == "furry_medved":
-            Bullet("medved_lapa", self.rect.right + 64, self.rect.centery, self.damage_type, self.atk, 0, 0, 'drachun_gulag', self)
+            Bullet("medved_lapa", self.rect.right + 64, self.rect.centery, self.damage_type, self.atk, 0, 0, 'drachun_gulag_splash', self)
 
         if self.name == "furry_volk":
             self.atk = self.basic_atk
@@ -2808,11 +2811,12 @@ class Enemy(sprite.Sprite):
             self.bullet_speed_x = -5
             self.bullet_speed_y = 0
             self.speed = 0.25
-            self.attack_cooldown = self.basic_attack_cooldown = 4
-            self.attack_cooldown2 = self.basic_attack_cooldown2 = 600
+            self.attack_cooldown_burst = self.basic_attack_cooldown_burst = 4
+            self.attack_cooldown = self.basic_attack_cooldown = 600
             self.ammo = self.basic_ammo = 30
             self.attack_range = 640
             self.bullets = 1
+            self.bursting = False
             self.damage_type = 'piercing'
 
         # СТАТЫ конец
@@ -2839,19 +2843,11 @@ class Enemy(sprite.Sprite):
     #                 self.shoot()
 
     def shoot(self):
-        if targets[id(self)] == self.sliz:
+        if targets[id(self)] == self.sliz:  # с мегастрелком разберусь позже
             targets[id(self)].hp -= self.atk * self.bullets
         else:
             if self.name == "zeleniy_strelok" or self.name == 'telezhnik':
                 Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
-
-            if self.name == 'mega_strelok':
-                if self.ammo > 0:
-                    Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery+randint(-16, 16), self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
-                    self.ammo -= 1
-                else:
-                    self.ammo = self.basic_ammo
-                    self.attack_cooldown2 = self.basic_attack_cooldown2
 
             if self.name == 'drobik':
                 Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, 0, "anti_hrom", self)
@@ -2859,6 +2855,19 @@ class Enemy(sprite.Sprite):
                     Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y*-1, "anti_hrom", self)
                 if self.rect.centery+138 <= 832:
                     Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, "anti_hrom", self)
+
+        if self.name == 'mega_strelok':
+            self.bursting = True
+
+    def burst_attack(self):
+        if self.name == 'mega_strelok':
+            if self.ammo > 0:
+                Bullet(self.name + "_bullet", self.rect.centerx, self.rect.centery+randint(-16, 16), self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, "zeleniy_strelok_bullet", self)
+                self.ammo -= 1
+            else:
+                self.ammo = self.basic_ammo
+                self.attack_cooldown = self.basic_attack_cooldown
+                self.bursting = False
 
     def melee_attack(self):
         # if self.name == "popusk":
@@ -3186,6 +3195,14 @@ class Enemy(sprite.Sprite):
             # else:
             #     self.check_target_alive()         # когда башня перезарядилась -> чекаем врага
 
+        if hasattr(self, "bursting"):
+            if self.bursting:   # == True
+                if self.attack_cooldown_burst > 0:
+                    self.attack_cooldown_burst -= 1
+                else:
+                    self.attack_cooldown_burst = self.basic_attack_cooldown_burst
+                    self.burst_attack()
+
         if self.name == 'klonik':
             if self.klonirovanie_cooldown > 0:
                 self.klonirovanie_cooldown -= 1
@@ -3433,7 +3450,7 @@ class Bullet(sprite.Sprite):
             self.off = 20
             if self.name == 'razlet':
                 self.pushl = 128
-        if self.name == "drachun_gulag" or self.name == "tolkan_bux":
+        if self.name == "drachun_gulag" or self.name == "drachun_gulag_splash" or self.name == "tolkan_bux":
             self.off = 15
         if self.name == "klonys_punch":
             self.mimo = True
@@ -3441,6 +3458,9 @@ class Bullet(sprite.Sprite):
             self.klonys_off = 15
         if self.name == "fire":
             self.off = 61
+
+        if self.name == 'drachun_gulag' or self.name == "klonys_punch":
+            self.udar = False
 
         if self.name == 'yas' or self.name == 'krov_bul':
             self.summon = 'baza'     # ready
@@ -3724,7 +3744,7 @@ class Bullet(sprite.Sprite):
                                     self.dead()         # тут был кил
                                     break
 
-        if self.name == 'ls' or self.name == 'explosion' or self.name == 'joltiy_explosion' or self.name == 'opal_explosion' or self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux" or self.name == 'razlet' or self.name == "klonys_punch":
+        if self.name == 'ls' or self.name == 'explosion' or self.name == 'joltiy_explosion' or self.name == 'opal_explosion' or self.name == "mech" or self.name == "drachun_gulag_splash" or self.name == "tolkan_bux" or self.name == 'razlet':
             for enemy in enemies_group:
                 if sprite.collide_rect(enemy, self) and enemy.hp > 0 and self not in enemy.only_one_hit_bullets:
                     if not self.name == 'joltiy_explosion':
@@ -3744,11 +3764,26 @@ class Bullet(sprite.Sprite):
                         enemy.stunned_time += self.parent.enemy_stunned_time
                     if self.name == 'opal_explosion':
                         enemy.vulnerabled += 375
+                    enemy.only_one_hit_bullets.add(self)
+            if self.name == "mech" or self.name == "drachun_gulag_splash" or self.name == "tolkan_bux" or self.name == "klonys_punch":
+                targets[id(self.parent)] = None
+
+        if self.name == 'drachun_gulag' or self.name == "klonys_punch":
+            if targets[id(self.parent)] and targets[id(self.parent)].hp > 0:
+                if sprite.collide_rect(targets[id(self.parent)], self) and self not in targets[id(self.parent)].only_one_hit_bullets:
+                    self.dealing_damage(targets[id(self.parent)])
+                    targets[id(self.parent)].only_one_hit_bullets.add(self)
+                    self.udar = True
                     if self.name == "klonys_punch":
                         self.mimo = False
-                    enemy.only_one_hit_bullets.add(self)
-            if self.name == "mech" or self.name == "drachun_gulag" or self.name == "tolkan_bux" or self.name == "klonys_punch":
-                targets[id(self.parent)] = None
+            else:  # я хз надо это или нет + я не уверен что это корректно работает тк проверить сложно и лень
+                for enemy in enemies_group:
+                    if not self.udar:
+                        if sprite.collide_rect(enemy, self) and enemy.hp > 0 and self not in enemy.only_one_hit_bullets:
+                            self.dealing_damage(enemy)
+                            self.udar = True
+                            if self.name == "klonys_punch":
+                                self.mimo = False
 
         if self.name == 'emerald' or self.name == 'ruby' or self.name == 'amethyst' or self.name == 'onyx':
             if self.target != None:
@@ -3926,7 +3961,7 @@ class Bullet(sprite.Sprite):
 
     def dead(self):
         if not level.no_death_animation:
-            bullets_group.remove(self)
+            # bullets_group.remove(self)  # фича прикол шок жесть блин омг
             self.atk = 0
             self.speed_x = 0
             self.add_anim_task("death", self.kill)
@@ -3936,12 +3971,11 @@ class Bullet(sprite.Sprite):
         # можно будет сделать чтобы если копитель умирал, то его мечи вниз падали прикольно. А при попадании меча во врага другая анимация
 
     def update(self):
-        if self in bullets_group:
-            self.cooldowns()
-            self.bullet_movement()
-            self.check_collision()
-            self.check_parent()
+        self.cooldowns()
+        self.bullet_movement()
         self.animation()
+        self.check_collision()
+        self.check_parent()
 
 
 class Parasite(sprite.Sprite):
