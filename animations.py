@@ -62,6 +62,9 @@ towers_wait = {
     "molniya": [image.load(f"images/towers/molniya/wait/molniya{i}.png") for i in range(1, 5)],
     "tp_back": [image.load(f"images/towers/tp_back/wait/tp_back{i}.png") for i in range(1, 5)],
     "joltiy_pomidor": [image.load(f"images/towers/joltiy_pomidor/wait/joltiy_pomidor{i}.png") for i in range(1, 5)],
+    "heal": [image.load(f"images/towers/heal/wait/heal{i}.png") for i in range(1, 5)],
+    "zaduv": [image.load(f"images/towers/zaduv/wait/zaduv{i}.png") for i in range(1, 5)],
+    "holod": [image.load(f"images/towers/holod/wait/holod{i}.png") for i in range(1, 5)],
     "krest": [image.load(f"images/towers/krest/wait/krest{i}.png") for i in range(1, 5)],
 
 }
@@ -184,6 +187,9 @@ towers_death = {
     "molniya": [image.load(f"images/towers/molniya/death/molniya{i}.png") for i in range(1, 5)],
     "tp_back": [image.load(f"images/towers/tp_back/death/tp_back{i}.png") for i in range(1, 5)],
     "joltiy_pomidor": [image.load(f"images/towers/joltiy_pomidor/death/joltiy_pomidor{i}.png") for i in range(1, 5)],
+    "heal": [image.load(f"images/towers/heal/death/heal{i}.png") for i in range(1, 5)],
+    "zaduv": [image.load(f"images/towers/zaduv/death/zaduv{i}.png") for i in range(1, 5)],
+    "holod": [image.load(f"images/towers/holod/death/holod{i}.png") for i in range(1, 5)],
     "krest": [image.load(f"images/towers/krest/death/krest{i}.png") for i in range(1, 5)],
 }
 
@@ -357,6 +363,9 @@ bullets_move = {
     "fire_dagger_slash": [image.load(f"images/bullets/fire_dagger_slash/move/fire_dagger_slash{i}.png") for i in range(1, 5)],
     "ice_dagger_slash": [image.load(f"images/bullets/ice_dagger_slash/move/ice_dagger_slash{i}.png") for i in range(1, 5)],
     "earth_claymore": [image.load(f"images/bullets/earth_claymore/move/earth_claymore{i}.png") for i in range(1, 5)],
+    "heal_field": [image.load(f"images/bullets/heal_field/move/heal_field{i}.png") for i in range(1, 5)],
+    "holod_row": [image.load(f"images/bullets/holod_row/move/holod_row{i}.png") for i in range(1, 5)],
+    # "potok_y": [image.load(f"images/bullets/potok_y/move/potok_y{i}.png") for i in range(1, 5)],  # это оказывается паразит
 }
 
 bullets_death = {
@@ -430,6 +439,9 @@ bullets_death = {
     "fire_dagger_slash": [image.load(f"images/bullets/fire_dagger_slash/death/fire_dagger_slash{i}.png") for i in range(1, 5)],
     "ice_dagger_slash": [image.load(f"images/bullets/ice_dagger_slash/death/ice_dagger_slash{i}.png") for i in range(1, 5)],
     "earth_claymore": [image.load(f"images/bullets/earth_claymore/death/earth_claymore{i}.png") for i in range(1, 5)],
+    "heal_field": [image.load(f"images/bullets/heal_field/death/heal_field{i}.png") for i in range(1, 5)],
+    "holod_row": [image.load(f"images/bullets/holod_row/death/holod_row{i}.png") for i in range(1, 5)],
+    # "potok_y": [image.load(f"images/bullets/potok_y/death/potok_y{i}.png") for i in range(1, 5)],
 }
 
 coins = {

@@ -1,6 +1,6 @@
 passed_levels = 0
 received_towers = fire_mag, pukish, boomchick, davalka, kopitel, matricayshon, parasitelniy, spike, easy_money, vistrel
-not_received_towers = terpila, thunder, yascerica, zeus, barrier_mag, urag_anus, big_mechman, drachun, tolkan, knight_on_horse, gnome_cannon1, electric, struyniy, dark_druid, gribnik, pen, bolotnik, nekr, electro_maga, inquisitor, priest, ded_moroz, uvelir, krovnyak, kokol, sliz, klonys, kot, furry_druid, oruzhik, bomb, perec, molniya, vodka, tp_back, joltiy_pomidor
+not_received_towers = terpila, thunder, yascerica, zeus, barrier_mag, urag_anus, big_mechman, drachun, tolkan, knight_on_horse, gnome_cannon1, electric, struyniy, dark_druid, gribnik, pen, bolotnik, nekr, electro_maga, inquisitor, priest, ded_moroz, uvelir, krovnyak, kokol, sliz, klonys, kot, furry_druid, oruzhik, bomb, perec, molniya, vodka, tp_back, joltiy_pomidor, heal, zaduv, holod
 encountered_enemies = popusk, sigma
 not_encountered_enemies = josky, zeleniy_strelok, sportik, rojatel, mega_strelok, slabiy, armorik, telezhnik, drobik, fire_res, ice_res, water_res, poison_res, light_res
 completed_events = []
@@ -57,3 +57,6 @@ molniya = 1
 vodka = 1
 tp_back = 1
 joltiy_pomidor = 1
+heal = 1
+zaduv = 1
+holod = 1

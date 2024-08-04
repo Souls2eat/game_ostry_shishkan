@@ -1624,6 +1624,28 @@ class Tower(sprite.Sprite):
             self.money_per_enemy = 5
             self.enemy_stunned_time = 225
             self.rarity = "spell"
+        
+        if self.name == 'heal':
+            self.hp = self.max_hp = 0
+            self.free_placement = True
+            self.heal = 1500
+            self.damage_type = ''
+            self.rect_krest1 = Rect(self.rect.x-128, self.rect.y, 384, 128)
+            self.rect_krest2 = Rect(self.rect.x, self.rect.y-128, 128, 384)
+            self.rarity = "spell"
+
+        if self.name == 'zaduv':
+            self.hp = self.max_hp = 0
+            self.free_placement = True
+            self.uragan_duration = 360
+            self.damage_type = ''
+            self.rarity = "spell"
+
+        if self.name == 'holod':
+            self.hp = self.max_hp = 0
+            self.free_placement = True
+            self.damage_type = ''
+            self.rarity = "spell"
 
         if self.name == 'krest':
             self.hp = self.max_hp = 1
@@ -1757,6 +1779,21 @@ class Tower(sprite.Sprite):
 
         elif self.name == "joltiy_pomidor":
             Bullet("joltiy_explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'joltiy_explosion', self)
+
+        elif self.name == "heal":
+            Bullet("heal_field", self.rect.centerx, self.rect.centery, self.damage_type, 0, 0, 0, 'visual_effect', self)
+            for tower in towers_group:
+                if tower.rect.colliderect(self.rect_krest1) or tower.rect.colliderect(self.rect_krest2):
+                    if tower.max_hp - tower.hp > self.heal:
+                        tower.hp += self.heal
+                    else:
+                        tower.hp = tower.max_hp
+
+        elif self.name == "zaduv":
+            Parasite("potok_y", self.rect.centerx, self.rect.centery, self.damage_type, 0, self, self)
+
+        elif self.name == "holod":
+            Bullet("holod_row", self.rect.centerx, 512, self.damage_type, 0, 0, 0, 'holod_row', self)
 
         if self.name == 'drachun' and self.upgrade_level == '3b':   # работает неправильно наверно!!!
             if self.kill_time > 0:
@@ -2913,42 +2950,44 @@ class Enemy(sprite.Sprite):
         #             parasite.cashback_list.append(225)
 
     def movement(self):
-        if not self.stop:
-            self.real_x -= self.speed
-            if self.sliz:
-                self.stop = True
+        if not self.stunned:
+            if not self.stop:
+                self.real_x -= self.speed
+                if self.sliz:
+                    self.stop = True
+
+            if not self.slowed and self.snegs >= 3:
+                self.speed /= 2
+                self.slowed = True
+            if self.slowed and self.snegs >= 7:
+                self.snegs -= 7
+                for i in range(7):
+                    for parasite in parasites_group:
+                        if parasite.owner == self and parasite.name == 'sneg_parasite':
+                            parasite.kill()
+                            break
+                self.stunned = True
+                self.stunned_time += 225
+                self.slowed_time = 150
+            if self.slowed_time > 0 and self.slowed:
+                self.slowed_time -= 1
+                if self.slowed_time <= 0:
+                    self.speed *= 2
+                    self.slowed = False
+
         self.rect.x = int(self.real_x)
         self.rect.y = int(self.real_y)
 
-        if not self.slowed and self.snegs >= 3:
-            self.speed /= 2
-            self.slowed = True
-        if self.slowed and self.snegs >= 7:
-            self.snegs -= 7
-            for i in range(7):
-                for parasite in parasites_group:
-                    if parasite.owner == self and parasite.name == 'sneg_parasite':
-                        parasite.kill()
-                        break
-            self.stunned = True
-            self.stunned_time += 225
-            self.slowed_time = 150
-        if self.slowed_time > 0 and self.slowed:
-            self.slowed_time -= 1
-            if self.slowed_time <= 0:
-                self.speed *= 2
-                self.slowed = False
-
     def back_to_line(self):
-        if (self.rect.y-192) % 128 < 64:
+        if (self.real_y-192) % 128 < 64:
             # self.rect.y -= (self.rect.y-192) % 128
-            self.real_y -= (self.rect.y-192) % 128
+            self.real_y -= (self.real_y-192) % 128
         else:
             # self.rect.y += 128 - ((self.rect.y-192) % 128)
-            self.real_y += 128 - ((self.rect.y-192) % 128)
-        if self.rect.y > 704:
+            self.real_y += 128 - ((self.real_y-192) % 128)
+        if self.real_y > 704:
             self.real_y -= 128
-        elif self.rect.y < 192:
+        elif self.real_y < 192:
             self.real_y += 128
 
     def add_anim_task(self, anim, func):
@@ -3257,7 +3296,6 @@ class Enemy(sprite.Sprite):
 
         if not self.stunned:
             self.cooldown()
-            self.movement()
             self.animation()
 
             # if self.name == 'mega_strelok':
@@ -3271,11 +3309,14 @@ class Enemy(sprite.Sprite):
             self.armor_check()
             # self.additional_cooldowns()
 
-            self.image2 = font30.render(str(self.hp), True, (0, 0, 0))
-            self.rect2 = self.image.get_rect(topleft=(self.rect.x + 32, self.rect.y - 32))
+            
         
         else:
             self.in_stun()
+
+        self.movement()
+        self.image2 = font30.render(str(self.hp), True, (0, 0, 0))
+        self.rect2 = self.image.get_rect(topleft=(self.rect.x + 32, self.rect.y - 32))
 
         if self.alive:
             self.check_hp()
@@ -3446,7 +3487,7 @@ class Bullet(sprite.Sprite):
 
         if self.name == 'ls':
             self.off = 30
-        if self.name == 'explosion' or self.name == 'joltiy_explosion' or self.name == 'opal_explosion' or self.name == "mech" or self.name == 'razlet':
+        if self.name == 'visual_effect' or self.name == 'explosion' or self.name == 'joltiy_explosion' or self.name == 'opal_explosion' or self.name == "mech" or self.name == 'razlet' or self.name == 'holod_row':
             self.off = 20
             if self.name == 'razlet':
                 self.pushl = 128
@@ -3744,10 +3785,10 @@ class Bullet(sprite.Sprite):
                                     self.dead()         # тут был кил
                                     break
 
-        if self.name == 'ls' or self.name == 'explosion' or self.name == 'joltiy_explosion' or self.name == 'opal_explosion' or self.name == "mech" or self.name == "drachun_gulag_splash" or self.name == "tolkan_bux" or self.name == 'razlet':
+        if self.name == 'ls' or self.name == 'explosion' or self.name == 'joltiy_explosion' or self.name == 'opal_explosion' or self.name == "mech" or self.name == "drachun_gulag_splash" or self.name == "tolkan_bux" or self.name == 'razlet' or self.name == 'holod_row':
             for enemy in enemies_group:
                 if sprite.collide_rect(enemy, self) and enemy.hp > 0 and self not in enemy.only_one_hit_bullets:
-                    if not self.name == 'joltiy_explosion':
+                    if self.name != 'joltiy_explosion' and self.name != 'holod_row':
                         self.dealing_damage(enemy)
                     if self.name == "tolkan_bux":
                         enemy.real_x += self.parent.push
@@ -3764,6 +3805,11 @@ class Bullet(sprite.Sprite):
                         enemy.stunned_time += self.parent.enemy_stunned_time
                     if self.name == 'opal_explosion':
                         enemy.vulnerabled += 375
+                    if self.name == 'holod_row':
+                        for i in range(14):
+                            self.parent.parasix = randint(-32, 32)
+                            self.parent.parasiy = randint(-48, 48)
+                            Parasite('sneg_parasite', enemy.rect.centerx+self.parent.parasix, enemy.rect.centery+self.parent.parasiy, '', 0, enemy, self.parent)
                     enemy.only_one_hit_bullets.add(self)
             if self.name == "mech" or self.name == "drachun_gulag_splash" or self.name == "tolkan_bux" or self.name == "klonys_punch":
                 targets[id(self.parent)] = None
@@ -4029,14 +4075,15 @@ class Parasite(sprite.Sprite):
             self.cashback_list = []
             self.lifetime = 600
 
-        if self.name == 'uragan':
+        if self.name == 'uragan' or self.name == 'potok_y':
             self.duration = self.parent.uragan_duration
-            self.attack_cooldown = 12
             self.render_layer = 3
-            if self.parent.upgrade_level == '2a' or self.parent.upgrade_level == '3a':
-                self.speed = self.parent.uragan_speed
-                self.start_x = self.rect.centerx
-                self.real_x = self.rect.x
+            if self.name == 'uragan':
+                self.attack_cooldown = 12
+                if self.parent.upgrade_level == '2a' or self.parent.upgrade_level == '3a':
+                    self.speed = self.parent.uragan_speed
+                    self.start_x = self.rect.centerx
+                    self.real_x = self.rect.x
 
         if self.name == 'raven':
             self.home_x = self.rect.centerx
@@ -4061,7 +4108,7 @@ class Parasite(sprite.Sprite):
 
     def dead(self):
         self.kill()
-        if self.name == 'uragan':
+        if self.name == 'uragan' or self.name == 'potok_y':
             for enemy in enemies_group:
                 enemy.back_to_line()
         if self.name == 'sosun' or self.name == 'metka_inq':
@@ -4084,7 +4131,7 @@ class Parasite(sprite.Sprite):
             self.cashback_list.clear()
 
     def prisasivanie(self):  # если честно то это по сути delat_chtoto но для паразитов, когда-нибудь сделаем по-человечески
-        if self.parent and self.name != 'ogonek_parasite' and self.name != 'sneg_parasite' and self.name != 'sliz_luja_parasite' and self.name != 'mol' and self.name != 'terpila_debuff' and self.name != 'onyx_barrier':
+        if self.parent and self.name != 'ogonek_parasite' and self.name != 'sneg_parasite' and self.name != 'sliz_luja_parasite' and self.name != 'mol' and self.name != 'terpila_debuff' and self.name != 'onyx_barrier' and self.name != 'potok_y':
             if self.parent not in all_sprites_group: 
                 if self.name == 'raven' and (self.owner != self.parent or (hasattr(self, 'lifetime') and self.lifetime > 0)):
                     pass
@@ -4095,7 +4142,7 @@ class Parasite(sprite.Sprite):
                 #     self.owner.rect3 = self.owner.image.get_rect(topleft=(self.owner.rect.x + 32, self.owner.rect.y - 64))
                 else:
                     self.dead()
-        if self.name != 'mol':
+        if self.name != 'mol' and self.name != 'potok_y':
             if self.owner not in all_sprites_group:
                 if self.name == 'raven':
                     if self.parent not in all_sprites_group:
@@ -4159,6 +4206,15 @@ class Parasite(sprite.Sprite):
                 if self.rect.centerx - self.start_x < 256 and self.rect.centerx < 1472:
                     self.real_x += self.speed
                     self.rect.x = int(self.real_x)
+
+        if self.name == 'potok_y':
+            for enemy in enemies_group:
+                if self.rect.colliderect(enemy.rect):
+                    enemy.angle = atan2(self.rect.centery - enemy.rect.centery, 0)
+                    enemy.y_vel = sin(enemy.angle) * enemy.speed * 12
+                    # enemy.rect.x += enemy.x_vel
+                    # enemy.rect.y += enemy.y_vel
+                    enemy.real_y += enemy.y_vel
 
         if self.name == 'raven':
             if self.rest_time > 0:
@@ -4247,13 +4303,11 @@ class Parasite(sprite.Sprite):
             if self.attack_cooldown > 0:
                 self.attack_cooldown -= 1
 
-        if self.name == 'uragan':
+        if self.name == 'uragan' or self.name == 'potok_y':
             if self.duration > 0:
                 self.duration -= 1
             else:
-                self.kill()
-                for enemy in enemies_group:
-                    enemy.back_to_line()
+                self.dead()
 
         if hasattr(self, 'lifetime'):
             if self.lifetime > 0:
@@ -4930,10 +4984,10 @@ class Scroller:
         self.back_to_start_position = True
         self.last_offset_state = "main_menu"
         self.rules = {
-            "manual_menu": {"min": -1700, "max": 0},
+            "manual_menu": {"min": -1850, "max": 0},
             "global_map": {"min": -1600, "max": 0},
             "reward_second_stage": {"min": -1600, "max": 0},
-            "tower_select": {"min": -650, "max": 0}
+            "tower_select": {"min": -800, "max": 0}
         }
         self.remembered_scroll_offset = 0
 

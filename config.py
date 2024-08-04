@@ -143,9 +143,12 @@ tower_costs = {
     "vodka": 15,
     "easy_money": 0,
     "vistrel": 1,
-    "molniya": 35,
+    "molniya": 30,
     "tp_back": 20,
     "joltiy_pomidor": 15,
+    "heal": 15,
+    "zaduv": 15,
+    "holod": 20,
     "thunder_kamen": 0,
     "grib1": 0,
     "grib2": 0,
@@ -207,6 +210,9 @@ towers_kd = {
     "molniya": 1500,
     "tp_back": 5625,
     "joltiy_pomidor": 1500,
+    "heal": 1500,
+    "zaduv": 3375,
+    "holod": 1500,
 
 }
 
@@ -534,6 +540,27 @@ upgrade_costs = {
         "2b": "1 city_coin",
         "3a": "2 city_coin",
         "3b": "2 city_coin",
+    },
+    "heal": {
+        "1": "0 city_coin",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "zaduv": {
+        "1": "0 city_coin",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "holod": {
+        "1": "0 snow_coin",
+        "2a": "1 snow_coin",
+        "2b": "1 snow_coin",
+        "3a": "2 snow_coin",
+        "3b": "2 snow_coin",
     }
 }
 
@@ -867,6 +894,27 @@ upgrade_descriptions = {
         "2b": "1 city_coin",
         "3a": "2 city_coin",
         "3b": "2 city_coin",
+    },
+    "heal": {
+        "1": "Лечит союзников в крестообразной области",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "zaduv": {
+        "1": "Стягивает врагов в определённой области в один ряд",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "holod": {
+        "1": "Замораживает врагов в своей колонне",
+        "2a": "1 snow_coin",
+        "2b": "1 snow_coin",
+        "3a": "2 snow_coin",
+        "3b": "2 snow_coin",
     }
 }
 
