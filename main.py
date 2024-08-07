@@ -1442,6 +1442,21 @@ class Tower(sprite.Sprite):
                 self.buff = Buff('kuklo', self.rect.x+1, self.rect.y + self.buff_y, self) # с обычным ректом и вычитанием из него не спавнится на крайней левой полосе
             self.rarity = "common"
 
+        if self.name == 'kar_mag':
+            self.hp = self.max_hp = 200
+            self.atk = 20
+            self.atkf = 15
+            self.bullet_speed_x = 0
+            self.bullet_speed_y = 0
+            self.basic_spawn_something_cooldown = self.spawn_something_cooldown = 120
+            self.spawned_things = []
+            self.basic_attack_cooldown = self.attack_cooldown = 120
+            self.target_phase = None
+            self.v_falange = 0
+            #self.z_falange = 5
+            self.damage_type = 'light'
+            self.rarity = "common"
+
         if self.name == 'terpila':
             self.hp = self.max_hp = 7500
             if self.upgrade_level == "2b" or self.upgrade_level == '3b' or self.upgrade_level == '3a':
@@ -1899,6 +1914,16 @@ class Tower(sprite.Sprite):
             for enemy in enemies_group:
                 if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive and self.nakopleno > 0:
                     return enemy
+
+        if self.name == 'kar_mag':
+            for enemy in enemies_group:
+                if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 384 and enemy.alive:
+                    self.target_phase = 'close'
+                    return enemy
+            for enemy in enemies_group:
+                if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
+                    self.target_phase = 'far'
+                    return enemy
                 
         if self.name == 'uvelir':
             if self.gem == 'stone' or self.gem == 'obsidian' or self.gem == 'diamond' or self.gem == 'opal':
@@ -2034,7 +2059,7 @@ class Tower(sprite.Sprite):
         if targets[id(self)]:
             if targets[id(self)].rect.x < self.rect.x:
                 targets[id(self)] = None
-            elif (self.name == 'thunder' and self.target_phase == 'center') or (self.name == 'electric' and self.target_phase == 'far') or (self.name == 'oruzhik_daggers' and self.target_phase == 'far') or self.name == 'urag_anus' or self.name == 'priest' or self.name == 'uvelir':
+            elif (self.name == 'thunder' and self.target_phase == 'center') or (self.name == 'electric' and self.target_phase == 'far') or (self.name == 'oruzhik_daggers' and self.target_phase == 'far') or (self.name == 'kar_mag' and self.target_phase == 'far') or self.name == 'urag_anus' or self.name == 'priest' or self.name == 'uvelir':
                 targets[id(self)] = None
             elif targets[id(self)].name == 'teleportik':
                 targets[id(self)] = None
@@ -2207,6 +2232,17 @@ class Tower(sprite.Sprite):
                     Bullet("mini_kamen", self.rect.centerx - 8, self.rect.centery - 8,  self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y * -1, 'hrom', self)
             elif self.target_phase == 'center':  # я мог бы просто написать else, но пусть лучше так
                 Bullet("big_kamen", self.rect.centerx - 8, self.rect.centery - 8, self.damage_type, self.atk*3, self.bullet_speed_x, 0, 'hrom', self)
+
+        if self.name == 'kar_mag':
+            if self.target_phase == 'close':
+                for bullet in self.spawned_things:
+                    bullet.speed_x = 4
+                    bullet.add(bullets_group)
+                    self.v_falange = 0
+                self.spawned_things.clear()
+            if self.target_phase == 'far':
+                Bullet('karm', self.rect.centerx, self.rect.centery-10, self.damage_type, self.atk,
+                                self.bullet_speed_x+4, self.bullet_speed_y, 'default', self)
 
         if self.name == "electric":
             if self.target_phase == 'close':
@@ -2409,6 +2445,30 @@ class Tower(sprite.Sprite):
                 bullet.remove(bullets_group)
                 self.spawned_things.append(bullet)
 
+        if self.name == 'kar_mag':
+            if self.v_falange <= 0:
+                bullet = Bullet('karm', self.rect.centerx, self.rect.centery-48, self.damage_type, self.atkf,
+                                self.bullet_speed_x, self.bullet_speed_y, 'kar_fal', self)
+                self.spawned_things.append(bullet)
+                bullet.remove(bullets_group)
+                bullet = Bullet('karm', self.rect.centerx-24, self.rect.centery-24, self.damage_type, self.atkf,
+                                self.bullet_speed_x, self.bullet_speed_y, 'kar_fal', self)
+                self.spawned_things.append(bullet)
+                bullet.remove(bullets_group)
+                bullet = Bullet('karm', self.rect.centerx+24, self.rect.centery-24, self.damage_type, self.atkf,
+                                self.bullet_speed_x, self.bullet_speed_y, 'kar_fal', self)
+                self.spawned_things.append(bullet)
+                bullet.remove(bullets_group)
+                bullet = Bullet('karm', self.rect.centerx-32, self.rect.centery, self.damage_type, self.atkf,
+                                self.bullet_speed_x, self.bullet_speed_y, 'kar_fal', self)
+                self.spawned_things.append(bullet)
+                bullet.remove(bullets_group)
+                bullet = Bullet('karm', self.rect.centerx+32, self.rect.centery, self.damage_type, self.atkf,
+                                self.bullet_speed_x, self.bullet_speed_y, 'kar_fal', self)
+                self.spawned_things.append(bullet)
+                bullet.remove(bullets_group)
+                self.v_falange = 5
+
         if self.name == 'uvelir':
             self.gem = choice(self.gems)
             self.gems.remove(self.gem)
@@ -2532,6 +2592,10 @@ class Tower(sprite.Sprite):
                         self.add_anim_task("give", self.spawn_something)
                 elif self.name == 'uvelir':
                     if self.gem == '':
+                        self.spawn_something_cooldown = self.basic_spawn_something_cooldown
+                        self.add_anim_task("give", self.spawn_something)
+                elif self.name == 'kar_mag':
+                    if self.v_falange <= 0:
                         self.spawn_something_cooldown = self.basic_spawn_something_cooldown
                         self.add_anim_task("give", self.spawn_something)
                 else:
@@ -3687,6 +3751,11 @@ class Bullet(sprite.Sprite):
                             for k, v in tower.vulnerables_and_resists.items():
                                 if k == self.damage_type:
                                     self.damage *= (100 + v)/100
+                            if tower.name == 'kar_mag' and tower.v_falange > 0:
+                                self.damage = 0
+                                tower.v_falange -= 1
+                                tower.spawned_things[tower.v_falange].kill()
+                                tower.spawned_things.remove(tower.spawned_things[tower.v_falange])
                             tower.hp -= self.damage
                             tower.damaged = True
                             # if tower.name == 'terpila' and (tower.upgrade_level == '2b' or tower.upgrade_level == '3b' or tower.upgrade_level == '3a'):
@@ -3896,6 +3965,10 @@ class Bullet(sprite.Sprite):
                         self.dealing_damage(enemy)
                         self.dead()         # тут был кил
                         break
+                elif self.name == 'kar_fal':
+                    self.dealing_damage(enemy)
+                    self.kill()
+                    break
         for enemy in enemies_group:
             if sprite.collide_rect(enemy, self) and enemy.hp > 0:
                 if self.name == 'default' or self.name == 'hrom' or self.name == 'boom' or self.name == 'struya' or self.name == 'spore' or self.name == 'snejok' or self.name == 'sliz_bul' or self.name == 'stone' or self.name == 'obsidian' or self.name == 'opal' or self.name == 'es' or self.name == 'kok' or self.name == 'zayac_krol':
@@ -3932,7 +4005,7 @@ class Bullet(sprite.Sprite):
                 break
 
     def check_parent(self):
-        if self.name == 'kopilka' or self.name == 'stone' or self.name == 'obsidian' or self.name == 'diamond' or self.name == 'opal' or self.name == 'sapphire' or self.name == 'emerald' or self.name == 'amethyst' or self.name == 'onyx' or self.name == 'ruby' or self.name == 'nephrite':
+        if self.name == 'kopilka' or self.name == 'stone' or self.name == 'obsidian' or self.name == 'diamond' or self.name == 'opal' or self.name == 'sapphire' or self.name == 'emerald' or self.name == 'amethyst' or self.name == 'onyx' or self.name == 'ruby' or self.name == 'nephrite' or self.name == 'kar_fal':
             if self.parent not in all_sprites_group and self.speed_x == 0:
                 self.dead()         # тут был кил
         if self.name == 'yas' or self.name == 'krov_bul':
@@ -4446,6 +4519,7 @@ class Buff(sprite.Sprite):
                             or tower.name == "furry_zayac"\
                             or tower.name == "oruzhik_daggers"\
                             or tower.name == "oruzhik_bow"\
+                            or tower.name == "kar_mag"\
                             or tower.name == 'electro_maga':
 
                             if tower.basic_attack_cooldown // 2 <= 180:
@@ -4455,7 +4529,7 @@ class Buff(sprite.Sprite):
                                 tower.basic_attack_cooldown -= 180
                                 self.max_buff = True
                             tower.time_indicator *= 2
-                            if tower.name == 'kopitel' or tower.name == "uvelir":
+                            if tower.name == 'kopitel' or tower.name == "uvelir" or tower.name == "kar_mag":
                                 tower.basic_spawn_something_cooldown //= 2
                             tower.add(self.buffed_towers)
 
@@ -4570,13 +4644,14 @@ class Buff(sprite.Sprite):
                         or tower.name == "furry_medved"\
                         or tower.name == "furry_volk"\
                         or tower.name == "furry_zayac"\
+                        or tower.name == "kar_mag"\
                         or tower.name == 'electro_maga':
                     if not self.max_buff:
                         tower.basic_attack_cooldown *= 2
                     else:
                         tower.basic_attack_cooldown += 180
                     tower.time_indicator //= 2
-                    if tower.name == 'kopitel' or tower.name == "uvelir":
+                    if tower.name == 'kopitel' or tower.name == "uvelir" or tower.name == "kar_mag":
                         tower.basic_spawn_something_cooldown *= 2
 
                 # for i in range(16):
