@@ -182,7 +182,6 @@ towers_death = {
     "oruzhik_daggers": [image.load(f"images/towers/oruzhik_daggers/death/oruzhik_daggers{i}.png") for i in range(1, 5)],
     "oruzhik_bow": [image.load(f"images/towers/oruzhik_bow/death/oruzhik_bow{i}.png") for i in range(1, 5)],
     "kar_mag": [image.load(f"images/towers/kar_mag/death/kar_mag{i}.png") for i in range(1, 5)],
-    "kar_voin": [image.load(f"images/towers/kar_voin/death/kar_voin{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/death/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/death/perec{i}.png") for i in range(1, 5)],
