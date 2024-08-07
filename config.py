@@ -138,6 +138,7 @@ tower_costs = {
     "kot": 20,
     "furry_druid": 99,  # типа хзз
     "oruzhik": 99,  # типа хзз
+    "kar_mag": 20,
     "bomb": 35,
     "perec": 30,
     "vodka": 15,
@@ -202,6 +203,7 @@ towers_kd = {
     "kot": 1875,
     "furry_druid": 9999,  #xz
     "oruzhik": 9999,  #xz
+    "kar_mag": 450,
     "bomb": 1875,
     "perec": 1500,
     "vodka": 1500,
@@ -493,6 +495,13 @@ upgrade_costs = {
         "3b": "2 forest_coin",
     },
     "oruzhik": {
+        "1": "0 city_coin",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "kar_mag": {
         "1": "0 city_coin",
         "2a": "1 city_coin",
         "2b": "1 city_coin",
@@ -848,6 +857,13 @@ upgrade_descriptions = {
     },
     "oruzhik": {
         "1": "бла бла бла",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "kar_mag": {
+        "1": "вампум",
         "2a": "1 city_coin",
         "2b": "1 city_coin",
         "3a": "2 city_coin",

@@ -53,6 +53,7 @@ towers_wait = {
     "oruzhik_claymore": [image.load(f"images/towers/oruzhik_claymore/wait/oruzhik_claymore{i}.png") for i in range(1, 5)],
     "oruzhik_daggers": [image.load(f"images/towers/oruzhik_daggers/wait/oruzhik_daggers{i}.png") for i in range(1, 5)],
     "oruzhik_bow": [image.load(f"images/towers/oruzhik_bow/wait/oruzhik_bow{i}.png") for i in range(1, 5)],
+    "kar_mag": [image.load(f"images/towers/kar_mag/wait/kar_mag{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/wait/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/wait/perec{i}.png") for i in range(1, 5)],
@@ -109,6 +110,7 @@ towers_attack = {
     "oruzhik_claymore": [image.load(f"images/towers/oruzhik_claymore/attack/oruzhik_claymore{i}.png") for i in range(1, 5)],
     "oruzhik_daggers": [image.load(f"images/towers/oruzhik_daggers/attack/oruzhik_daggers{i}.png") for i in range(1, 5)],
     "oruzhik_bow": [image.load(f"images/towers/oruzhik_bow/attack/oruzhik_bow{i}.png") for i in range(1, 5)],
+    "kar_mag": [image.load(f"images/towers/kar_mag/attack/kar_mag{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/attack/go_bleen1{i}.png") for i in range(1, 3)],
 
 }
@@ -118,6 +120,7 @@ towers_give = {
     "kopitel": [image.load(f"images/towers/kopitel/give/kopitel{i}.png") for i in range(1, 5)],
     "davalka": [image.load(f"images/towers/davalka/give/davalka{i}.png") for i in range(1, 5)],
     "uvelir": [image.load(f"images/towers/uvelir/give/uvelir{i}.png") for i in range(1, 5)],
+    "kar_mag": [image.load(f"images/towers/kar_mag/give/kar_mag{i}.png") for i in range(1, 5)],
 }
 
 towers_hide = {
@@ -178,6 +181,8 @@ towers_death = {
     "oruzhik_claymore": [image.load(f"images/towers/oruzhik_claymore/death/oruzhik_claymore{i}.png") for i in range(1, 5)],
     "oruzhik_daggers": [image.load(f"images/towers/oruzhik_daggers/death/oruzhik_daggers{i}.png") for i in range(1, 5)],
     "oruzhik_bow": [image.load(f"images/towers/oruzhik_bow/death/oruzhik_bow{i}.png") for i in range(1, 5)],
+    "kar_mag": [image.load(f"images/towers/kar_mag/death/kar_mag{i}.png") for i in range(1, 5)],
+    "kar_voin": [image.load(f"images/towers/kar_voin/death/kar_voin{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/death/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/death/perec{i}.png") for i in range(1, 5)],
@@ -365,6 +370,7 @@ bullets_move = {
     "earth_claymore": [image.load(f"images/bullets/earth_claymore/move/earth_claymore{i}.png") for i in range(1, 5)],
     "heal_field": [image.load(f"images/bullets/heal_field/move/heal_field{i}.png") for i in range(1, 5)],
     "holod_row": [image.load(f"images/bullets/holod_row/move/holod_row{i}.png") for i in range(1, 5)],
+    "karm": [image.load(f"images/bullets/karm/move/karm{i}.png") for i in range(1, 5)],
     # "potok_y": [image.load(f"images/bullets/potok_y/move/potok_y{i}.png") for i in range(1, 5)],  # это оказывается паразит
 }
 
@@ -441,6 +447,7 @@ bullets_death = {
     "earth_claymore": [image.load(f"images/bullets/earth_claymore/death/earth_claymore{i}.png") for i in range(1, 5)],
     "heal_field": [image.load(f"images/bullets/heal_field/death/heal_field{i}.png") for i in range(1, 5)],
     "holod_row": [image.load(f"images/bullets/holod_row/death/holod_row{i}.png") for i in range(1, 5)],
+    "karm": [image.load(f"images/bullets/karm/death/karm{i}.png") for i in range(1, 5)],
     # "potok_y": [image.load(f"images/bullets/potok_y/death/potok_y{i}.png") for i in range(1, 5)],
 }
 
