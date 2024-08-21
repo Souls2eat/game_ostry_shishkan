@@ -31,13 +31,16 @@ modification_preview_menu_copy = modification_preview_menu.__copy__()
 dialog_menu = image.load("images/menu/dialog_menu.png").convert_alpha()
 amogus = image.load("images/other/!!!.png").convert_alpha()
 cursor = image.load("images/other/cursor.png").convert_alpha()
+rage = image.load("images/other/rage.png").convert_alpha()
+unvulnerable = image.load("images/other/unvulnerable.png").convert_alpha()
 tower_window_legendary = image.load("images/tower_select_windows/tower_select_window_legendary.png").convert_alpha()
 tower_window_common = image.load("images/tower_select_windows/tower_select_window_common.png").convert_alpha()
 tower_window_spell = image.load("images/tower_select_windows/tower_select_window_spell.png").convert_alpha()
 tower_window_active = image.load("images/tower_select_windows/tower_select_window_active.png").convert_alpha()
 line_ = image.load("images/other/line.png").convert_alpha()
 unknown_entity = image.load("images/buttons_states/unknown_entity.png").convert_alpha()
-game_map = image.load("images/maps/global_map/game_map.png").convert_alpha()
+# game_map = image.load("images/maps/global_map/game_map.png").convert_alpha()
+game_map = image.load("images/maps/global_map/global_map_wip1.png").convert_alpha()
 global_level = image.load("images/maps/global_map/global_level.png").convert_alpha()
 ok = image.load("images/buttons_states/ok.png").convert_alpha()
 upgrade_tower_red = image.load("images/buttons_states/upgrade_tower_red.png").convert_alpha()
@@ -1323,6 +1326,14 @@ class Tower(sprite.Sprite):
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.damage_type = 'bludgeoning'
             self.rarity = "common"
+            if self.upgrade_level == "2a" or self.upgrade_level == '3a':
+                self.rage_duration = self.basic_rage_duration = 666 # так надо это не по рофлу это реально механика сломается если по другому сделать(вроде можно 661, но 666 круче)
+                self.rage_cooldown = 0
+                self.basic_rage_cooldown = 1200
+                self.rage_amp = 2
+                self.rage = False
+                if self.upgrade_level == '3a':
+                    self.rage_amp = 3
             if self.upgrade_level == "2b" or self.upgrade_level == '3b':
                 if self.upgrade_level == "2b":
                     self.hp = self.max_hp = 1200
@@ -1332,7 +1343,7 @@ class Tower(sprite.Sprite):
                     self.kill_time = 375
 
         if self.name == 'knight_on_horse':       # нука кусни нет, потому что он подгружает картинки по кд
-            self.knight_hp = 1500                 # nuka_kusni
+            self.knight_hp = 1500                # nuka_kusni
             self.horse_hp = 1500  # уменьшить отхилл рыцарю
             self.hp = self.max_hp = self.knight_hp + self.horse_hp
             self.atk = 20
@@ -1462,10 +1473,18 @@ class Tower(sprite.Sprite):
             if self.upgrade_level == "2b" or self.upgrade_level == '3b' or self.upgrade_level == '3a':
                 self.received_damage = 0
                 self.max_received_damage = 1000
-            if self.upgrade_level == "2a":
+            if self.upgrade_level == "2b":
+                self.ottalkivanie_rect = Rect(self.rect.x+64, self.rect.y, 128, 128)
+            elif self.upgrade_level == "3b":
+                self.ottalkivanie_rect = Rect(self.rect.x+64, self.rect.y-128, 128, 384)
+            elif self.upgrade_level == "2a":
                 self.vulnerables_and_resists['piercing'] = -25
                 self.vulnerables_and_resists['slashing'] = -25
                 self.vulnerables_and_resists['bludgeoning'] = -25
+            elif self.upgrade_level == '3a':
+                self.vulnerables_and_resists['piercing'] = -50
+                self.vulnerables_and_resists['slashing'] = -50
+                self.vulnerables_and_resists['bludgeoning'] = -50
             self.rarity = "common"
         
         if self.name == 'kot':
@@ -1864,10 +1883,12 @@ class Tower(sprite.Sprite):
                 self.received_damage -= self.max_received_damage
                 if self.upgrade_level == '2b' or self.upgrade_level == '3b':
                     for enemy in enemies_group:
-                        if enemy.rect.collidepoint(self.rect.x+128, self.rect.centery):
+                        if enemy.rect.colliderect(self.ottalkivanie_rect):
                             enemy.real_x += 128
                             if self.upgrade_level == '3b':
                                 Parasite('terpila_debuff', enemy.rect.centerx, enemy.rect.centery, '', 0, enemy, self)
+                elif self.upgrade_level == '3a':
+                    self.unvulnerable = 300
 
         if self.name == 'oruzhik_claymore':
             if self.received_damage >= self.max_received_damage:
@@ -2348,19 +2369,20 @@ class Tower(sprite.Sprite):
 
         if self.name == "priest":
             self.heal = self.atk
-            if targets[id(self)].name == 'krovnyak':
-                self.heal //= 2
-            if targets[id(self)].rect.x - self.rect.x <= 128:
-                if targets[id(self)].max_hp - targets[id(self)].hp > self.heal:
-                    targets[id(self)].hp += self.heal
+            if targets[id(self)]:
+                if targets[id(self)].name == 'krovnyak':
+                    self.heal //= 2
+                if targets[id(self)].rect.x - self.rect.x <= 128:
+                    if targets[id(self)].max_hp - targets[id(self)].hp > self.heal:
+                        targets[id(self)].hp += self.heal
+                    else:
+                        targets[id(self)].hp = targets[id(self)].max_hp
                 else:
-                    targets[id(self)].hp = targets[id(self)].max_hp
-            else:
-                if targets[id(self)].max_hp - targets[id(self)].hp > self.heal//2:
-                    targets[id(self)].hp += self.heal//2
-                else:
-                    targets[id(self)].hp = targets[id(self)].max_hp
-            targets[id(self)] = None
+                    if targets[id(self)].max_hp - targets[id(self)].hp > self.heal//2:
+                        targets[id(self)].hp += self.heal//2
+                    else:
+                        targets[id(self)].hp = targets[id(self)].max_hp
+                targets[id(self)] = None
 
         # for i in range(16):                           # пока оставил
         #     if self.name == 'go_bleen' + str(i+1):
@@ -2610,6 +2632,7 @@ class Tower(sprite.Sprite):
 
         if self.unvulnerable > 0:
             self.unvulnerable -= 1
+            screen.blit(unvulnerable, (self.rect.centerx, self.rect.centery))
 
         if self.name == 'nekr':
             for creep in self.creeps:
@@ -2649,6 +2672,29 @@ class Tower(sprite.Sprite):
                     self.fire_form = False
                     self.time_indicator //= 2
                     self.basic_attack_cooldown *= 2
+                screen.blit(rage, (self.rect.centerx-24, self.rect.centery-48)) 
+
+        if self.name == 'drachun' and (self.upgrade_level == "2a" or self.upgrade_level == '3a'):
+            if self.rage_cooldown <= 0:
+                if not self.rage:
+                    for enemy in enemies_group:
+                        if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256 and enemy.alive:
+                            self.rage_duration = self.basic_rage_duration
+                            self.rage = True
+                            self.atk *= self.rage_amp
+            else: 
+                self.rage_cooldown -= 1
+
+            if self.rage_duration > 0:
+                self.rage_duration -= 1
+            else:
+                if self.rage:
+                    self.rage_cooldown = self.basic_rage_cooldown
+                    self.rage = False
+                    self.atk = self.basic_atk
+            if self.rage:
+                screen.blit(rage, (self.rect.centerx-24, self.rect.centery-48))
+
 
     def draw2(self, surf):
         surf.blit(self.image2, self.rect2)
@@ -3884,13 +3930,25 @@ class Bullet(sprite.Sprite):
                 targets[id(self.parent)] = None
 
         if self.name == 'drachun_gulag' or self.name == "klonys_punch":
-            if targets[id(self.parent)] and targets[id(self.parent)].hp > 0:
+            if targets[id(self.parent)] and targets[id(self.parent)].hp > 0 and hasattr(targets[id(self.parent)], 'only_one_hit_bullets'):
                 if sprite.collide_rect(targets[id(self.parent)], self) and self not in targets[id(self.parent)].only_one_hit_bullets:
-                    self.dealing_damage(targets[id(self.parent)])
                     targets[id(self.parent)].only_one_hit_bullets.add(self)
                     self.udar = True
+                    self.dealing_damage(targets[id(self.parent)])
                     if self.name == "klonys_punch":
                         self.mimo = False
+                    if self.parent.name == 'drachun' and (self.parent.upgrade_level == "2a" or self.parent.upgrade_level == "3a") and self.parent.rage:
+                        if targets[id(self.parent)]:
+                            if not targets[id(self.parent)].alive:
+                                if self.parent.upgrade_level == "2a":
+                                    if self.parent.max_hp - self.parent.hp <= self.parent.max_hp//2:
+                                        self.parent.hp = self.parent.max_hp
+                                    else:
+                                        self.parent.hp += self.parent.max_hp//2
+                                else:
+                                    self.parent.hp = self.parent.max_hp
+                                    self.parent.rage_duration += 60
+                                
             else:  # я хз надо это или нет + я не уверен что это корректно работает тк проверить сложно и лень
                 for enemy in enemies_group:
                     if not self.udar:
@@ -5060,7 +5118,7 @@ class Scroller:
         self.last_offset_state = "main_menu"
         self.rules = {
             "manual_menu": {"min": -1850, "max": 0},
-            "global_map": {"min": -1600, "max": 0},
+            "global_map": {"min": -3200, "max": 0},
             "reward_second_stage": {"min": -1600, "max": 0},
             "tower_select": {"min": -800, "max": 0}
         }
@@ -5246,12 +5304,21 @@ def village_event():
     select_menu.blit(font60.render("Деревня", True, (0, 0, 0)), (352, 10))
 
     if "6" not in completed_events:
-        screen.blit(font40.render("Задание", True, (0, 0, 0)), (350, 250))
+        screen.blit(font40.render("Задание", True, (255, 200, 0)), (350, 250))
         if first_event_button.click(screen, (370, 300)):
             if "6г" not in completed_events:
                 global_map.event = Event(give_fiery_vasilky_event)
             else:
                 global_map.event = Event(return_fiery_vasilky_event)
+            event_stage = 1
+
+    if "spike" not in completed_events:
+        screen.blit(font40.render("Задание", True, (0, 50, 255)), (542, 250))
+        if kust_event_button.click(screen, (562, 300)):
+            if "spike_chest" not in completed_events:
+                global_map.event = Event(give_spike_chest_event)
+            else:
+                global_map.event = Event(return_spike_chest_event)
             event_stage = 1
 
     if back_button.click(screen, (709, 650), col=(0, 0, 0)):
@@ -5289,7 +5356,7 @@ def found_fiery_vasilky_event():
         if event_stage == 1:
             screen.blit(fire_mag, (100, 100))
             screen.blit(dialog_menu, (100, 550))
-            render_text("Великий и ужасный", screen, (130, 580), 400, font_=font40)
+            render_text("Великий и двуликий", screen, (130, 580), 400, font_=font40)
             render_text("О, огненные васильки. Пора бы возвращаться в деревню", screen, (150, 650), 1300)
         if event_stage == 2:
             last_game_state, game_state = game_state, last_game_state
@@ -5307,7 +5374,7 @@ def return_fiery_vasilky_event():
         screen.blit(fire_mag, (100, 100))
         screen.blit(dialog_menu, (100, 550))
 
-        render_text("Великий и ужасный", screen, (130, 580), 400, font_=font40)
+        render_text("Великий и вампумный", screen, (130, 580), 400, font_=font40)
         render_text("Мы раздобыли огненные васильки", screen, (150, 650), 1300)
     if event_stage == 2:
         screen.blit(villager, (1000, 100))
@@ -5322,6 +5389,212 @@ def return_fiery_vasilky_event():
         game_state = "reward_first_stage"
         if "6" not in completed_events:
             completed_events.append("6")
+
+
+def give_spike_chest_event():
+    global game_state, last_game_state, event_stage
+
+    if event_stage == 1:
+        screen.blit(villager, (1000, 100))
+        screen.blit(dialog_menu, (100, 550))
+
+        render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
+        render_text("Недавно я узнал что в лесу возле нашей деревушки можно отыскать сокровище если пойти по тропе из кустов, но сам я туда идти боюсь, ведь там могут быть враги", screen, (150, 650), 1300)
+
+    if event_stage == 2:
+        screen.blit(fire_mag, (100, 100))
+        screen.blit(dialog_menu, (100, 550))
+
+        render_text("Великий и великий", screen, (130, 580), 400, font_=font40)
+        render_text("Хорошо, но что насчёт вознаграждения?", screen, (150, 650), 1300)
+
+    if event_stage == 3:
+        screen.blit(villager, (1000, 100))
+        screen.blit(dialog_menu, (100, 550))
+
+        render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
+        render_text("К сожалению я всего лишь деревенский нищюк, так что предложить мне нечего, давай поделим полученные из сундука сокровища напополам", screen, (150, 650), 1300)
+
+    if event_stage == 4:
+        screen.blit(fire_mag, (100, 100))
+        screen.blit(dialog_menu, (100, 550))
+
+        render_text("Великий и не очень", screen, (130, 580), 400, font_=font40)
+        render_text("Мало! Надо хотя бы 60/40, мы так-то жизнью рискуем", screen, (150, 650), 1300)
+
+    if event_stage == 5:
+        screen.blit(villager, (1000, 100))
+        screen.blit(dialog_menu, (100, 550))
+
+        render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
+        render_text("Ладно, ты прав. Договорились. 60/40. Только сундук без меня не открывайте", screen, (150, 650), 1300)
+
+    if event_stage == 6:
+        last_game_state, game_state = game_state, last_game_state
+        event_stage = 0
+        if "spike_chest_allow" not in completed_events:
+            completed_events.append("spike_chest_allow")
+
+
+def found_spike_chest_event():
+    global game_state, last_game_state, event_stage
+    if "spike_chest" not in completed_events:
+        if event_stage == 1:
+            screen.blit(fire_mag, (100, 100))
+            screen.blit(dialog_menu, (100, 550))
+
+            render_text("Великий и сигма", screen, (130, 580), 400, font_=font40)
+            render_text("А вот и сундук о котором говорил тот кривозубый крестьянин", screen, (150, 650), 1300)
+        if event_stage == 2:
+            screen.blit(villager, (1000, 100))  # поменять на куст
+            screen.blit(dialog_menu, (100, 550))
+
+            render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
+            render_text("*храпит*", screen, (150, 650), 1300)
+        if event_stage == 3:
+            screen.blit(fire_mag, (100, 100))
+            screen.blit(dialog_menu, (100, 550))
+
+            render_text("Великий и мне лень", screen, (130, 580), 400, font_=font40)
+            render_text("Этот куст как-то подозрительно храпит. Не будем его тревожить. Лучше спросить об этом кусте того ногтегрыза, давшего нам это задание, может он что-то знает о храпящих кустах", screen, (150, 650), 1300)
+        if event_stage == 4:
+            last_game_state, game_state = game_state, last_game_state
+            event_stage = 1
+            if "spike_chest" not in completed_events:
+                completed_events.append("spike_chest")
+    elif "spike" not in completed_events:
+        if event_stage == 1:
+            screen.blit(fire_mag, (100, 100))
+            screen.blit(dialog_menu, (100, 550))
+
+            render_text("Великий и чё", screen, (130, 580), 400, font_=font40)
+            render_text("Эй, куст, просыпайся!", screen, (150, 650), 1300)
+        if event_stage == 2:
+            screen.blit(villager, (1000, 100))  # поменять на куст
+            screen.blit(dialog_menu, (100, 550))
+
+            render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
+            render_text("0_0 что случилось? И ГДЕ МОЙ СУНДУК?", screen, (150, 650), 1300)
+        if event_stage == 3:
+            screen.blit(fire_mag, (100, 100))
+            screen.blit(dialog_menu, (100, 550))
+
+            render_text("Великий и мне лень", screen, (130, 580), 400, font_=font40)
+            render_text("Расскажи кто ты такой и тогда мы расскажем где твой сундук", screen, (150, 650), 1300)
+        if event_stage == 4:
+            screen.blit(villager, (1000, 100))  # поменять на куст
+            screen.blit(dialog_menu, (100, 550))
+
+            render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
+            render_text("Я друид круга куста. Раньше я считал себя неудачником, ведь все друиды могут превращаться в крутых животных, а я в лишь в куст. Но всё изменилось когда я встретил Великий куст в Великом лесу. Я понял что моя особенность - это не проклятье, это дар", screen, (150, 650), 1300)
+        if event_stage == 5:
+            screen.blit(fire_mag, (100, 100))
+            screen.blit(dialog_menu, (100, 550))
+
+            render_text("Великий и мне лень", screen, (130, 580), 400, font_=font40)
+            render_text("Круг куста? Впервые слышу о нём, хотя я впринципе в друидических кругах особо не разбираюсь. Сколько всего друидов входит в этот круг?", screen, (150, 650), 1300)
+        if event_stage == 6:
+            screen.blit(villager, (1000, 100))  # поменять на куст
+            screen.blit(dialog_menu, (100, 550))
+
+            render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
+            render_text("В этом кругу только 2 друида: я и ещё один. Сейчас он наверняка в Великом лесу, давно я его не видел, пора бы навестить его. Теперь вы отвечайте. Где мой сундук?", screen, (150, 650), 1300)
+        if event_stage == 7:
+            screen.blit(fire_mag, (100, 100))
+            screen.blit(dialog_menu, (100, 550))
+
+            render_text("Великий и мне лень", screen, (130, 580), 400, font_=font40)
+            render_text("Сундук у нас. Но содержимое сундука мы тебе полностью вернуть не сможем. У нас только 6 эмблем из 10 которые были в сундуке", screen, (150, 650), 1300)
+        if event_stage == 8:
+            screen.blit(villager, (1000, 100))  # поменять на куст
+            screen.blit(dialog_menu, (100, 550))
+
+            render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
+            render_text("Мне всё равно на эти ваши 'эмблемы', я просто находил их пока бродил по лесу и решил складывать их в сундук. Самое главное что мой сундук на месте, ведь он мне дорог как память о Великом кусте", screen, (150, 650), 1300)
+        if event_stage == 9:
+            screen.blit(fire_mag, (100, 100))
+            screen.blit(dialog_menu, (100, 550))
+
+            render_text("Великий и мне лень", screen, (130, 580), 400, font_=font40)
+            render_text("Хочешь пойти с нами? Нам в ту же сторону что и тебе, а одному ходить опасно в связи с появлением непонятно откуда появившихся монстров", screen, (150, 650), 1300)
+        if event_stage == 10:
+            screen.blit(villager, (1000, 100))  # поменять на куст
+            screen.blit(dialog_menu, (100, 550))
+
+            render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
+            render_text("Ты прав, я мало что смогу противопоставить им в одиночку. Я пойду с вами", screen, (150, 650), 1300)
+        if event_stage == 11:
+            event_stage = 0
+            global_map.chest = Chest("вампум", rewards=chests_rewards["spike"])
+            last_game_state = game_state
+            game_state = "reward_first_stage"
+            if "spike" not in completed_events:
+                completed_events.append("spike")
+    else:
+        last_game_state = game_state
+        game_state = "global_map"
+
+
+def return_spike_chest_event():
+    global game_state, last_game_state, event_stage
+    if event_stage == 1:
+        screen.blit(fire_mag, (100, 100))
+        screen.blit(dialog_menu, (100, 550))
+
+        render_text("Великий и сундук", screen, (130, 580), 400, font_=font40)
+        render_text("Вот сундук", screen, (150, 650), 1300)
+    if event_stage == 2:
+        screen.blit(villager, (1000, 100))
+        screen.blit(dialog_menu, (100, 550))
+
+        render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
+        render_text("Да, очень похоже на сундук. Давайте открывать", screen, (150, 650), 1300)
+
+    if event_stage == 3:
+        screen.blit(fire_mag, (100, 100))
+        screen.blit(villager, (1000, 100))
+        screen.blit(dialog_menu, (100, 550))
+
+        render_text("Все", screen, (1100, 580), 400, font_=font40)
+        render_text("ОГОООО!!! 10 ЭМБЛЕМ ЛЕСА ОМГ ВАААААУУУУ!!!", screen, (150, 650), 1300)
+
+    if event_stage == 4:
+        screen.blit(villager, (1000, 100))
+        screen.blit(dialog_menu, (100, 550))
+
+        render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
+        render_text("Ничего себе, какие красивые зелёные монетки, наверное они дорогие. Как и договаривались: 4 - мне, 6 - вам", screen, (150, 650), 1300)
+
+    if event_stage == 5:
+        screen.blit(fire_mag, (100, 100))
+        screen.blit(dialog_menu, (100, 550))
+
+        render_text("Великий и горь", screen, (130, 580), 400, font_=font40)
+        render_text("Кстати, возле сундука был странный храпящий куст. Знаешь что-нибудь об этом?", screen, (150, 650), 1300)
+
+    if event_stage == 6:
+        screen.blit(villager, (1000, 100))
+        screen.blit(dialog_menu, (100, 550))
+
+        render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
+        render_text("Я не могу быть полностью уверен в этом, но когда-то по деревне прошёл слух о появлении в нашем лесу друида, который умеет превращаться в куст. Возможно это был он", screen, (150, 650), 1300)
+    
+    if event_stage == 7:
+        screen.blit(fire_mag, (100, 100))
+        screen.blit(dialog_menu, (100, 550))
+
+        render_text("Великий и всё", screen, (130, 580), 400, font_=font40)
+        render_text("Ясно. Думаю нам стоит вернуться туда же и поговорить с ним", screen, (150, 650), 1300)
+
+    if event_stage == 8:
+        if "spike_tower_allow" not in completed_events:
+            global_map.chest = Chest("вампум", rewards=chests_rewards["spike_chest"])
+            last_game_state = game_state
+            game_state = "reward_first_stage"
+            completed_events.append("spike_tower_allow")
+        else:
+            last_game_state, game_state = game_state, last_game_state
+            event_stage = 0
 
 
 def boloto_event():
@@ -5881,6 +6154,7 @@ buy_upgrade_button = Button("text", font60, "Купить")
 clear_button = Button("text", font50, "Очистить")
 take_button = Button("text", font60, "Забрать")
 first_event_button = Button("img", "buffs", "boloto")
+kust_event_button = Button("img", "creeps", "nekr_zombie_jirny")
 choice_button = Button("text", font60, "Выбрать")
 kill_enemy_on_click_button = Button("img", "other", "kill_enemy_onclick")
 
@@ -5903,16 +6177,18 @@ snow_coins = 0
 upload_data()
 # ---
 
-GlobalMapLevelButton("1", "0", (100, 714), level=Level("1", 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))    # !!! все буквы русские !!!
-GlobalMapLevelButton("2", "1", (250, 544), level=Level("2", 13500, 13501, 20, level_waves["2"], level_allowed_enemies["2"], allowed_cords=(320, 448, 576), level_image="2"))
-GlobalMapLevelButton("3", "2", (500, 500), level=Level("3", 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="2"))
-GlobalMapLevelButton("3а", "3", (700, 700), chest=Chest(parent_number="3а", rewards=chests_rewards["3а"]))
-GlobalMapLevelButton("4", "3", (750, 400), level=Level("4", 22500, 225, 50, level_waves["4"], level_allowed_enemies["4"], level_image="2"))
-GlobalMapLevelButton("5", "4", (1000, 400), level=Level("5", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))
-GlobalMapLevelButton("6", "5", (1200, 300), event=Event(village_event, image_="village", parent_number="6", repeat=True))    # на 6 поменять
+GlobalMapLevelButton("1", "0", (118, 668), level=Level("1", 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))    # !!! все буквы русские !!!
+GlobalMapLevelButton("2", "1", (295, 570), level=Level("2", 13500, 13501, 20, level_waves["2"], level_allowed_enemies["2"], allowed_cords=(320, 448, 576), level_image="2"))
+GlobalMapLevelButton("2а", "2", (409, 700), required_done_events=("spike_chest_allow",), level=Level("2а", 10, 13501, 20, level_waves["2"], level_allowed_enemies["2"], level_image="2"))
+GlobalMapLevelButton("2б", "2а", (723, 791), event=Event(found_spike_chest_event, "boloto_event", "2б"))
+GlobalMapLevelButton("3", "2", (472, 508), level=Level("3", 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="2"))
+GlobalMapLevelButton("3а", "3", (945, 753), chest=Chest(parent_number="3а", rewards=chests_rewards["3а"]))
+GlobalMapLevelButton("4", "3", (671, 507), level=Level("4", 22500, 225, 50, level_waves["4"], level_allowed_enemies["4"], level_image="2"))
+GlobalMapLevelButton("5", "4", (824, 462), level=Level("5", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))
+GlobalMapLevelButton("6", "5", (1374, 304), event=Event(village_event, image_="village", parent_number="6", repeat=True))    # на 6 поменять
 GlobalMapLevelButton("6а", "6", (1000, 100), level=Level("6а", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))  # поменять
 GlobalMapLevelButton("6б", "6а", (750, 100), chest=Chest(parent_number="6б", rewards=chests_rewards["6б"]))
-GlobalMapLevelButton("6в", "6б", (400, 100), level=Level("6в", 31500, 225, 50, level_waves["5"], level_allowed_enemies["6в"], level_image="1"))  # поменять
+GlobalMapLevelButton("6в", "6б", (400, 100), level=Level("6в", 10, 225, 50, level_waves["5"], level_allowed_enemies["6в"], level_image="1"))  # поменять
 GlobalMapLevelButton("6г", "6в", (250, 200), event=Event(found_fiery_vasilky_event, "fiery_vasilky", "6г"))  # поменять
 GlobalMapLevelButton("7", "6", (1400, 200), required_done_events=("6",), level=Level("7", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
 GlobalMapLevelButton("8", "7", (1650, 165), level=Level("8", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
@@ -6085,6 +6361,7 @@ while running:
 
             if e.key == K_a:
                 level.rect_visible = False
+                print(str(mouse.get_pos()[0] - 48)+',', mouse.get_pos()[1] - 48)
             if e.key == K_d:
                 level.rect_visible = True
 
