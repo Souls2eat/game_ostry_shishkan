@@ -111,6 +111,8 @@ towers_attack = {
     "oruzhik_daggers": [image.load(f"images/towers/oruzhik_daggers/attack/oruzhik_daggers{i}.png") for i in range(1, 5)],
     "oruzhik_bow": [image.load(f"images/towers/oruzhik_bow/attack/oruzhik_bow{i}.png") for i in range(1, 5)],
     "kar_mag": [image.load(f"images/towers/kar_mag/attack/kar_mag{i}.png") for i in range(1, 5)],
+    "kot": [image.load(f"images/towers/kot/attack/kot{i}.png") for i in range(1, 5)],
+    "bolotnik": [image.load(f"images/towers/bolotnik/attack/bolotnik{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/attack/go_bleen1{i}.png") for i in range(1, 3)],
 
 }
@@ -370,6 +372,9 @@ bullets_move = {
     "heal_field": [image.load(f"images/bullets/heal_field/move/heal_field{i}.png") for i in range(1, 5)],
     "holod_row": [image.load(f"images/bullets/holod_row/move/holod_row{i}.png") for i in range(1, 5)],
     "karm": [image.load(f"images/bullets/karm/move/karm{i}.png") for i in range(1, 5)],
+    "kot_scratch0": [image.load(f"images/bullets/kot_scratch0/move/kot_scratch0{i}.png") for i in range(1, 5)],
+    "kot_scratch1": [image.load(f"images/bullets/kot_scratch1/move/kot_scratch1{i}.png") for i in range(1, 5)],
+    "kot_scratch2": [image.load(f"images/bullets/kot_scratch2/move/kot_scratch2{i}.png") for i in range(1, 5)],
     # "potok_y": [image.load(f"images/bullets/potok_y/move/potok_y{i}.png") for i in range(1, 5)],  # это оказывается паразит
 }
 
@@ -447,6 +452,9 @@ bullets_death = {
     "heal_field": [image.load(f"images/bullets/heal_field/death/heal_field{i}.png") for i in range(1, 5)],
     "holod_row": [image.load(f"images/bullets/holod_row/death/holod_row{i}.png") for i in range(1, 5)],
     "karm": [image.load(f"images/bullets/karm/death/karm{i}.png") for i in range(1, 5)],
+    "kot_scratch0": [image.load(f"images/bullets/kot_scratch0/death/kot_scratch0{i}.png") for i in range(1, 5)],
+    "kot_scratch1": [image.load(f"images/bullets/kot_scratch1/death/kot_scratch1{i}.png") for i in range(1, 5)],
+    "kot_scratch2": [image.load(f"images/bullets/kot_scratch2/death/kot_scratch2{i}.png") for i in range(1, 5)],
     # "potok_y": [image.load(f"images/bullets/potok_y/death/potok_y{i}.png") for i in range(1, 5)],
 }
 
