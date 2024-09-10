@@ -54,6 +54,9 @@ towers_wait = {
     "oruzhik_daggers": [image.load(f"images/towers/oruzhik_daggers/wait/oruzhik_daggers{i}.png") for i in range(1, 5)],
     "oruzhik_bow": [image.load(f"images/towers/oruzhik_bow/wait/oruzhik_bow{i}.png") for i in range(1, 5)],
     "kar_mag": [image.load(f"images/towers/kar_mag/wait/kar_mag{i}.png") for i in range(1, 5)],
+    "chistiy": [image.load(f"images/towers/chistiy/wait/chistiy{i}.png") for i in range(1, 5)],
+    "prokach": [image.load(f"images/towers/prokach/wait/prokach{i}.png") for i in range(1, 5)],
+    "pulelom": [image.load(f"images/towers/pulelom/wait/pulelom{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/wait/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/wait/perec{i}.png") for i in range(1, 5)],
@@ -113,6 +116,9 @@ towers_attack = {
     "kar_mag": [image.load(f"images/towers/kar_mag/attack/kar_mag{i}.png") for i in range(1, 5)],
     "kot": [image.load(f"images/towers/kot/attack/kot{i}.png") for i in range(1, 5)],
     "bolotnik": [image.load(f"images/towers/bolotnik/attack/bolotnik{i}.png") for i in range(1, 5)],
+    "chistiy": [image.load(f"images/towers/chistiy/attack/chistiy{i}.png") for i in range(1, 5)],
+    "prokach": [image.load(f"images/towers/prokach/attack/prokach{i}.png") for i in range(1, 5)],
+    "pulelom": [image.load(f"images/towers/pulelom/attack/pulelom{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/attack/go_bleen1{i}.png") for i in range(1, 3)],
 
 }
@@ -184,6 +190,9 @@ towers_death = {
     "oruzhik_daggers": [image.load(f"images/towers/oruzhik_daggers/death/oruzhik_daggers{i}.png") for i in range(1, 5)],
     "oruzhik_bow": [image.load(f"images/towers/oruzhik_bow/death/oruzhik_bow{i}.png") for i in range(1, 5)],
     "kar_mag": [image.load(f"images/towers/kar_mag/death/kar_mag{i}.png") for i in range(1, 5)],
+    "chistiy": [image.load(f"images/towers/chistiy/death/chistiy{i}.png") for i in range(1, 5)],
+    "prokach": [image.load(f"images/towers/prokach/death/prokach{i}.png") for i in range(1, 5)],
+    "pulelom": [image.load(f"images/towers/pulelom/death/pulelom{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/death/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/death/perec{i}.png") for i in range(1, 5)],
@@ -375,6 +384,14 @@ bullets_move = {
     "kot_scratch0": [image.load(f"images/bullets/kot_scratch0/move/kot_scratch0{i}.png") for i in range(1, 5)],
     "kot_scratch1": [image.load(f"images/bullets/kot_scratch1/move/kot_scratch1{i}.png") for i in range(1, 5)],
     "kot_scratch2": [image.load(f"images/bullets/kot_scratch2/move/kot_scratch2{i}.png") for i in range(1, 5)],
+    "mini_explosion": [image.load(f"images/bullets/mini_explosion/move/mini_explosion{i}.png") for i in range(1, 5)],
+    "mega_explosion": [image.load(f"images/bullets/mega_explosion/move/mega_explosion{i}.png") for i in range(1, 5)],
+    "big_mech_vzux": [image.load(f"images/bullets/big_mech_vzux/move/big_mech_vzux{i}.png") for i in range(1, 5)],
+    "mini_kamen_golem": [image.load(f"images/bullets/mini_kamen_golem/move/mini_kamen_golem{i}.png") for i in range(1, 5)],
+    "big_kamen_golem": [image.load(f"images/bullets/big_kamen_golem/move/big_kamen_golem{i}.png") for i in range(1, 5)],
+    "mega_kamen_golem": [image.load(f"images/bullets/mega_kamen_golem/move/mega_kamen_golem{i}.png") for i in range(1, 5)],
+    "chistiy_bullet": [image.load(f"images/bullets/chistiy_bullet/move/chistiy_bullet{i}.png") for i in range(1, 5)],
+    "pulelomka": [image.load(f"images/bullets/pulelomka/move/pulelomka{i}.png") for i in range(1, 5)],
     # "potok_y": [image.load(f"images/bullets/potok_y/move/potok_y{i}.png") for i in range(1, 5)],  # это оказывается паразит
 }
 
@@ -455,6 +472,14 @@ bullets_death = {
     "kot_scratch0": [image.load(f"images/bullets/kot_scratch0/death/kot_scratch0{i}.png") for i in range(1, 5)],
     "kot_scratch1": [image.load(f"images/bullets/kot_scratch1/death/kot_scratch1{i}.png") for i in range(1, 5)],
     "kot_scratch2": [image.load(f"images/bullets/kot_scratch2/death/kot_scratch2{i}.png") for i in range(1, 5)],
+    "mini_explosion": [image.load(f"images/bullets/mini_explosion/death/mini_explosion{i}.png") for i in range(1, 5)],
+    "mega_explosion": [image.load(f"images/bullets/mega_explosion/death/mega_explosion{i}.png") for i in range(1, 5)],
+    "big_mech_vzux": [image.load(f"images/bullets/big_mech_vzux/death/big_mech_vzux{i}.png") for i in range(1, 5)],
+    "mini_kamen_golem": [image.load(f"images/bullets/mini_kamen_golem/death/mini_kamen_golem{i}.png") for i in range(1, 5)],
+    "big_kamen_golem": [image.load(f"images/bullets/big_kamen_golem/death/big_kamen_golem{i}.png") for i in range(1, 5)],
+    "mega_kamen_golem": [image.load(f"images/bullets/mega_kamen_golem/death/mega_kamen_golem{i}.png") for i in range(1, 5)],
+    "chistiy_bullet": [image.load(f"images/bullets/chistiy_bullet/death/chistiy_bullet{i}.png") for i in range(1, 5)],
+    "pulelomka": [image.load(f"images/bullets/pulelomka/death/pulelomka{i}.png") for i in range(1, 5)],
     # "potok_y": [image.load(f"images/bullets/potok_y/death/potok_y{i}.png") for i in range(1, 5)],
 }
 
