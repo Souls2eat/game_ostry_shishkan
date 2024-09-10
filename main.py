@@ -1450,6 +1450,15 @@ class Tower(sprite.Sprite):
             elif self.upgrade_level == '3b':
                 self.big_mech_cooldown = self.basic_big_mech_cooldown = 600
 
+        if self.name == 'prokach':  # статы фаермага чтобы справочник не сломался, переделаю его попозже
+            self.hp = self.max_hp = 200
+            self.atk = 10
+            self.bullet_speed_x = 5
+            self.bullet_speed_y = 0
+            self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.damage_type = 'fire'
+            self.rarity = "common"
+
         if self.name == 'klonys':
             self.hp = self.max_hp = 200
             self.atk = self.basic_atk = 30
@@ -1539,6 +1548,16 @@ class Tower(sprite.Sprite):
             self.v_falange = 0
             #self.z_falange = 5
             self.damage_type = 'light'
+            self.rarity = "common"
+
+        if self.name == 'pulelom':
+            self.hp = self.max_hp = 200
+            self.atk = 0
+            self.bullet_speed_x = 5
+            self.bullet_speed_y = 0
+            self.attack_cooldown = self.basic_attack_cooldown = 180
+            self.pulelomka_hp = 5
+            self.damage_type = ''
             self.rarity = "common"
 
         if self.name == 'terpila':
@@ -2072,6 +2091,11 @@ class Tower(sprite.Sprite):
                 if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive and self.nakopleno > 0:
                     return enemy
 
+        if self.name == 'pulelom':      
+            for enemy in enemies_group:
+                if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive and enemy.attack_range > 0:
+                    return enemy
+
         if self.name == 'kar_mag':
             for enemy in enemies_group:
                 if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 384 and enemy.alive:
@@ -2455,6 +2479,9 @@ class Tower(sprite.Sprite):
             if self.target_phase == 'far':
                 Bullet('karm', self.rect.centerx, self.rect.centery-10, self.damage_type, self.atk,
                                 self.bullet_speed_x+4, self.bullet_speed_y, 'default', self)
+                
+        if self.name == "pulelom":
+            Bullet("pulelomka", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'pulelomka', self)
 
         if self.name == "electric":
             if self.target_phase == 'close':
@@ -4026,6 +4053,9 @@ class Bullet(sprite.Sprite):
             self.dop_rect_mid = Rect(self.rect.right-128, self.rect.top, 128, 640)
             self.dop_rect_bot = Rect(self.rect.left, self.rect.bottom-128, 384, 128)
 
+        if self.name == 'pulelomka':
+            self.hp = self.parent.pulelomka_hp
+
     def bullet_movement(self):
         self.rect.x += self.speed_x
         self.rect.y += self.speed_y
@@ -4292,6 +4322,14 @@ class Bullet(sprite.Sprite):
                                 if self.enemies_in_group >= 3:
                                     self.dead()         # тут был кил
                                     break
+
+        if self.name == 'pulelomka':
+            for bullet in bullets_group:
+                if (bullet.name == "zeleniy_strelok_bullet" or bullet.name == 'anti_hrom') and self.rect.colliderect(bullet.rect):
+                    bullet.kill()
+                    self.hp -= 1
+                    if self.hp <= 0:
+                        self.kill()
 
         if self.name == 'ls' or self.name == 'explosion' or self.name == 'joltiy_explosion' or self.name == 'opal_explosion' or self.name == "mech" or self.name == "drachun_gulag_splash" or self.name == "tolkan_bux" or self.name == 'razlet' or self.name == 'holod_row':
             for enemy in enemies_group:

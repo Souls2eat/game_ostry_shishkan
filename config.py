@@ -146,6 +146,8 @@ tower_costs = {
     "oruzhik": 99,  # типа хзз
     "kar_mag": 20,
     "chistiy": 25,
+    "prokach": 99,  # типа хзз
+    "pulelom": 99,  # типа хзз
     "bomb": 35,
     "perec": 30,
     "vodka": 15,
@@ -212,6 +214,8 @@ towers_kd = {
     "oruzhik": 9999,  #xz
     "kar_mag": 450,
     "chistiy": 300,
+    "prokach": 9999,  #xz
+    "pulelom": 9999,  #xz
     "bomb": 1875,
     "perec": 1500,
     "vodka": 1500,
@@ -517,6 +521,20 @@ upgrade_costs = {
         "3b": "2 city_coin",
     },
     "chistiy": {
+        "1": "0 city_coin",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "prokach": {
+        "1": "0 city_coin",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "pulelom": {
         "1": "0 city_coin",
         "2a": "1 city_coin",
         "2b": "1 city_coin",
@@ -886,6 +904,20 @@ upgrade_descriptions = {
     },
     "chistiy": {
         "1": "Выстреливает множеством снарядов, которые наносят чистый урон. Если рядом с ним есть такие же башни как он, количество снарядов за выстрел увеличится",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "prokach": {
+        "1": "Использует свой меч для нанесения урона врагам вблизи. Чем дольше он не атакует врагов, тем сильнее и больше становится его меч",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "pulelom": {
+        "1": "Выпускает волну чего-то, уничтожающую вражеские снаряды на своём пути вплоть до 5 штук",
         "2a": "1 city_coin",
         "2b": "1 city_coin",
         "3a": "2 city_coin",
