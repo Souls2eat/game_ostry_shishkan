@@ -2681,7 +2681,7 @@ class Tower(sprite.Sprite):
             Bullet("pike", self.rect.centerx + 128, self.rect.centery, self.damage_type, self.atk, 0, 0, 'drachun_gulag_splash', self)
 
         if self.name == 'ares':
-            Bullet("contrsword", self.rect.centerx + 256, self.rect.centery, self.damage_type, self.atk*(1+(self.vpitano_damaged*20//100)), 0, 0, 'drachun_gulag_splash', self)
+            Bullet("contrsword", self.rect.centerx + 128, self.rect.centery, self.damage_type, self.atk*(1+(self.vpitano_damaged*20//100)), 0, 0, 'drachun_gulag_splash', self)
             self.vpitano_damaged = 0
 
         if self.name == 'oruzhik_claymore':
@@ -5957,7 +5957,7 @@ class Scroller:
         self.back_to_start_position = True
         self.last_offset_state = "main_menu"
         self.rules = {
-            "manual_menu": {"min": -1850, "max": 0},
+            "manual_menu": {"min": -2300, "max": 0},
             "global_map": {"min": -3200, "max": 0},
             "reward_second_stage": {"min": -1600, "max": 0},
             "tower_select": {"min": -800, "max": 0}

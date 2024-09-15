@@ -123,7 +123,7 @@ towers_attack = {
     "prokach": [image.load(f"images/towers/prokach/attack/prokach{i}.png") for i in range(1, 5)],
     "pulelom": [image.load(f"images/towers/pulelom/attack/pulelom{i}.png") for i in range(1, 5)],
     "shabriri": [image.load(f"images/towers/shabriri/attack/shabriri{i}.png") for i in range(1, 5)],
-    "ares": [image.load(f"images/towers/ares/attack/ares{i}.png") for i in range(1, 5)],
+    "ares": [image.load(f"images/towers/ares/attack/ares{i}.png") for i in range(1, 21)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/attack/go_bleen1{i}.png") for i in range(1, 3)],
 
 }
