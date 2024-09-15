@@ -135,7 +135,7 @@ towers_give = {
     "uvelir": [image.load(f"images/towers/uvelir/give/uvelir{i}.png") for i in range(1, 5)],
     "kar_mag": [image.load(f"images/towers/kar_mag/give/kar_mag{i}.png") for i in range(1, 5)],
     "shabriri": [image.load(f"images/towers/shabriri/give/shabriri{i}.png") for i in range(1, 5)],
-    "vozmezdik": [image.load(f"images/towers/vozmezdik/give/vozmezdik{i}.png") for i in range(1, 13)],
+    "vozmezdik": [image.load(f"images/towers/vozmezdik/give/vozmezdik{i}.png") for i in range(1, 21)],
 }
 
 towers_hide = {

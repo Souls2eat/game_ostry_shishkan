@@ -1633,10 +1633,10 @@ class Tower(sprite.Sprite):
 
         if self.name == 'vozmezdik':
             self.hp = self.max_hp = 3000
-            self.basic_spawn_something_cooldown = self.spawn_something_cooldown = 780
-            self.vremya_casta = self.basic_vremya_casta = 180
+            self.basic_spawn_something_cooldown = self.spawn_something_cooldown = 600
+            self.vremya_casta = self.basic_vremya_casta = 300
             self.col_vo_poglash = 0
-            self.damage_type = 'light'
+            self.damage_type = ''
             self.rarity = "common"
 
         if self.name == 'priest':
@@ -4508,7 +4508,6 @@ class Bullet(sprite.Sprite):
                             if tower.name == 'vozmezdik' and tower.vremya_casta > 0:
                                 self.damage = 0
                                 tower.col_vo_poglash += 1
-                                print(tower.col_vo_poglash)
                             tower.hp -= self.damage
                             tower.damaged = True
                             # if tower.name == 'terpila' and (tower.upgrade_level == '2b' or tower.upgrade_level == '3b' or tower.upgrade_level == '3a'):
