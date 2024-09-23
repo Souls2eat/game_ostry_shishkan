@@ -91,6 +91,7 @@ enemy_costs = {
     "sportik": 3,
     "armorik": 4,
     "rojatel": 3,
+    "tyazhik": 3,
     "klonik": 3,
     "teleportik": 2,
     "fire_res": 1,

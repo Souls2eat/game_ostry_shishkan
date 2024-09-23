@@ -34,6 +34,8 @@ cursor = image.load("images/other/cursor.png").convert_alpha()
 rage = image.load("images/other/rage.png").convert_alpha()
 unvulnerable = image.load("images/other/unvulnerable.png").convert_alpha()
 great_spike_form = image.load("images/buffs/great_spike_form.png").convert_alpha()  # возможно это лучше куда-то в другое место запихнуть. я прост хз куда
+red_32x32 = image.load("images/other/red_32x32.png").convert_alpha()
+nota = image.load("images/other/nota.png").convert_alpha()
 tower_window_legendary = image.load("images/tower_select_windows/tower_select_window_legendary.png").convert_alpha()
 tower_window_common = image.load("images/tower_select_windows/tower_select_window_common.png").convert_alpha()
 tower_window_spell = image.load("images/tower_select_windows/tower_select_window_spell.png").convert_alpha()
@@ -55,6 +57,13 @@ map_secret_6 = image.load("images/maps/global_map/secrets/map_6_secret.png").con
 villager = image.load("images/dialog_nps/villager.png").convert_alpha()
 fire_mag = image.load("images/dialog_nps/fire_mag.png").convert_alpha()
 
+mixer.init()
+# mixer.music.load('jungles.ogg')  # фоновая музыка
+# mixer.music.play()
+general_volume = 1.0
+music_volume = 1.0
+sound_effects_volume = 1.0
+
 font25 = font.Font("fonts/ofont.ru_Nunito.ttf", 25)
 font30 = font.Font("fonts/ofont.ru_Nunito.ttf", 30)
 font35 = font.Font("fonts/ofont.ru_Nunito.ttf", 35)
@@ -63,7 +72,7 @@ font50 = font.Font("fonts/ofont.ru_Nunito.ttf", 50)
 font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
 
 
-game_name = font60.render("GAME_OSTRY_SHISHIKAN", True, (255, 255, 255))  # GAME_OSTRY_SHISHIKAN
+game_name = font60.render("GAME_OSTRY_SHISHKAN", True, (255, 255, 255))  # GAME_OSTRY_SHISHKAN
 game_state = "main_menu"
 last_game_state = game_state
 buttons_group = []
@@ -1852,6 +1861,10 @@ class Tower(sprite.Sprite):
             krests_group.add(self)
 
         # СТАТЫ конец
+        # if hasattr(self, "attack_cooldown"):
+        #     self.shoot_sound = mixer.Sound(f"sounds/sound_effects/towers/shoot/pukish.wav")
+        self.death_sound = mixer.Sound(f"sounds/sound_effects/towers/death/{unit}.ogg")
+
         if self.rarity == "spell":
             self.remove(towers_group)
             self.add(nekusaemie_group)
@@ -2035,6 +2048,7 @@ class Tower(sprite.Sprite):
             self.hp = self.max_hp
         else:
             # self.alive = False
+            self.sound('death')
             self.kill()     # + потом анимация смерти
 
     def check_hp(self):
@@ -2076,7 +2090,8 @@ class Tower(sprite.Sprite):
                 if self.upgrade_level == '2b' or self.upgrade_level == '3b':
                     for enemy in enemies_group:
                         if enemy.rect.colliderect(self.ottalkivanie_rect):
-                            enemy.real_x += 128
+                            if not enemy.heavy:
+                                enemy.real_x += 128
                             if self.upgrade_level == '3b':
                                 Parasite('terpila_debuff', enemy.rect.centerx, enemy.rect.centery, '', 0, enemy, self)
                 elif self.upgrade_level == '3a':
@@ -2764,6 +2779,8 @@ class Tower(sprite.Sprite):
                         targets[id(self)].hp = targets[id(self)].max_hp
                 targets[id(self)] = None
 
+        # self.sound('shoot')
+
         # for i in range(16):                           # пока оставил
         #     if self.name == 'go_bleen' + str(i+1):
         #         if self.attack_cooldown <= 0:
@@ -3031,7 +3048,7 @@ class Tower(sprite.Sprite):
             if self.attack_cooldown > 0:          # на определённой башне    !!!=
                 self.attack_cooldown -= 1         # если я вам не скажу, вы и не заметите    ЗАМЕТИМ(наверн)
             else:
-                # self.check_target_alive()         # если баг, то откоменьтить
+                # self.check_target_alive()         # если баг, то откоментить
                 pass
 
         if self.anim_tasks:                          # порядок анимации
@@ -3288,6 +3305,15 @@ class Tower(sprite.Sprite):
     def draw3(self, surf):
         surf.blit(self.image3, self.rect3)
 
+    def sound(self, reason):
+        # if reason == 'shoot':
+        #     self.shoot_sound.set_volume(sound_effects_volume * general_volume)
+        #     self.shoot_sound.play()
+        # el
+        if reason == 'death':
+            self.death_sound.set_volume(sound_effects_volume * general_volume)
+            self.death_sound.play()
+
     def update(self):
         if self.onyx_barrier:
             self.image3 = font30.render(str(self.onyx_barrier.hp), True, (0, 0, 200))
@@ -3363,6 +3389,7 @@ class Enemy(sprite.Sprite):
         self.banished = False
         self.vulnerabled = 0
         self.vulnerables_and_resists = {}  # dict()  # 'damage_type' : resist%
+        self.heavy = False
 
         targets[id(self)] = None
         self.time_indicator = 1
@@ -3430,6 +3457,15 @@ class Enemy(sprite.Sprite):
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 0
             self.damage_type = 'slashing'
+
+        if self.name == 'tyazhik':
+            self.hp = self.max_hp = 1000
+            self.atk = 50
+            self.speed = 0.25
+            self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.attack_range = 0
+            self.heavy = True
+            self.damage_type = 'bludgeoning'
 
         if self.name == 'sportik':  # надо пофиксить таргеты у пукиша
             self.hp = self.max_hp = 250
@@ -4199,7 +4235,7 @@ class Creep(sprite.Sprite):
         self.rect.y = int(self.real_y)
 
     def check_hp(self):
-        if self.hp <= 0 or self.rect.x > 1700 or (self.parent not in all_sprites_group and not(self.name == 'mini_golem' or self.name == 'big_golem' or self.name == 'mega_golem' or self.name == 'shina')):
+        if self.hp <= 0 or self.rect.x > 1700 or (self.parent not in all_sprites_group and not(self.name == 'mini_golem' or self.name == 'big_golem' or self.name == 'mega_golem' or self.name == 'shiha')):
             self.alive = False
             self.kill()
             if hasattr(self.parent, 'creeps'):
@@ -4258,6 +4294,9 @@ class Bullet(sprite.Sprite):
         self.last_anim_frame = -1
         self.anim_duration = 15     # сколько кадров будет оставаться 1 спрайт
         self.state = "move"         # потом будет "attack", "death" и какие придумаете
+
+        self.death_sound = mixer.Sound(f"sounds/sound_effects/bullets/death/fireball.ogg")
+          # ^^^ потом поменять на self.death_sound = mixer.Sound(f"sounds/sound_effects/bullets/death/{bullet_sprite}.ogg")
 
         if self.name == "zeleniy_strelok_bullet" or self.name == 'anti_hrom':
             self.zloy = True
@@ -4619,9 +4658,9 @@ class Bullet(sprite.Sprite):
                 if sprite.collide_rect(enemy, self) and enemy.hp > 0 and self not in enemy.only_one_hit_bullets:
                     if self.name != 'joltiy_explosion' and self.name != 'holod_row':
                         self.dealing_damage(enemy)
-                    if self.name == "tolkan_bux":
+                    if self.name == "tolkan_bux" and not enemy.heavy:
                         enemy.real_x += self.parent.push
-                    if self.name == 'razlet':
+                    if self.name == 'razlet' and not enemy.heavy:
                         if (enemy.rect.x >= self.rect.x and enemy.rect.centery == self.rect.centery) or enemy.rect.centery == 768 or enemy.rect.centery == 256:  #  тут же
                             enemy.real_x += self.pushl
                         elif enemy.rect.centery > self.rect.centery and enemy.rect.centery != 768:  # ниже
@@ -4762,7 +4801,7 @@ class Bullet(sprite.Sprite):
                         Bullet("mega_explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self.parent)
                     elif self.name == 'opal':
                         Bullet("opal_explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'opal_explosion', self.parent)
-                    elif self.name == 'struya':
+                    elif self.name == 'struya' and not enemy.heavy:
                         if self.parent.upgrade_level == '3a':
                             enemy.real_x += 64
                         else:
@@ -4866,14 +4905,22 @@ class Bullet(sprite.Sprite):
         else:
             self.anim_count += self.time_indicator
 
+    def sound(self, reason):
+        if reason == 'death':
+            self.death_sound.set_volume(sound_effects_volume * general_volume)
+            self.death_sound.play()
+            # mixer.Sound(f"sounds/sound_effects/bullets/death/{self.bullet_sprite}.ogg").play()
+
     def dead(self):
         if not level.no_death_animation:
             # bullets_group.remove(self)  # фича прикол шок жесть блин омг
             self.atk = 0
             self.speed_x = 0
             self.add_anim_task("death", self.kill)
+            self.sound('death')
         else:
             self.kill()
+            self.sound('death')
 
         # можно будет сделать чтобы если копитель умирал, то его мечи вниз падали прикольно. А при попадании меча во врага другая анимация
 
@@ -5051,7 +5098,7 @@ class Parasite(sprite.Sprite):
 
         if self.name == 'uragan':
             for enemy in enemies_group:
-                if self.rect.collidepoint(enemy.rect.centerx, enemy.rect.centery):
+                if self.rect.collidepoint(enemy.rect.centerx, enemy.rect.centery) and not enemy.heavy:
                     enemy.angle = atan2(self.rect.centery - enemy.rect.centery, self.rect.centerx - enemy.rect.centerx)
                     enemy.x_vel = cos(enemy.angle) * enemy.speed * 12
                     enemy.y_vel = sin(enemy.angle) * enemy.speed * 12
@@ -5070,7 +5117,7 @@ class Parasite(sprite.Sprite):
 
         if self.name == 'potok_y':
             for enemy in enemies_group:
-                if self.rect.colliderect(enemy.rect):
+                if self.rect.colliderect(enemy.rect) and not enemy.heavy:
                     enemy.angle = atan2(self.rect.centery - enemy.rect.centery, 0)
                     enemy.y_vel = sin(enemy.angle) * enemy.speed * 12
                     # enemy.rect.x += enemy.x_vel
@@ -5959,7 +6006,7 @@ class Scroller:
             "manual_menu": {"min": -2300, "max": 0},
             "global_map": {"min": -3200, "max": 0},
             "reward_second_stage": {"min": -1600, "max": 0},
-            "tower_select": {"min": -800, "max": 0}
+            "tower_select": {"min": -950, "max": 0}
         }
         self.remembered_scroll_offset = 0
 
@@ -6465,6 +6512,9 @@ def menu_positioning():
             scroll_offset, \
             coin_indent_x, \
             count_of_reward_coins, \
+            general_volume, \
+            music_volume, \
+            sound_effects_volume, \
             current_scroll_offset_state
 
     if game_state == "main_menu":
@@ -6826,6 +6876,12 @@ def menu_positioning():
             screen.blit(main_menu, (0, 0))
             screen.blit(game_name, (416, 10))
         screen.blit(pause_menu, (480, 250))
+        for i in range(int(general_volume*10//1)):
+            screen.blit(red_32x32, (622+(i*36), 602))
+        for i in range(int(music_volume*10//1)):
+            screen.blit(nota, (622+(i*36), 652))
+        for i in range(int(sound_effects_volume*10//1)):
+            screen.blit(unvulnerable, (622+(i*36), 702))
 
         if back_button.click(screen, (709, 520)):
             game_state = last_game_state
@@ -6869,6 +6925,39 @@ def menu_positioning():
             passed_levels = ["0", "1", "2", "3", "4", "5", "6", "6а"]
             preview_group.refresh(3)
             print("all_unlocked")
+
+        if general_volume_button.click(screen, (619, 600)):
+            pass
+        if general_volume_up_button.click(screen, (989, 600)):
+            if general_volume*10//1 < 10:
+                general_volume = ((general_volume*10//1)+1)/10
+                print(general_volume)
+        if general_volume_down_button.click(screen, (580, 600)):
+            if general_volume*10//1 > 0:
+                general_volume = ((general_volume*10//1)-1)/10
+                print(general_volume)
+
+        if music_volume_button.click(screen, (619, 650)):
+            pass
+        if music_volume_up_button.click(screen, (989, 650)):
+            if music_volume*10//1 < 10:
+                music_volume = ((music_volume*10//1)+1)/10
+                print(music_volume)
+        if music_volume_down_button.click(screen, (580, 650)):
+            if music_volume*10//1 > 0:
+                music_volume = ((music_volume*10//1)-1)/10
+                print(music_volume)
+
+        if sound_effects_volume_button.click(screen, (619, 700)):
+            pass
+        if sound_effects_volume_up_button.click(screen, (989, 700)):
+            if sound_effects_volume*10//1 < 10:
+                sound_effects_volume = ((sound_effects_volume*10//1)+1)/10
+                print(sound_effects_volume)
+        if sound_effects_volume_down_button.click(screen, (580, 700)):
+            if sound_effects_volume*10//1 > 0:
+                sound_effects_volume = ((sound_effects_volume*10//1)-1)/10
+                print(sound_effects_volume)
 
     if game_state == "death":
         screen.blit(pause_menu, (480, 250))
@@ -6996,6 +7085,15 @@ first_event_button = Button("img", "buffs", "boloto")
 kust_event_button = Button("img", "creeps", "nekr_zombie_jirny")
 choice_button = Button("text", font60, "Выбрать")
 kill_enemy_on_click_button = Button("img", "other", "kill_enemy_onclick")
+general_volume_button = Button("img", "other", "volume_bar")
+general_volume_up_button = Button("img", "other", "up")
+general_volume_down_button = Button("img", "other", "down")
+music_volume_button = Button("img", "other", "volume_bar")
+music_volume_up_button = Button("img", "other", "up")
+music_volume_down_button = Button("img", "other", "down")
+sound_effects_volume_button = Button("img", "other", "volume_bar")
+sound_effects_volume_up_button = Button("img", "other", "up")
+sound_effects_volume_down_button = Button("img", "other", "down")
 
 TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death", "cheat", "settings_menu"))
 level_num = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
@@ -7188,7 +7286,7 @@ while running:
             if e.key == K_KP_1:
                 Enemy("rojatel", (1508, 704))
             if e.key == K_KP_2:
-                Enemy("drobik", (1508, 704))
+                Enemy("tyazhik", (1508, 704))
             if e.key == K_KP_3:
                 Enemy("klonik", (1508, 704))
             if e.key == K_KP_0:
