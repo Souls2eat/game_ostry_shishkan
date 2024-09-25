@@ -50,7 +50,7 @@ level_instant_select_towers = {
 }
 
 chests_rewards = {
-    "3а": {
+    (2, 3): {
         "evil_coin": 1,
         "snow_coin": 2,
         "terpila": "unlock",

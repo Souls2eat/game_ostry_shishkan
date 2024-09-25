@@ -4,6 +4,7 @@ from config import *
 from animations import *
 from pygame import *
 
+mixer.pre_init(44100, -16, 1, 512)
 init()
 bugs = False  # ура изи победа. программирование пройдено. было слишком легко gg wp ez
 clock = time.Clock()
@@ -43,7 +44,7 @@ tower_window_active = image.load("images/tower_select_windows/tower_select_windo
 line_ = image.load("images/other/line.png").convert_alpha()
 unknown_entity = image.load("images/buttons_states/unknown_entity.png").convert_alpha()
 # game_map = image.load("images/maps/global_map/game_map.png").convert_alpha()
-game_map = image.load("images/maps/global_map/global_map_wip1.png").convert_alpha()
+game_map = image.load("images/maps/global_map/game_map_new.png").convert_alpha()
 global_level = image.load("images/maps/global_map/global_level.png").convert_alpha()
 ok = image.load("images/buttons_states/ok.png").convert_alpha()
 upgrade_tower_red = image.load("images/buttons_states/upgrade_tower_red.png").convert_alpha()
@@ -56,11 +57,14 @@ map_secret_3 = image.load("images/maps/global_map/secrets/map_3_secret.png").con
 map_secret_6 = image.load("images/maps/global_map/secrets/map_6_secret.png").convert_alpha()
 villager = image.load("images/dialog_nps/villager.png").convert_alpha()
 fire_mag = image.load("images/dialog_nps/fire_mag.png").convert_alpha()
+global_map_owerlay = image.load("images/maps/global_map/global_map_owerlay.png").convert_alpha()
+gg_on_map = image.load("images/other/gg_on_map.png").convert_alpha()
+hovered = image.load("images/maps/global_map/hovered.png").convert_alpha()
 
 mixer.init()
 # mixer.music.load('jungles.ogg')  # фоновая музыка
 # mixer.music.play()
-general_volume = 1.0
+general_volume = 0
 music_volume = 1.0
 sound_effects_volume = 1.0
 
@@ -122,7 +126,7 @@ class ExtendedGroup(sprite.Group):
 class BasePreviewGroup:
     def __init__(self, *supported_objects):
         self.entities = []
-        self.scroll_pos = 0
+        self.scroll_pos = (0, 0)
         self.hovered_entity = None
         self.pushed_entity = None
         self.dragged_entity = None
@@ -138,16 +142,16 @@ class BasePreviewGroup:
 
     def clear_(self):
         self.entities.clear()
-        self.scroll_pos = 0
+        self.scroll_pos = (0, 0)
 
-    def move_element_by_scroll(self, vector="y"):
+    def move_element_by_scroll(self):   # , vector="y"
         for en in self.entities:
-            if vector == "y":
-                en.pos = en.pos[0], en.pos[1] + scroller.scroll_offset - self.scroll_pos
-            if vector == "x":
-                en.pos = en.pos[0] + scroller.scroll_offset - self.scroll_pos, en.pos[1]
+            # if vector == "y":
+            #     en.pos = en.pos[0] + scroller.scroll_offset_x - self.scroll_pos[0], en.pos[1] + scroller.scroll_offset_y - self.scroll_pos[1]
+            # if vector == "x":
+            en.pos = en.pos[0] + scroller.scroll_offset_x - self.scroll_pos[0], en.pos[1] + scroller.scroll_offset_y - self.scroll_pos[1]
             en.rect = en.image.get_rect(topleft=en.pos)
-        self.scroll_pos = scroller.scroll_offset
+        self.scroll_pos = scroller.scroll_offset_x, scroller.scroll_offset_y
 
     def check_hover(self, surf, offset_pos=(0, 0)):
         surf_width = surf.get_width()
@@ -378,82 +382,180 @@ class RewardsPreviewGroup(BasePreviewGroup):
             tower.animation()
 
 
-class GlobalMap(BasePreviewGroup):
+# class GlobalMap(BasePreviewGroup):  # press f
+#     def __init__(self):
+#         super().__init__(GlobalMapLevelButton)
+#         self.chest = None
+#         self.event = None
+#
+#     def custom_draw(self, surf):
+#         for level_ in self.entities:
+#             # draw.rect(screen, (0, 255, 0), level_.rect, 5)
+#             if level_.parent in passed_levels and (level_.required_done_events is None or set(completed_events) & set(level_.required_done_events) == set(level_.required_done_events)):
+#                 if level_ == self.hovered_entity:
+#                     level_.repaint_to_hovered()
+#                     surf.blit(level_.image, level_.rect)
+#                 else:
+#                     level_.repaint_to_default()
+#                     surf.blit(level_.image, level_.rect)
+#                 if not level_.chest and not level_.event:
+#                     if len(str(level_.number)) < 2:
+#                         surf.blit(font60.render(f"{str(level_.number)}", True, (0, 0, 0)), (level_.rect.x + 30, level_.rect.y + 6))
+#                     elif len(str(level_.number)) < 99:
+#                         surf.blit(font60.render(f"{str(level_.number)}", True, (0, 0, 0)), (level_.rect.x + 12, level_.rect.y + 6))
+#                 else:
+#                     # surf.blit(levels[level_.number].image, level_.rect)
+#                     # if level_.level:
+#                     #     surf.blit(level_.level.image, level_.rect)
+#                     if level_.event and level_.event.image is not None:
+#                         surf.blit(level_.event.image, level_.rect)
+#                     if level_.chest:
+#                         surf.blit(level_.chest.image, level_.rect)
+#
+#     @staticmethod
+#     def hiding_map_secrets():
+#         if "3" not in passed_levels:
+#             screen.blit(map_secret_3, (564 + scroller.scroll_offset_y, 541))
+#         if "6" not in passed_levels:
+#             screen.blit(map_secret_6, (274 + scroller.scroll_offset_y, 75))
+#
+#     def use_clicked_object(self):
+#         global scroll_offset, last_game_state, game_state, level, passed_levels, event_stage
+#
+#         def go_level():
+#             global last_game_state, game_state, level
+#             level = self.pushed_entity.level
+#             scroller.scroll_offset_y = 0
+#             level.refresh()
+#             last_game_state = game_state
+#             game_state = "tower_select"
+#
+#         def chest_opening():
+#             self.chest = self.pushed_entity.chest
+#             self.chest.opening()
+#
+#         if self.pushed_entity:
+#             if self.pushed_entity.parent in passed_levels:
+#                 if self.pushed_entity.event:
+#                     self.event = self.pushed_entity.event
+#                     if not self.event.completed or self.event.repeat:
+#                         last_game_state = game_state
+#                         event_stage = 1
+#                         self.event.do()
+#                     elif self.pushed_entity.chest:
+#                         if not self.pushed_entity.chest.open:
+#                             chest_opening()
+#                         elif self.pushed_entity.level:
+#                             go_level()
+#                     elif self.pushed_entity.level:
+#                         go_level()
+#                 elif self.pushed_entity.chest:
+#                     if not self.pushed_entity.chest.open:
+#                         chest_opening()
+#                     elif self.pushed_entity.level:
+#                         go_level()
+#                 elif self.pushed_entity.level:
+#                     go_level()
+#
+#             self.pushed_entity = None
+
+
+class GlobalMap2:
     def __init__(self):
-        super().__init__(GlobalMapLevelButton)
+        self.map_size = Rect((66, 66), (1280, 768))
+        self.on_map = False
+        self.pushed = False
+        self.gg_pos = (0, 0)
+        self.levels = {}
         self.chest = None
         self.event = None
+        self.smokes_pos = []
+        self.where_is_smoke()
 
-    def custom_draw(self, surf):
-        for level_ in self.entities:
-            # draw.rect(screen, (0, 255, 0), level_.rect, 5)
-            if level_.parent in passed_levels and (level_.required_done_events is None or set(completed_events) & set(level_.required_done_events) == set(level_.required_done_events)):
-                if level_ == self.hovered_entity:
-                    level_.repaint_to_hovered()
-                    surf.blit(level_.image, level_.rect)
-                else:
-                    level_.repaint_to_default()
-                    surf.blit(level_.image, level_.rect)
-                if not level_.chest and not level_.event:
-                    if len(str(level_.number)) < 2:
-                        surf.blit(font60.render(f"{str(level_.number)}", True, (0, 0, 0)), (level_.rect.x + 30, level_.rect.y + 6))
-                    elif len(str(level_.number)) < 99:
-                        surf.blit(font60.render(f"{str(level_.number)}", True, (0, 0, 0)), (level_.rect.x + 12, level_.rect.y + 6))
-                else:
-                    # surf.blit(levels[level_.number].image, level_.rect)
-                    # if level_.level:
-                    #     surf.blit(level_.level.image, level_.rect)
-                    if level_.event and level_.event.image is not None:
-                        surf.blit(level_.event.image, level_.rect)
-                    if level_.chest:
-                        surf.blit(level_.chest.image, level_.rect)
+    def add(self, level):
+        if level.id not in self.levels:
+            self.levels[level.id] = level
+
+    def remove(self, level):
+        if level.id in self.levels:
+            del self.levels[level.id]
 
     @staticmethod
-    def hiding_map_secrets():
-        if "3" not in passed_levels:
-            screen.blit(map_secret_3, (564 + scroller.scroll_offset, 541))
-        if "6" not in passed_levels:
-            screen.blit(map_secret_6, (274 + scroller.scroll_offset, 75))
+    def is_level_available(level_number):
+        for i in range(2):
+            for j in range(2):
+                if (level_number[0] + i, level_number[1] + j) in passed_levels\
+                        or ((level_number[0] - i, level_number[1] - j) in passed_levels)\
+                        or ((level_number[0] + i, level_number[1] - j) in passed_levels)\
+                        or ((level_number[0] - i, level_number[1] + j) in passed_levels):
+                    return True
+        return False
 
     def use_clicked_object(self):
-        global scroll_offset, last_game_state, game_state, level, passed_levels, event_stage
-
         def go_level():
             global last_game_state, game_state, level
-            level = self.pushed_entity.level
-            scroller.scroll_offset = 0
+            level = self.levels[self.gg_pos].level
+            scroller.remembered_scroll_offsets["global_map"] = scroller.scroll_offset_x, scroller.scroll_offset_y
+            scroller.scroll_offset_y = 0
             level.refresh()
             last_game_state = game_state
             game_state = "tower_select"
 
         def chest_opening():
-            self.chest = self.pushed_entity.chest
+            self.chest = self.levels[self.gg_pos].chest
             self.chest.opening()
 
-        if self.pushed_entity:
-            if self.pushed_entity.parent in passed_levels:
-                if self.pushed_entity.event:
-                    self.event = self.pushed_entity.event
-                    if not self.event.completed or self.event.repeat:
-                        last_game_state = game_state
-                        event_stage = 1
-                        self.event.do()
-                    elif self.pushed_entity.chest:
-                        if not self.pushed_entity.chest.open:
-                            chest_opening()
-                        elif self.pushed_entity.level:
-                            go_level()
-                    elif self.pushed_entity.level:
-                        go_level()
-                elif self.pushed_entity.chest:
-                    if not self.pushed_entity.chest.open:
-                        chest_opening()
-                    elif self.pushed_entity.level:
-                        go_level()
-                elif self.pushed_entity.level:
-                    go_level()
+        if self.on_click():
+            new_pos = (mouse_pos[0] - 66 - scroller.scroll_offset_x) // 128, (mouse_pos[1] - 66 - scroller.scroll_offset_y) // 128
+            if self.is_level_available(new_pos):
+                self.gg_pos = new_pos
 
-            self.pushed_entity = None
+            if self.gg_pos in self.levels:
+                if self.levels[self.gg_pos].level:
+                    if self.is_level_available(self.gg_pos):
+                        go_level()
+
+                if self.levels[self.gg_pos].chest:
+                    if self.is_level_available(self.gg_pos):
+                        chest_opening()
+
+            if (not self.levels[new_pos].level) and (not self.levels[new_pos].chest) and (not self.levels[self.gg_pos].event):
+                if self.levels[self.gg_pos].id not in passed_levels:
+                    passed_levels.append(self.levels[self.gg_pos].id)
+                    self.where_is_smoke()
+
+    def where_is_smoke(self):
+        self.smokes_pos = []
+        for i in range(21):
+            for j in range(13):
+                if not self.is_level_available((i, j)):
+                    self.smokes_pos.append((i, j))
+
+    def render_smoke(self):
+        for smoke_pos in self.smokes_pos:
+            if -128 <= 66 + smoke_pos[0] * 128 + scroller.scroll_offset_x <= 1408 and -128 <= 66 + smoke_pos[1] * 128 + scroller.scroll_offset_y <= 896:
+                screen.blit(hovered, (66 + smoke_pos[0] * 128 + scroller.scroll_offset_x, 66 + smoke_pos[1] * 128 + scroller.scroll_offset_y))
+
+    def render_overlay(self):
+        screen.blit(gg_on_map, (66 + self.gg_pos[0] * 128 + scroller.scroll_offset_x, 66 + self.gg_pos[1] * 128 + scroller.scroll_offset_y))
+        screen.blit(global_map_owerlay, (0, 0))
+        for pos, global_level in self.levels.items():
+            if global_level.chest:
+                screen.blit(global_level.chest.image, (66 + pos[0] * 128 + scroller.scroll_offset_x, 66 + pos[1] * 128 + scroller.scroll_offset_y))
+
+    def on_click(self) -> bool:
+        if mouse.get_pressed()[0] == 1 and not self.pushed:
+            self.pushed = True
+        if mouse.get_pressed()[0] == 0 and self.pushed:
+            self.pushed = False
+            return True
+        return False
+
+    def update(self):
+        if self.map_size.collidepoint(mouse_pos):
+            self.on_map = True
+        else:
+            self.on_map = False
 
 
 class TowerUpgradesGroup(BasePreviewGroup):
@@ -736,8 +838,17 @@ class TextSprite(sprite.Sprite):
         self.image = sprite_
 
 
+class GlobalMapLevel:
+    def __init__(self, level_id: tuple, level=None, chest=None, event=None):    # noqa
+        self.id = level_id
+        self.level = level
+        self.chest = chest
+        self.event = event
+        global_map2.add(self)
+
+
 class Level:
-    def __init__(self, level_number: str,
+    def __init__(self, level_id: tuple,
                  level_time: int,
                  time_to_spawn: int,
                  start_money: int,
@@ -747,10 +858,10 @@ class Level:
                  blocked_slots=(),
                  level_image="default"):
         if level_image == "default":
-            self.image = image.load(f"images/maps/levels/map{level_number}.png").convert_alpha()
+            self.image = image.load(f"images/maps/levels/map{level_id}.png").convert_alpha()
         else:
             self.image = image.load(f"images/maps/levels/map{level_image}.png").convert_alpha()
-        self.current_level = level_number
+        self.current_level = level_id
         self.money = self.start_money = start_money
         self.state = "not_run"
         self.level_time = self.start_level_time = level_time
@@ -768,7 +879,6 @@ class Level:
         self.y = 110
         self.w = 1151
         self.h = 40
-
 
     def draw_level_time(self):      # надо бы написать по-понятней
         ratio = self.level_time / self.start_level_time
@@ -855,41 +965,6 @@ class Level:
         random_coin = choice([c for c in your_coins.keys()])
         your_coins[random_coin] += 5
 
-        # if len(not_received_towers) > 3:
-        #     Alert("+ 3 башни открыто", (100, 100), 75)
-        #     for i in range(3):
-        #         new_tower = choice(not_received_towers)
-        #         not_received_towers.remove(new_tower)
-        #         received_towers.append(new_tower)
-        # elif len(not_received_towers) == 3:
-        #     Alert("Последние 3 башни открыты", (100, 100), 75)
-        #     for i in range(3):
-        #         new_tower = choice(not_received_towers)
-        #         not_received_towers.remove(new_tower)
-        #         received_towers.append(new_tower)
-        # elif len(not_received_towers) >= 2:
-        #     Alert("Последние 2 башни открыты", (100, 100), 75)
-        #     for i in range(2):
-        #         new_tower = choice(not_received_towers)
-        #         not_received_towers.remove(new_tower)
-        #         received_towers.append(new_tower)
-        # elif len(not_received_towers) >= 1:
-        #     Alert("Последняя башня открыта", (100, 100), 75)
-        #     new_tower = choice(not_received_towers)
-        #     not_received_towers.remove(new_tower)
-        #     received_towers.append(new_tower)
-        # else:
-        #     Alert("Все башни открыты", (100, 100), 75)
-        #
-        # if len(not_encountered_enemies) >= 1:
-        #     for enemy_ in levels[self.current_level][5]:
-        #         if enemy_ not in encountered_enemies:
-        #             encountered_enemies.append(enemy_)
-        #             not_encountered_enemies.remove(enemy_)
-        #             Alert("Новые враги известны", (100, 200), 75)
-        # else:
-        #     Alert("Все враги известны", (100, 200), 75)
-
         preview_group.refresh(3)
         if self.current_level not in passed_levels:
             passed_levels.append(self.current_level)
@@ -959,7 +1034,7 @@ class Level:
 
 
 class Chest:
-    def __init__(self, parent_number: str, rewards: dict):
+    def __init__(self, parent_number: tuple, rewards: dict):
         self.rewards = rewards      # башни/коины
         if parent_number not in passed_levels:
             self.image = image.load("images/maps/global_map/chest.png")
@@ -972,8 +1047,10 @@ class Chest:
         global game_state
         self.open = True
         self.image = image.load("images/maps/global_map/chest_open.png")
-        if global_map.pushed_entity.number not in passed_levels:
-            passed_levels.append(global_map.pushed_entity.number)
+        # if global_map.pushed_entity.number not in passed_levels:
+        #     passed_levels.append(global_map.pushed_entity.number)
+        if global_map2.gg_pos not in passed_levels:
+            passed_levels.append(global_map2.gg_pos)
         game_state = "reward_first_stage"
 
     def refresh(self):
@@ -1874,13 +1951,13 @@ class Tower(sprite.Sprite):
     def add_anim_task(self, anim, func):
         if len(self.anim_tasks) == 0:
             self.state = anim
-            self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator, func])  # (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator
+            self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator - 1, func])  # (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator
             self.anim_count = 0
         else:
             already_in = [anim[0] for anim in self.anim_tasks]
             if anim not in already_in:
                 self.state = anim
-                self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator, func])
+                self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator - 1, func])
 
         # print(self.state, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator)
 
@@ -1890,7 +1967,6 @@ class Tower(sprite.Sprite):
             self.add_anim_task(anim, func)
 
     def dead(self):
-
         for i in range(3):
             if self.name == 'grib' + str(i + 1):
                 if self.upgrade_level == '2a' or self.upgrade_level == '3a':
@@ -3126,7 +3202,7 @@ class Tower(sprite.Sprite):
 
         if self.unvulnerable > 0:
             self.unvulnerable -= 1
-            screen.blit(unvulnerable, (self.rect.centerx, self.rect.centery))
+            screen.blit(unvulnerable, (self.rect.centerx, self.rect.centery))  # noqa
 
         if self.name == 'ares':
             if self.cooldown_contratack > 0:
@@ -3218,7 +3294,6 @@ class Tower(sprite.Sprite):
                         self.great_form = False
                         self.great_form_duration = self.basic_great_form_duration
 
-
         if self.name == 'kot':
             if self.chill_time > 0:
                 self.prime_anim("hide", self.stop_hiding)
@@ -3297,7 +3372,6 @@ class Tower(sprite.Sprite):
                     self.atk = self.basic_atk
             if self.rage:
                 screen.blit(rage, (self.rect.centerx-24, self.rect.centery-48))
-
 
     def draw2(self, surf):
         surf.blit(self.image2, self.rect2)
@@ -3737,12 +3811,12 @@ class Enemy(sprite.Sprite):
 
     def add_anim_task(self, anim, func):
         if len(self.anim_tasks) == 0:
-            self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator, func])
+            self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator - 1, func])
             self.anim_count = 0
         else:
             already_in = [anim[0] for anim in self.anim_tasks]
             if anim not in already_in:
-                self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator, func])
+                self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator - 1, func])
 
     def prime_anim(self, anim, func):
         if anim not in [an[0] for an in self.anim_tasks]:
@@ -4874,13 +4948,13 @@ class Bullet(sprite.Sprite):
     def add_anim_task(self, anim, func):
         if len(self.anim_tasks) == 0:
             self.state = anim
-            self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator, func])
+            self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator - 1, func])
             self.anim_count = 0
         else:
             already_in = [anim[0] for anim in self.anim_tasks]
             if anim not in already_in:
                 self.state = anim
-                self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator, func])
+                self.anim_tasks.append([anim, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator - 1, func])
 
         # print(self.state, (self.get_count_anim_frames() * self.anim_duration) // self.time_indicator)
 
@@ -5909,43 +5983,43 @@ class Button2:
         self.activate = False
 
 
-class GlobalMapLevelButton(Button2):
-    def __init__(self, number: str, parent: str, pos: tuple, level=None, chest=None, event=None, required_done_events=None): # noqa
-        super().__init__()
-        self.number = number
-        self.chest = chest
-        self.level = level
-        self.event = event
-        self.pos = pos
-        self.image = global_level
-        self.rect = self.image.get_rect(topleft=self.pos)
-        self.parent = parent
-        self.repainted = False
-        self.required_done_events = required_done_events
-        global_map.add(self)
-
-    def repaint_to_hovered(self):
-        if not self.repainted:
-            new_img = self.image.__copy__()
-            for i in range(new_img.get_width()):
-                for j in range(new_img.get_height()):
-                    pixel = new_img.get_at((i, j))
-                    if pixel == (125, 187, 68, 255):
-                        new_img.set_at((i, j), (134, 230, 45))
-
-            self.image = new_img
-            self.repainted = True
-
-    def repaint_to_default(self):
-        if self.repainted:
-            new_img = self.image.__copy__()
-            for i in range(new_img.get_width()):
-                for j in range(new_img.get_height()):
-                    pixel = new_img.get_at((i, j))
-                    if pixel == (134, 230, 45, 255):
-                        new_img.set_at((i, j), (125, 187, 68))
-            self.image = new_img
-            self.repainted = False
+# class GlobalMapLevelButton(Button2):
+#     def __init__(self, number: str, parent: str, pos: tuple, level=None, chest=None, event=None, required_done_events=None): # noqa
+#         super().__init__()
+#         self.number = number
+#         self.chest = chest
+#         self.level = level
+#         self.event = event
+#         self.pos = pos
+#         self.image = global_level
+#         self.rect = self.image.get_rect(topleft=self.pos)
+#         self.parent = parent
+#         self.repainted = False
+#         self.required_done_events = required_done_events
+#         global_map.add(self)
+#
+#     def repaint_to_hovered(self):
+#         if not self.repainted:
+#             new_img = self.image.__copy__()
+#             for i in range(new_img.get_width()):
+#                 for j in range(new_img.get_height()):
+#                     pixel = new_img.get_at((i, j))
+#                     if pixel == (125, 187, 68, 255):
+#                         new_img.set_at((i, j), (134, 230, 45))
+#
+#             self.image = new_img
+#             self.repainted = True
+#
+#     def repaint_to_default(self):
+#         if self.repainted:
+#             new_img = self.image.__copy__()
+#             for i in range(new_img.get_width()):
+#                 for j in range(new_img.get_height()):
+#                     pixel = new_img.get_at((i, j))
+#                     if pixel == (134, 230, 45, 255):
+#                         new_img.set_at((i, j), (125, 187, 68))
+#             self.image = new_img
+#             self.repainted = False
 
 
 class UpgradeTowerButton(Button2):
@@ -5997,35 +6071,61 @@ class UpgradeTowerButton(Button2):
 
 class Scroller:
     def __init__(self):
-        self.scroll_offset = 0
+        self.scroll_offset_x = 0
+        self.scroll_offset_y = 0
         self.min_scroll_offset = 0
         self.max_scroll_offset = 0
         self.back_to_start_position = True
         self.last_offset_state = "main_menu"
         self.rules = {
-            "manual_menu": {"min": -2300, "max": 0},
-            "global_map": {"min": -3200, "max": 0},
-            "reward_second_stage": {"min": -1600, "max": 0},
-            "tower_select": {"min": -950, "max": 0}
+            "manual_menu": {
+                "x": {"min": 0, "max": 0},
+                "y": {"min": -2300, "max": 0}
+            },
+            "global_map": {
+                "x": {"min": -1278, "max": 0},
+                "y": {"min": -766, "max": 0}
+            },
+            "reward_second_stage": {
+                "x": {"min": 0, "max": 0},
+                "y": {"min": -1600, "max": 0}
+            },
+            "tower_select": {
+                "x": {"min": 0, "max": 0},
+                "y": {"min": -950, "max": 0}
+            }
         }
-        self.remembered_scroll_offset = 0
+        self.remembered_scroll_offset = (0, 0)
+        self.remembered_scroll_offsets = {
+            "global_map": (0, 0)
+        }
 
-    def set_scroll_offset(self, offset, next_game_state="current"):
-        self.scroll_offset = offset
-        if next_game_state != "current":
-            self.last_offset_state = next_game_state
+    # def set_scroll_offset(self, offset, next_game_state="current"):
+    #     self.scroll_offset_x = offset[0]
+    #     self.scroll_offset_y = offset[1]
+    #     if next_game_state != "current":
+    #         self.last_offset_state = next_game_state
+
+    def set_scroll_offset(self, offset):
+        self.scroll_offset_x = offset[0]
+        self.scroll_offset_y = offset[1]
 
     def check_possible_scrolling(self):
         if game_state in self.rules:
-            if self.scroll_offset < self.rules[game_state]["min"]:
-                self.scroll_offset = self.rules[game_state]["min"]
-            if self.scroll_offset > self.rules[game_state]["max"]:
-                self.scroll_offset = self.rules[game_state]["max"]
+            if self.scroll_offset_x < self.rules[game_state]["x"]["min"]:
+                self.scroll_offset_x = self.rules[game_state]["x"]["min"]
+            if self.scroll_offset_x > self.rules[game_state]["x"]["max"]:
+                self.scroll_offset_x = self.rules[game_state]["x"]["max"]
+
+            if self.scroll_offset_y < self.rules[game_state]["y"]["min"]:
+                self.scroll_offset_y = self.rules[game_state]["y"]["min"]
+            if self.scroll_offset_y > self.rules[game_state]["y"]["max"]:
+                self.scroll_offset_y = self.rules[game_state]["y"]["max"]
 
     def set_start_position_if_game_state_changes(self):
         if self.back_to_start_position:
             if self.last_offset_state != game_state:
-                self.scroll_offset = 0
+                self.scroll_offset_y = 0
                 self.last_offset_state = game_state
 
 
@@ -6118,7 +6218,12 @@ def upload_data(default=False):
         load_file = "saves/default_save.save"
 
     with open(load_file, "r", encoding="utf-8") as file:
-        passed_levels = str(*file.readline().strip().split(" = ")[1:]).split(", ")
+        row = str(*file.readline().strip().split(" = ")[1:])
+        passed_levels = []
+        for i, symbol in enumerate(row):
+            if symbol == "(":
+                passed_levels.append((int(row[i+1]), int(row[i+4])))
+
         received_towers = str(*file.readline().strip().split(" = ")[1:]).split(", ")       # считать список
         not_received_towers = str(*file.readline().strip().split(" = ")[1:]).split(", ")
         if not_received_towers[0] == "[]":
@@ -6151,7 +6256,7 @@ def upload_data(default=False):
 
 def save_data():
     with open("saves/current_save.save", "w", encoding="utf-8") as file:
-        file.write(f"passed_levels = " + str(passed_levels).replace("['", "").replace("']", "").replace("'", "") + "\n")
+        file.write(f"passed_levels = " + str(passed_levels).replace("[", "").replace("]", "").replace("'", "") + "\n")
         file.write(f"received_towers = " + str(received_towers).replace("['", "").replace("']", "").replace("'", "") + "\n")
         file.write(f"not_received_towers = " + str(not_received_towers).replace("['", "").replace("']", "").replace("'", "") + "\n")
         file.write(f"encountered_enemies = " + str(encountered_enemies).replace("['", "").replace("']", "").replace("'", "") + "\n")
@@ -6183,304 +6288,310 @@ def draw_info(pos, current_value, max_value, reversed_=False):       # (196, 380
     draw.rect(modification_preview_menu, (0, 0, 0), (*pos, 300, 35), 5)
 
 
-def village_event():
-    global game_state, last_game_state, event_stage
-    screen.blit(select_menu, (320, 150))
-    select_menu.blit(select_menu_copy, (0, 0))
-    select_menu.blit(font60.render("Деревня", True, (0, 0, 0)), (352, 10))
-
-    if "6" not in completed_events:
-        screen.blit(font40.render("Задание", True, (255, 200, 0)), (350, 250))
-        if first_event_button.click(screen, (370, 300)):
-            if "6г" not in completed_events:
-                global_map.event = Event(give_fiery_vasilky_event)
-            else:
-                global_map.event = Event(return_fiery_vasilky_event)
-            event_stage = 1
-
-    if "spike" not in completed_events:
-        screen.blit(font40.render("Задание", True, (0, 50, 255)), (542, 250))
-        if kust_event_button.click(screen, (562, 300)):
-            if "spike_chest" not in completed_events:
-                global_map.event = Event(give_spike_chest_event)
-            else:
-                global_map.event = Event(return_spike_chest_event)
-            event_stage = 1
-
-    if back_button.click(screen, (709, 650), col=(0, 0, 0)):
-        last_game_state, game_state = game_state, last_game_state
+def global_map_levels_builder():
+    for i in range(21):
+        for j in range(13):
+            GlobalMapLevel((i, j))
 
 
-def give_fiery_vasilky_event():
-    global game_state, last_game_state, event_stage
-
-    if event_stage == 1:
-        screen.blit(villager, (1000, 100))
-        screen.blit(dialog_menu, (100, 550))
-
-        render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
-        render_text("Принесите нам огненные васильки. Они нам очень нужны. Нужно иди по той тропинке через лес. Мы бы и сами сходили, но там много врагов. Недавно там случился пожар, но некоторые жители видели там врагов которые не боятся огня и стали с ним единым целым", screen, (150, 650), 1300)
-
-    if event_stage == 2:
-        screen.blit(fire_mag, (100, 100))
-        screen.blit(dialog_menu, (100, 550))
-
-        render_text("Великий и ужасный", screen, (130, 580), 400, font_=font40)
-        render_text("Хорошо", screen, (150, 650), 1300)
-    if event_stage == 3:
-        last_game_state, game_state = game_state, last_game_state
-        event_stage = 0
-        if "6" not in passed_levels:
-            passed_levels.append("6")
-    # if back_button.click(screen, (709, 750), col=(0, 0, 0)):
-    #     last_game_state, game_state = game_state, last_game_state
-
-
-def found_fiery_vasilky_event():
-    global game_state, last_game_state, event_stage
-    if "6г" not in completed_events:
-        if event_stage == 1:
-            screen.blit(fire_mag, (100, 100))
-            screen.blit(dialog_menu, (100, 550))
-            render_text("Великий и двуликий", screen, (130, 580), 400, font_=font40)
-            render_text("О, огненные васильки. Пора бы возвращаться в деревню", screen, (150, 650), 1300)
-        if event_stage == 2:
-            last_game_state, game_state = game_state, last_game_state
-            event_stage = 0
-            if "6г" not in completed_events:
-                completed_events.append("6г")
-    else:
-        last_game_state = game_state
-        game_state = "global_map"
-
-
-def return_fiery_vasilky_event():
-    global game_state, last_game_state, event_stage
-    if event_stage == 1:
-        screen.blit(fire_mag, (100, 100))
-        screen.blit(dialog_menu, (100, 550))
-
-        render_text("Великий и вампумный", screen, (130, 580), 400, font_=font40)
-        render_text("Мы раздобыли огненные васильки", screen, (150, 650), 1300)
-    if event_stage == 2:
-        screen.blit(villager, (1000, 100))
-        screen.blit(dialog_menu, (100, 550))
-
-        render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
-        render_text("Большое спасибо. Держите награду", screen, (150, 650), 1300)
-
-    if event_stage == 3:
-        global_map.chest = Chest("абоба", rewards=chests_rewards["village_event"])
-        last_game_state = game_state
-        game_state = "reward_first_stage"
-        if "6" not in completed_events:
-            completed_events.append("6")
-
-
-def give_spike_chest_event():
-    global game_state, last_game_state, event_stage
-
-    if event_stage == 1:
-        screen.blit(villager, (1000, 100))
-        screen.blit(dialog_menu, (100, 550))
-
-        render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
-        render_text("Недавно я узнал что в лесу возле нашей деревушки можно отыскать сокровище если пойти по тропе из кустов, но сам я туда идти боюсь, ведь там могут быть враги", screen, (150, 650), 1300)
-
-    if event_stage == 2:
-        screen.blit(fire_mag, (100, 100))
-        screen.blit(dialog_menu, (100, 550))
-
-        render_text("Великий и великий", screen, (130, 580), 400, font_=font40)
-        render_text("Хорошо, но что насчёт вознаграждения?", screen, (150, 650), 1300)
-
-    if event_stage == 3:
-        screen.blit(villager, (1000, 100))
-        screen.blit(dialog_menu, (100, 550))
-
-        render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
-        render_text("К сожалению я всего лишь деревенский нищюк, так что предложить мне нечего, давай поделим полученные из сундука сокровища напополам", screen, (150, 650), 1300)
-
-    if event_stage == 4:
-        screen.blit(fire_mag, (100, 100))
-        screen.blit(dialog_menu, (100, 550))
-
-        render_text("Великий и не очень", screen, (130, 580), 400, font_=font40)
-        render_text("Мало! Надо хотя бы 60/40, мы так-то жизнью рискуем", screen, (150, 650), 1300)
-
-    if event_stage == 5:
-        screen.blit(villager, (1000, 100))
-        screen.blit(dialog_menu, (100, 550))
-
-        render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
-        render_text("Ладно, ты прав. Договорились. 60/40. Только сундук без меня не открывайте", screen, (150, 650), 1300)
-
-    if event_stage == 6:
-        last_game_state, game_state = game_state, last_game_state
-        event_stage = 0
-        if "spike_chest_allow" not in completed_events:
-            completed_events.append("spike_chest_allow")
-
-
-def found_spike_chest_event():
-    global game_state, last_game_state, event_stage
-    if "spike_chest" not in completed_events:
-        if event_stage == 1:
-            screen.blit(fire_mag, (100, 100))
-            screen.blit(dialog_menu, (100, 550))
-
-            render_text("Великий и сигма", screen, (130, 580), 400, font_=font40)
-            render_text("А вот и сундук о котором говорил тот кривозубый крестьянин", screen, (150, 650), 1300)
-        if event_stage == 2:
-            screen.blit(villager, (1000, 100))  # поменять на куст
-            screen.blit(dialog_menu, (100, 550))
-
-            render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
-            render_text("*храпит*", screen, (150, 650), 1300)
-        if event_stage == 3:
-            screen.blit(fire_mag, (100, 100))
-            screen.blit(dialog_menu, (100, 550))
-
-            render_text("Великий и мне лень", screen, (130, 580), 400, font_=font40)
-            render_text("Этот куст как-то подозрительно храпит. Не будем его тревожить. Лучше спросить об этом кусте того ногтегрыза, давшего нам это задание, может он что-то знает о храпящих кустах", screen, (150, 650), 1300)
-        if event_stage == 4:
-            last_game_state, game_state = game_state, last_game_state
-            event_stage = 1
-            if "spike_chest" not in completed_events:
-                completed_events.append("spike_chest")
-    elif "spike" not in completed_events:
-        if event_stage == 1:
-            screen.blit(fire_mag, (100, 100))
-            screen.blit(dialog_menu, (100, 550))
-
-            render_text("Великий и чё", screen, (130, 580), 400, font_=font40)
-            render_text("Эй, куст, просыпайся!", screen, (150, 650), 1300)
-        if event_stage == 2:
-            screen.blit(villager, (1000, 100))  # поменять на куст
-            screen.blit(dialog_menu, (100, 550))
-
-            render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
-            render_text("0_0 что случилось? И ГДЕ МОЙ СУНДУК?", screen, (150, 650), 1300)
-        if event_stage == 3:
-            screen.blit(fire_mag, (100, 100))
-            screen.blit(dialog_menu, (100, 550))
-
-            render_text("Великий и мне лень", screen, (130, 580), 400, font_=font40)
-            render_text("Расскажи кто ты такой и тогда мы расскажем где твой сундук", screen, (150, 650), 1300)
-        if event_stage == 4:
-            screen.blit(villager, (1000, 100))  # поменять на куст
-            screen.blit(dialog_menu, (100, 550))
-
-            render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
-            render_text("Я друид круга куста. Раньше я считал себя неудачником, ведь все друиды могут превращаться в крутых животных, а я в лишь в куст. Но всё изменилось когда я встретил Великий куст в Великом лесу. Я понял что моя особенность - это не проклятье, это дар", screen, (150, 650), 1300)
-        if event_stage == 5:
-            screen.blit(fire_mag, (100, 100))
-            screen.blit(dialog_menu, (100, 550))
-
-            render_text("Великий и мне лень", screen, (130, 580), 400, font_=font40)
-            render_text("Круг куста? Впервые слышу о нём, хотя я впринципе в друидических кругах особо не разбираюсь. Сколько всего друидов входит в этот круг?", screen, (150, 650), 1300)
-        if event_stage == 6:
-            screen.blit(villager, (1000, 100))  # поменять на куст
-            screen.blit(dialog_menu, (100, 550))
-
-            render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
-            render_text("В этом кругу только 2 друида: я и ещё один. Сейчас он наверняка в Великом лесу, давно я его не видел, пора бы навестить его. Теперь вы отвечайте. Где мой сундук?", screen, (150, 650), 1300)
-        if event_stage == 7:
-            screen.blit(fire_mag, (100, 100))
-            screen.blit(dialog_menu, (100, 550))
-
-            render_text("Великий и мне лень", screen, (130, 580), 400, font_=font40)
-            render_text("Сундук у нас. Но содержимое сундука мы тебе полностью вернуть не сможем. У нас только 6 эмблем из 10 которые были в сундуке", screen, (150, 650), 1300)
-        if event_stage == 8:
-            screen.blit(villager, (1000, 100))  # поменять на куст
-            screen.blit(dialog_menu, (100, 550))
-
-            render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
-            render_text("Мне всё равно на эти ваши 'эмблемы', я просто находил их пока бродил по лесу и решил складывать их в сундук. Самое главное что мой сундук на месте, ведь он мне дорог как память о Великом кусте", screen, (150, 650), 1300)
-        if event_stage == 9:
-            screen.blit(fire_mag, (100, 100))
-            screen.blit(dialog_menu, (100, 550))
-
-            render_text("Великий и мне лень", screen, (130, 580), 400, font_=font40)
-            render_text("Хочешь пойти с нами? Нам в ту же сторону что и тебе, а одному ходить опасно в связи с появлением непонятно откуда появившихся монстров", screen, (150, 650), 1300)
-        if event_stage == 10:
-            screen.blit(villager, (1000, 100))  # поменять на куст
-            screen.blit(dialog_menu, (100, 550))
-
-            render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
-            render_text("Ты прав, я мало что смогу противопоставить им в одиночку. Я пойду с вами", screen, (150, 650), 1300)
-        if event_stage == 11:
-            event_stage = 0
-            global_map.chest = Chest("вампум", rewards=chests_rewards["spike"])
-            last_game_state = game_state
-            game_state = "reward_first_stage"
-            if "spike" not in completed_events:
-                completed_events.append("spike")
-    else:
-        last_game_state = game_state
-        game_state = "global_map"
-
-
-def return_spike_chest_event():
-    global game_state, last_game_state, event_stage
-    if event_stage == 1:
-        screen.blit(fire_mag, (100, 100))
-        screen.blit(dialog_menu, (100, 550))
-
-        render_text("Великий и сундук", screen, (130, 580), 400, font_=font40)
-        render_text("Вот сундук", screen, (150, 650), 1300)
-    if event_stage == 2:
-        screen.blit(villager, (1000, 100))
-        screen.blit(dialog_menu, (100, 550))
-
-        render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
-        render_text("Да, очень похоже на сундук. Давайте открывать", screen, (150, 650), 1300)
-
-    if event_stage == 3:
-        screen.blit(fire_mag, (100, 100))
-        screen.blit(villager, (1000, 100))
-        screen.blit(dialog_menu, (100, 550))
-
-        render_text("Все", screen, (1100, 580), 400, font_=font40)
-        render_text("ОГОООО!!! 10 ЭМБЛЕМ ЛЕСА ОМГ ВАААААУУУУ!!!", screen, (150, 650), 1300)
-
-    if event_stage == 4:
-        screen.blit(villager, (1000, 100))
-        screen.blit(dialog_menu, (100, 550))
-
-        render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
-        render_text("Ничего себе, какие красивые зелёные монетки, наверное они дорогие. Как и договаривались: 4 - мне, 6 - вам", screen, (150, 650), 1300)
-
-    if event_stage == 5:
-        screen.blit(fire_mag, (100, 100))
-        screen.blit(dialog_menu, (100, 550))
-
-        render_text("Великий и горь", screen, (130, 580), 400, font_=font40)
-        render_text("Кстати, возле сундука был странный храпящий куст. Знаешь что-нибудь об этом?", screen, (150, 650), 1300)
-
-    if event_stage == 6:
-        screen.blit(villager, (1000, 100))
-        screen.blit(dialog_menu, (100, 550))
-
-        render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
-        render_text("Я не могу быть полностью уверен в этом, но когда-то по деревне прошёл слух о появлении в нашем лесу друида, который умеет превращаться в куст. Возможно это был он", screen, (150, 650), 1300)
-    
-    if event_stage == 7:
-        screen.blit(fire_mag, (100, 100))
-        screen.blit(dialog_menu, (100, 550))
-
-        render_text("Великий и всё", screen, (130, 580), 400, font_=font40)
-        render_text("Ясно. Думаю нам стоит вернуться туда же и поговорить с ним", screen, (150, 650), 1300)
-
-    if event_stage == 8:
-        if "spike_tower_allow" not in completed_events:
-            global_map.chest = Chest("вампум", rewards=chests_rewards["spike_chest"])
-            last_game_state = game_state
-            game_state = "reward_first_stage"
-            completed_events.append("spike_tower_allow")
-        else:
-            last_game_state, game_state = game_state, last_game_state
-            event_stage = 0
+# def village_event():
+#     global game_state, last_game_state, event_stage
+#     screen.blit(select_menu, (320, 150))
+#     select_menu.blit(select_menu_copy, (0, 0))
+#     select_menu.blit(font60.render("Деревня", True, (0, 0, 0)), (352, 10))
+#
+#     if "6" not in completed_events:
+#         screen.blit(font40.render("Задание", True, (255, 200, 0)), (350, 250))
+#         if first_event_button.click(screen, (370, 300)):
+#             if "6г" not in completed_events:
+#                 global_map.event = Event(give_fiery_vasilky_event)
+#             else:
+#                 global_map.event = Event(return_fiery_vasilky_event)
+#             event_stage = 1
+#
+#     if "spike" not in completed_events:
+#         screen.blit(font40.render("Задание", True, (0, 50, 255)), (542, 250))
+#         if kust_event_button.click(screen, (562, 300)):
+#             if "spike_chest" not in completed_events:
+#                 global_map.event = Event(give_spike_chest_event)
+#             else:
+#                 global_map.event = Event(return_spike_chest_event)
+#             event_stage = 1
+#
+#     if back_button.click(screen, (709, 650), col=(0, 0, 0)):
+#         last_game_state, game_state = game_state, last_game_state
+#
+#
+# def give_fiery_vasilky_event():
+#     global game_state, last_game_state, event_stage
+#
+#     if event_stage == 1:
+#         screen.blit(villager, (1000, 100))
+#         screen.blit(dialog_menu, (100, 550))
+#
+#         render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
+#         render_text("Принесите нам огненные васильки. Они нам очень нужны. Нужно иди по той тропинке через лес. Мы бы и сами сходили, но там много врагов. Недавно там случился пожар, но некоторые жители видели там врагов которые не боятся огня и стали с ним единым целым", screen, (150, 650), 1300)
+#
+#     if event_stage == 2:
+#         screen.blit(fire_mag, (100, 100))
+#         screen.blit(dialog_menu, (100, 550))
+#
+#         render_text("Великий и ужасный", screen, (130, 580), 400, font_=font40)
+#         render_text("Хорошо", screen, (150, 650), 1300)
+#     if event_stage == 3:
+#         last_game_state, game_state = game_state, last_game_state
+#         event_stage = 0
+#         if "6" not in passed_levels:
+#             passed_levels.append("6")
+#     # if back_button.click(screen, (709, 750), col=(0, 0, 0)):
+#     #     last_game_state, game_state = game_state, last_game_state
+#
+#
+# def found_fiery_vasilky_event():
+#     global game_state, last_game_state, event_stage
+#     if "6г" not in completed_events:
+#         if event_stage == 1:
+#             screen.blit(fire_mag, (100, 100))
+#             screen.blit(dialog_menu, (100, 550))
+#             render_text("Великий и двуликий", screen, (130, 580), 400, font_=font40)
+#             render_text("О, огненные васильки. Пора бы возвращаться в деревню", screen, (150, 650), 1300)
+#         if event_stage == 2:
+#             last_game_state, game_state = game_state, last_game_state
+#             event_stage = 0
+#             if "6г" not in completed_events:
+#                 completed_events.append("6г")
+#     else:
+#         last_game_state = game_state
+#         game_state = "global_map"
+#
+#
+# def return_fiery_vasilky_event():
+#     global game_state, last_game_state, event_stage
+#     if event_stage == 1:
+#         screen.blit(fire_mag, (100, 100))
+#         screen.blit(dialog_menu, (100, 550))
+#
+#         render_text("Великий и вампумный", screen, (130, 580), 400, font_=font40)
+#         render_text("Мы раздобыли огненные васильки", screen, (150, 650), 1300)
+#     if event_stage == 2:
+#         screen.blit(villager, (1000, 100))
+#         screen.blit(dialog_menu, (100, 550))
+#
+#         render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
+#         render_text("Большое спасибо. Держите награду", screen, (150, 650), 1300)
+#
+#     if event_stage == 3:
+#         global_map.chest = Chest("абоба", rewards=chests_rewards["village_event"])
+#         last_game_state = game_state
+#         game_state = "reward_first_stage"
+#         if "6" not in completed_events:
+#             completed_events.append("6")
+#
+#
+# def give_spike_chest_event():
+#     global game_state, last_game_state, event_stage
+#
+#     if event_stage == 1:
+#         screen.blit(villager, (1000, 100))
+#         screen.blit(dialog_menu, (100, 550))
+#
+#         render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
+#         render_text("Недавно я узнал что в лесу возле нашей деревушки можно отыскать сокровище если пойти по тропе из кустов, но сам я туда идти боюсь, ведь там могут быть враги", screen, (150, 650), 1300)
+#
+#     if event_stage == 2:
+#         screen.blit(fire_mag, (100, 100))
+#         screen.blit(dialog_menu, (100, 550))
+#
+#         render_text("Великий и великий", screen, (130, 580), 400, font_=font40)
+#         render_text("Хорошо, но что насчёт вознаграждения?", screen, (150, 650), 1300)
+#
+#     if event_stage == 3:
+#         screen.blit(villager, (1000, 100))
+#         screen.blit(dialog_menu, (100, 550))
+#
+#         render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
+#         render_text("К сожалению я всего лишь деревенский нищюк, так что предложить мне нечего, давай поделим полученные из сундука сокровища напополам", screen, (150, 650), 1300)
+#
+#     if event_stage == 4:
+#         screen.blit(fire_mag, (100, 100))
+#         screen.blit(dialog_menu, (100, 550))
+#
+#         render_text("Великий и не очень", screen, (130, 580), 400, font_=font40)
+#         render_text("Мало! Надо хотя бы 60/40, мы так-то жизнью рискуем", screen, (150, 650), 1300)
+#
+#     if event_stage == 5:
+#         screen.blit(villager, (1000, 100))
+#         screen.blit(dialog_menu, (100, 550))
+#
+#         render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
+#         render_text("Ладно, ты прав. Договорились. 60/40. Только сундук без меня не открывайте", screen, (150, 650), 1300)
+#
+#     if event_stage == 6:
+#         last_game_state, game_state = game_state, last_game_state
+#         event_stage = 0
+#         if "spike_chest_allow" not in completed_events:
+#             completed_events.append("spike_chest_allow")
+#
+#
+# def found_spike_chest_event():
+#     global game_state, last_game_state, event_stage
+#     if "spike_chest" not in completed_events:
+#         if event_stage == 1:
+#             screen.blit(fire_mag, (100, 100))
+#             screen.blit(dialog_menu, (100, 550))
+#
+#             render_text("Великий и сигма", screen, (130, 580), 400, font_=font40)
+#             render_text("А вот и сундук о котором говорил тот кривозубый крестьянин", screen, (150, 650), 1300)
+#         if event_stage == 2:
+#             screen.blit(villager, (1000, 100))  # поменять на куст
+#             screen.blit(dialog_menu, (100, 550))
+#
+#             render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
+#             render_text("*храпит*", screen, (150, 650), 1300)
+#         if event_stage == 3:
+#             screen.blit(fire_mag, (100, 100))
+#             screen.blit(dialog_menu, (100, 550))
+#
+#             render_text("Великий и мне лень", screen, (130, 580), 400, font_=font40)
+#             render_text("Этот куст как-то подозрительно храпит. Не будем его тревожить. Лучше спросить об этом кусте того ногтегрыза, давшего нам это задание, может он что-то знает о храпящих кустах", screen, (150, 650), 1300)
+#         if event_stage == 4:
+#             last_game_state, game_state = game_state, last_game_state
+#             event_stage = 1
+#             if "spike_chest" not in completed_events:
+#                 completed_events.append("spike_chest")
+#     elif "spike" not in completed_events:
+#         if event_stage == 1:
+#             screen.blit(fire_mag, (100, 100))
+#             screen.blit(dialog_menu, (100, 550))
+#
+#             render_text("Великий и чё", screen, (130, 580), 400, font_=font40)
+#             render_text("Эй, куст, просыпайся!", screen, (150, 650), 1300)
+#         if event_stage == 2:
+#             screen.blit(villager, (1000, 100))  # поменять на куст
+#             screen.blit(dialog_menu, (100, 550))
+#
+#             render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
+#             render_text("0_0 что случилось? И ГДЕ МОЙ СУНДУК?", screen, (150, 650), 1300)
+#         if event_stage == 3:
+#             screen.blit(fire_mag, (100, 100))
+#             screen.blit(dialog_menu, (100, 550))
+#
+#             render_text("Великий и мне лень", screen, (130, 580), 400, font_=font40)
+#             render_text("Расскажи кто ты такой и тогда мы расскажем где твой сундук", screen, (150, 650), 1300)
+#         if event_stage == 4:
+#             screen.blit(villager, (1000, 100))  # поменять на куст
+#             screen.blit(dialog_menu, (100, 550))
+#
+#             render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
+#             render_text("Я друид круга куста. Раньше я считал себя неудачником, ведь все друиды могут превращаться в крутых животных, а я в лишь в куст. Но всё изменилось когда я встретил Великий куст в Великом лесу. Я понял что моя особенность - это не проклятье, это дар", screen, (150, 650), 1300)
+#         if event_stage == 5:
+#             screen.blit(fire_mag, (100, 100))
+#             screen.blit(dialog_menu, (100, 550))
+#
+#             render_text("Великий и мне лень", screen, (130, 580), 400, font_=font40)
+#             render_text("Круг куста? Впервые слышу о нём, хотя я впринципе в друидических кругах особо не разбираюсь. Сколько всего друидов входит в этот круг?", screen, (150, 650), 1300)
+#         if event_stage == 6:
+#             screen.blit(villager, (1000, 100))  # поменять на куст
+#             screen.blit(dialog_menu, (100, 550))
+#
+#             render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
+#             render_text("В этом кругу только 2 друида: я и ещё один. Сейчас он наверняка в Великом лесу, давно я его не видел, пора бы навестить его. Теперь вы отвечайте. Где мой сундук?", screen, (150, 650), 1300)
+#         if event_stage == 7:
+#             screen.blit(fire_mag, (100, 100))
+#             screen.blit(dialog_menu, (100, 550))
+#
+#             render_text("Великий и мне лень", screen, (130, 580), 400, font_=font40)
+#             render_text("Сундук у нас. Но содержимое сундука мы тебе полностью вернуть не сможем. У нас только 6 эмблем из 10 которые были в сундуке", screen, (150, 650), 1300)
+#         if event_stage == 8:
+#             screen.blit(villager, (1000, 100))  # поменять на куст
+#             screen.blit(dialog_menu, (100, 550))
+#
+#             render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
+#             render_text("Мне всё равно на эти ваши 'эмблемы', я просто находил их пока бродил по лесу и решил складывать их в сундук. Самое главное что мой сундук на месте, ведь он мне дорог как память о Великом кусте", screen, (150, 650), 1300)
+#         if event_stage == 9:
+#             screen.blit(fire_mag, (100, 100))
+#             screen.blit(dialog_menu, (100, 550))
+#
+#             render_text("Великий и мне лень", screen, (130, 580), 400, font_=font40)
+#             render_text("Хочешь пойти с нами? Нам в ту же сторону что и тебе, а одному ходить опасно в связи с появлением непонятно откуда появившихся монстров", screen, (150, 650), 1300)
+#         if event_stage == 10:
+#             screen.blit(villager, (1000, 100))  # поменять на куст
+#             screen.blit(dialog_menu, (100, 550))
+#
+#             render_text("Подозрительный куст", screen, (1100, 580), 400, font_=font40)
+#             render_text("Ты прав, я мало что смогу противопоставить им в одиночку. Я пойду с вами", screen, (150, 650), 1300)
+#         if event_stage == 11:
+#             event_stage = 0
+#             global_map.chest = Chest("вампум", rewards=chests_rewards["spike"])
+#             last_game_state = game_state
+#             game_state = "reward_first_stage"
+#             if "spike" not in completed_events:
+#                 completed_events.append("spike")
+#     else:
+#         last_game_state = game_state
+#         game_state = "global_map"
+#
+#
+# def return_spike_chest_event():
+#     global game_state, last_game_state, event_stage
+#     if event_stage == 1:
+#         screen.blit(fire_mag, (100, 100))
+#         screen.blit(dialog_menu, (100, 550))
+#
+#         render_text("Великий и сундук", screen, (130, 580), 400, font_=font40)
+#         render_text("Вот сундук", screen, (150, 650), 1300)
+#     if event_stage == 2:
+#         screen.blit(villager, (1000, 100))
+#         screen.blit(dialog_menu, (100, 550))
+#
+#         render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
+#         render_text("Да, очень похоже на сундук. Давайте открывать", screen, (150, 650), 1300)
+#
+#     if event_stage == 3:
+#         screen.blit(fire_mag, (100, 100))
+#         screen.blit(villager, (1000, 100))
+#         screen.blit(dialog_menu, (100, 550))
+#
+#         render_text("Все", screen, (1100, 580), 400, font_=font40)
+#         render_text("ОГОООО!!! 10 ЭМБЛЕМ ЛЕСА ОМГ ВАААААУУУУ!!!", screen, (150, 650), 1300)
+#
+#     if event_stage == 4:
+#         screen.blit(villager, (1000, 100))
+#         screen.blit(dialog_menu, (100, 550))
+#
+#         render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
+#         render_text("Ничего себе, какие красивые зелёные монетки, наверное они дорогие. Как и договаривались: 4 - мне, 6 - вам", screen, (150, 650), 1300)
+#
+#     if event_stage == 5:
+#         screen.blit(fire_mag, (100, 100))
+#         screen.blit(dialog_menu, (100, 550))
+#
+#         render_text("Великий и горь", screen, (130, 580), 400, font_=font40)
+#         render_text("Кстати, возле сундука был странный храпящий куст. Знаешь что-нибудь об этом?", screen, (150, 650), 1300)
+#
+#     if event_stage == 6:
+#         screen.blit(villager, (1000, 100))
+#         screen.blit(dialog_menu, (100, 550))
+#
+#         render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
+#         render_text("Я не могу быть полностью уверен в этом, но когда-то по деревне прошёл слух о появлении в нашем лесу друида, который умеет превращаться в куст. Возможно это был он", screen, (150, 650), 1300)
+#
+#     if event_stage == 7:
+#         screen.blit(fire_mag, (100, 100))
+#         screen.blit(dialog_menu, (100, 550))
+#
+#         render_text("Великий и всё", screen, (130, 580), 400, font_=font40)
+#         render_text("Ясно. Думаю нам стоит вернуться туда же и поговорить с ним", screen, (150, 650), 1300)
+#
+#     if event_stage == 8:
+#         if "spike_tower_allow" not in completed_events:
+#             global_map.chest = Chest("вампум", rewards=chests_rewards["spike_chest"])
+#             last_game_state = game_state
+#             game_state = "reward_first_stage"
+#             completed_events.append("spike_tower_allow")
+#         else:
+#             last_game_state, game_state = game_state, last_game_state
+#             event_stage = 0
 
 
 def boloto_event():
@@ -6537,7 +6648,7 @@ def menu_positioning():
 
         if to_map_button.click(screen, (30, 540)):
             last_game_state = game_state
-            scroller.set_scroll_offset(scroller.remembered_scroll_offset, "global_map")
+            scroller.set_scroll_offset(scroller.remembered_scroll_offsets["global_map"])
             game_state = "global_map"
         if preview_button.click(screen, (30, 620)):
             last_game_state = game_state
@@ -6557,9 +6668,9 @@ def menu_positioning():
             upload_data(default=True)
             preview_group.refresh(3)
 
-            for level_ in global_map.entities:
-                if level_.chest:
-                    level_.chest.refresh()
+            # for level_ in global_map.entities:
+            #     if level_.chest:
+            #         level_.chest.refresh()
 
             last_game_state = game_state
             game_state = "global_map"
@@ -6702,7 +6813,7 @@ def menu_positioning():
 
         if back_button.click(screen, (1000, 750), col=(0, 0, 0)):
             game_state, last_game_state = last_game_state, game_state
-            scroller.set_scroll_offset(scroller.remembered_scroll_offset, "global_map")
+            scroller.set_scroll_offset(scroller.remembered_scroll_offsets["global_map"])
             # scroller.scroll_offset = 0
 
         if change_preview_turn_button.click(screen, (1280, 90)):
@@ -6712,7 +6823,7 @@ def menu_positioning():
             else:
                 preview_group.turn = Enemy
                 change_preview_turn_button.image = image.load("images/coins/evil_coin.png").convert_alpha()
-            scroller.set_scroll_offset(0)
+            scroller.set_scroll_offset((0, 0))
             preview_group.pushed_entity = list(filter(preview_group.filter_by_turn, preview_group.entities))[0]
 
     if game_state != "main_menu"\
@@ -6731,7 +6842,7 @@ def menu_positioning():
             level.draw_level_time()
             # screen.blit(font40.render(str(level.level_time) + " осталось", True, (255, 255, 255)), (853, 110))    # циферки
         # screen.blit(font40.render(str(level.current_level) + " уровень", True, (255, 255, 255)), (893, 30))
-        level_num.update_text(font40.render(level.current_level + " уровень", True, (255, 255, 255)))
+        level_num.update_text(font40.render(str(level.current_level) + " уровень", True, (255, 255, 255)))
         # screen.blit(font40.render(str(level.money), True, (0, 0, 0)), (88, 53))
         level_money.update_text(font40.render(str(level.money), True, (0, 0, 0)))
 
@@ -6745,20 +6856,24 @@ def menu_positioning():
         scroller.set_start_position_if_game_state_changes()
         scroller.check_possible_scrolling()
 
-        screen.blit(game_map, (0 + scroller.scroll_offset, 0))
+        screen.blit(game_map, (66 + scroller.scroll_offset_x, 66 + scroller.scroll_offset_y))
+        global_map2.render_smoke()
 
         # global_map.check_hover(screen)        # если нужно при наведении что то делать
-        if global_map.check_click(screen):
-            scroller.remembered_scroll_offset = scroller.scroll_offset
-        global_map.check_hover(screen)
-        global_map.use_clicked_object()
-        global_map.move_element_by_scroll(vector="x")
-        global_map.hiding_map_secrets()
-        global_map.custom_draw(screen)
+        # if global_map.check_click(screen):
+        #     scroller.remembered_scroll_offset = scroller.scroll_offset_x, scroller.scroll_offset_y
+        # global_map.check_hover(screen)
+        # global_map.use_clicked_object()
+        global_map2.use_clicked_object()     # тут
+        # global_map.move_element_by_scroll()
+        # global_map.hiding_map_secrets()
+        # global_map.custom_draw(screen)
+
+        global_map2.render_overlay()
 
         if back_button.click(screen, (30, 20), col=(200, 0, 0)):
             last_game_state = game_state
-            scroller.remembered_scroll_offset = scroller.scroll_offset
+            scroller.remembered_scroll_offsets["global_map"] = scroller.scroll_offset_x, scroller.scroll_offset_y
             game_state = "main_menu"
 
     if game_state == "run":
@@ -6858,7 +6973,7 @@ def menu_positioning():
 
         if start_level_button.click(screen, (1265, 630), col=(0, 0, 0)):
             if len(select_towers_preview_group.remember_entities) == 7 - len(level.blocked_slots):
-                scroller.scroll_offset = 0
+                scroller.scroll_offset_y = 0
                 game_state = "run"
                 level.clear(ui_group, slots_group)
                 level.state = "not_run"
@@ -6922,7 +7037,7 @@ def menu_positioning():
                 encountered_enemies.append(enemy_)
             not_encountered_enemies.clear()
 
-            passed_levels = ["0", "1", "2", "3", "4", "5", "6", "6а"]
+            passed_levels = [(0, 0), (0, 1), (0, 2)]
             preview_group.refresh(3)
             print("all_unlocked")
 
@@ -6975,7 +7090,7 @@ def menu_positioning():
 
     if game_state == "reward_first_stage":
         count_of_reward_coins = 0
-        for i, (k, v) in enumerate(global_map.chest.rewards.items()):
+        for i, (k, v) in enumerate(global_map2.chest.rewards.items()):
             if k in [*received_towers, *not_received_towers]:
                 rewards_preview_group.new_reward(k)
             if k in coins:
@@ -6987,16 +7102,20 @@ def menu_positioning():
         game_state = "reward_second_stage"
 
     if game_state == "reward_second_stage":
-        scroller.check_possible_scrolling()
-        screen.blit(game_map, (0 + scroller.scroll_offset, 0))
-        global_map.custom_draw(screen)
-        global_map.move_element_by_scroll(vector="x")
-        global_map.hiding_map_secrets()
+        # scroller.check_possible_scrolling()
+        scroller.remembered_scroll_offsets["global_map"] = scroller.scroll_offset_x, scroller.scroll_offset_y
+        screen.blit(game_map, (66 + scroller.scroll_offset_x, 66 + scroller.scroll_offset_y))
+        global_map2.render_smoke()
+        global_map2.render_overlay()
+
+        # global_map.custom_draw(screen)
+        # global_map.move_element_by_scroll()
+        # global_map.hiding_map_secrets()
         screen.blit(pause_menu_w, (480, 250))
         pause_menu_w.blit(pause_menu_w_copy, (0, 0))
         pause_menu_w.blit(font60.render("Награда", True, (0, 0, 0)), (195, 0))
 
-        for i, (k, v) in enumerate(global_map.chest.rewards.items()):
+        for i, (k, v) in enumerate(global_map2.chest.rewards.items()):
             if k in coins:
                 column = (i % count_of_reward_coins)
                 pause_menu_w.blit(coins[k], (coin_indent_x + (column * (64 + coin_indent_x)) + (column * 22.5), 230))
@@ -7014,26 +7133,42 @@ def menu_positioning():
             for entity in preview_group.entities:
                 if entity.name == rewards_preview_group.pushed_entity.name:
                     preview_group.pushed_entity = entity
-                    scroller.set_scroll_offset(-preview_group.pushed_entity.pos[1], "manual_menu")
+                    scroller.set_scroll_offset((-preview_group.pushed_entity.pos[0], -preview_group.pushed_entity.pos[1]))
 
         if take_button.click(screen, (680, 540), col=(0, 0, 0)):
             last_game_state = game_state
             game_state = "global_map"
             rewards_preview_group.clear_rewards()
-            scroller.set_scroll_offset(scroller.remembered_scroll_offset, "global_map")
+            scroller.set_scroll_offset(scroller.remembered_scroll_offsets["global_map"])
 
     if game_state == "event":
-        screen.blit(game_map, (0 + scroller.scroll_offset, 0))
-        global_map.custom_draw(screen)
-        global_map.move_element_by_scroll(vector="x")
-        global_map.hiding_map_secrets()
-        if global_map.event:
-            global_map.event.do()
+        screen.blit(game_map, (0 + scroller.scroll_offset_x, 0 + scroller.scroll_offset_y))
+        # global_map.custom_draw(screen)
+        # global_map.move_element_by_scroll()
+        # global_map.hiding_map_secrets()
+        if global_map2.event:
+            global_map2.event.do()
         else:
             last_game_state = game_state
             game_state = "global_map"
 
     # -------
+
+
+# --- from save
+passed_levels = []  # должно быть тут
+received_towers = []
+not_received_towers = []
+encountered_enemies = []
+not_encountered_enemies = []
+completed_events = []
+city_coins = 0
+forest_coins = 0
+evil_coins = 0
+mountain_coins = 0
+snow_coins = 0
+upload_data()
+# ---
 
 
 bullets_group = sprite.Group()
@@ -7051,11 +7186,12 @@ level_group = sprite.Group()
 krests_group = sprite.Group()
 preview_group = PreviewGroup(Tower, Enemy)
 select_towers_preview_group = PreviewGroup(Tower)
-global_map = GlobalMap()
+# global_map = GlobalMap()
 tower_upgrades_group = TowerUpgradesGroup()
 text_sprites_group = sprite.Group()
 rewards_preview_group = RewardsPreviewGroup()
 slots_group = SlotsGroup(slots_rarity={"common": 2, "spell": 2, "legendary/common": 2, "spell/common": 1})
+global_map2 = GlobalMap2()
 
 pause_button = Button("text", font40, "||",)
 restart_button = Button("text", font60, "Перезапустить")
@@ -7099,51 +7235,43 @@ TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "
 level_num = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
 level_money = TextSprite(font40.render("300", True, (0, 0, 0)), (88, 53), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
 
-# --- from save
-passed_levels = []
-received_towers = []
-not_received_towers = []
-encountered_enemies = []
-not_encountered_enemies = []
-completed_events = []
-city_coins = 0
-forest_coins = 0
-evil_coins = 0
-mountain_coins = 0
-snow_coins = 0
-upload_data()
-# ---
 
-GlobalMapLevelButton("1", "0", (118, 668), level=Level("1", 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))    # !!! все буквы русские !!!
-GlobalMapLevelButton("2", "1", (295, 570), level=Level("2", 13500, 13501, 20, level_waves["2"], level_allowed_enemies["2"], allowed_cords=(320, 448, 576), level_image="2"))
-GlobalMapLevelButton("2а", "2", (409, 700), required_done_events=("spike_chest_allow",), level=Level("2а", 10, 13501, 20, level_waves["2"], level_allowed_enemies["2"], level_image="2"))
-GlobalMapLevelButton("2б", "2а", (723, 791), event=Event(found_spike_chest_event, "boloto_event", "2б"))
-GlobalMapLevelButton("3", "2", (472, 508), level=Level("3", 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="2"))
-GlobalMapLevelButton("3а", "3", (945, 753), chest=Chest(parent_number="3а", rewards=chests_rewards["3а"]))
-GlobalMapLevelButton("4", "3", (671, 507), level=Level("4", 22500, 225, 50, level_waves["4"], level_allowed_enemies["4"], level_image="2"))
-GlobalMapLevelButton("5", "4", (824, 462), level=Level("5", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))
-GlobalMapLevelButton("6", "5", (1374, 304), event=Event(village_event, image_="village", parent_number="6", repeat=True))    # на 6 поменять
-GlobalMapLevelButton("6а", "6", (1000, 100), level=Level("6а", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))  # поменять
-GlobalMapLevelButton("6б", "6а", (750, 100), chest=Chest(parent_number="6б", rewards=chests_rewards["6б"]))
-GlobalMapLevelButton("6в", "6б", (400, 100), level=Level("6в", 10, 225, 50, level_waves["5"], level_allowed_enemies["6в"], level_image="1"))  # поменять
-GlobalMapLevelButton("6г", "6в", (250, 200), event=Event(found_fiery_vasilky_event, "fiery_vasilky", "6г"))  # поменять
-GlobalMapLevelButton("7", "6", (1400, 200), required_done_events=("6",), level=Level("7", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-GlobalMapLevelButton("8", "7", (1650, 165), level=Level("8", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-GlobalMapLevelButton("9", "8", (1890, 150), event=Event(boloto_event, "boloto_event", "9"))    # поменять
-GlobalMapLevelButton("9а", "9", (1910, 300), level=Level("9а", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-GlobalMapLevelButton("9б", "9а", (2100, 400), level=Level("9б", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-GlobalMapLevelButton("9в", "9б", (2230, 620), chest=Chest(parent_number="9в", rewards=chests_rewards["9в"]))    # поменять
-GlobalMapLevelButton("9г", "9б", (1970, 580), level=Level("9г", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-GlobalMapLevelButton("9д", "9г", (1780, 580), level=Level("9д", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-GlobalMapLevelButton("10", "9", (2200, 140), level=Level("10", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-GlobalMapLevelButton("11", "10", (2514, 140), event=Event(cave_event, "cave_event", parent_number="11"))    # поменять
-GlobalMapLevelButton("11а", "11", (2514, 340), level=Level("11а", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-GlobalMapLevelButton("11б", "11а", (2530, 620), level=Level("11б", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-GlobalMapLevelButton("11в", "11б", (2920, 690), level=Level("11в", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-GlobalMapLevelButton("12", "11", (2800, 150), level=Level("12", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-GlobalMapLevelButton("13", "12", (3050, 160), level=Level("13", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+GlobalMapLevel((0, 0), level=Level((0, 0), 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))
+GlobalMapLevel((0, 1), level=Level((0, 1), 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))
+GlobalMapLevel((1, 0))
+GlobalMapLevel((2, 3), chest=Chest((2, 3), rewards=chests_rewards[(2, 3)]))
+global_map_levels_builder()
+# GlobalMapLevelButton("1", "0", (118, 668), level=Level("1", 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))    # !!! все буквы русские !!!
+# GlobalMapLevelButton("2", "1", (295, 570), level=Level("2", 13500, 13501, 20, level_waves["2"], level_allowed_enemies["2"], allowed_cords=(320, 448, 576), level_image="2"))
+# GlobalMapLevelButton("2а", "2", (409, 700), required_done_events=("spike_chest_allow",), level=Level("2а", 10, 13501, 20, level_waves["2"], level_allowed_enemies["2"], level_image="2"))
+# GlobalMapLevelButton("2б", "2а", (723, 791), event=Event(found_spike_chest_event, "boloto_event", "2б"))
+# GlobalMapLevelButton("3", "2", (472, 508), level=Level("3", 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="2"))
+# GlobalMapLevelButton("3а", "3", (945, 753), chest=Chest(parent_number="3а", rewards=chests_rewards["3а"]))
+# GlobalMapLevelButton("4", "3", (671, 507), level=Level("4", 22500, 225, 50, level_waves["4"], level_allowed_enemies["4"], level_image="2"))
+# GlobalMapLevelButton("5", "4", (824, 462), level=Level("5", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))
+# GlobalMapLevelButton("6", "5", (1374, 304), event=Event(village_event, image_="village", parent_number="6", repeat=True))    # на 6 поменять
+# GlobalMapLevelButton("6а", "6", (1000, 100), level=Level("6а", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))  # поменять
+# GlobalMapLevelButton("6б", "6а", (750, 100), chest=Chest(parent_number="6б", rewards=chests_rewards["6б"]))
+# GlobalMapLevelButton("6в", "6б", (400, 100), level=Level("6в", 10, 225, 50, level_waves["5"], level_allowed_enemies["6в"], level_image="1"))  # поменять
+# GlobalMapLevelButton("6г", "6в", (250, 200), event=Event(found_fiery_vasilky_event, "fiery_vasilky", "6г"))  # поменять
+# GlobalMapLevelButton("7", "6", (1400, 200), required_done_events=("6",), level=Level("7", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+# GlobalMapLevelButton("8", "7", (1650, 165), level=Level("8", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+# GlobalMapLevelButton("9", "8", (1890, 150), event=Event(boloto_event, "boloto_event", "9"))    # поменять
+# GlobalMapLevelButton("9а", "9", (1910, 300), level=Level("9а", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+# GlobalMapLevelButton("9б", "9а", (2100, 400), level=Level("9б", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+# GlobalMapLevelButton("9в", "9б", (2230, 620), chest=Chest(parent_number="9в", rewards=chests_rewards["9в"]))    # поменять
+# GlobalMapLevelButton("9г", "9б", (1970, 580), level=Level("9г", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+# GlobalMapLevelButton("9д", "9г", (1780, 580), level=Level("9д", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+# GlobalMapLevelButton("10", "9", (2200, 140), level=Level("10", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+# GlobalMapLevelButton("11", "10", (2514, 140), event=Event(cave_event, "cave_event", parent_number="11"))    # поменять
+# GlobalMapLevelButton("11а", "11", (2514, 340), level=Level("11а", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+# GlobalMapLevelButton("11б", "11а", (2530, 620), level=Level("11б", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+# GlobalMapLevelButton("11в", "11б", (2920, 690), level=Level("11в", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+# GlobalMapLevelButton("12", "11", (2800, 150), level=Level("12", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
+# GlobalMapLevelButton("13", "12", (3050, 160), level=Level("13", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
 
-level = global_map.entities[0].level
+# level = global_map.entities[0].level
+level = Level((0, 0), 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2")
 
 UpgradeTowerButton("1", (50, 104))
 UpgradeTowerButton("2a", (216, 36))
@@ -7179,6 +7307,7 @@ running = True
 while running:
 
     mouse_pos = mouse.get_pos()
+    global_map2.update()
     menu_positioning()
 
     for button in buttons_group:
@@ -7217,10 +7346,10 @@ while running:
         if e.type == MOUSEWHEEL and (game_state == "level_select"
                                      or game_state == "tower_select"
                                      or game_state == "manual_menu"
-                                     or game_state == "global_map"
+                                     # or game_state == "global_map"
                                      or game_state == "reward_second_stage"):
             # scroll_offset += e.y * 50
-            scroller.scroll_offset += e.y * 50
+            scroller.scroll_offset_y += e.y * 50
             # scroll_pos = mouse_pos    # пока что забью
         if e.type == KEYDOWN:
             if e.key == K_ESCAPE and (game_state == "run"
@@ -7258,7 +7387,7 @@ while running:
                     last_game_state = game_state
                     game_state = "global_map"
                     rewards_preview_group.clear_rewards()
-                    scroller.set_scroll_offset(scroller.remembered_scroll_offset, "global_map")
+                    scroller.set_scroll_offset(scroller.remembered_scroll_offsets["global_map"])
 
             if e.key == K_z:
                 Enemy("popusk", (1508, 192))
@@ -7305,25 +7434,25 @@ while running:
             if e.key == K_r:
                 level.give_reward()
             if e.key == K_o:
-                for ent in global_map.entities:
-                    if ent.chest:
-                        ent.chest.refresh()
+                pass
+                # for ent in global_map.entities:
+                #     if ent.chest:
+                #         ent.chest.refresh()
             if e.key == K_w:
                 game_state = "level_complited"
             if e.key == K_q:
                 running = False
         if e.type == QUIT:
             running = False
-        # может потом кто то захочет сделать слайдер
-        # if e.type == MOUSEMOTION and (game_state == "level_select" or game_state == "tower_select"):
-        #     if mouse.get_pressed()[0]:
-        #         scroll_offset -= e.rel[1] * 2
-        #         print(scroll_offset)
+
+        if e.type == MOUSEMOTION and game_state == "global_map":
+            if global_map2.on_map and mouse.get_pressed() == (0, 1, 0):
+                scroller.scroll_offset_x += e.rel[0]
+                scroller.scroll_offset_y += e.rel[1]
+
         if e.type == MOUSEBUTTONDOWN and e.button == 1:
             mouse_pos = mouse.get_pos()
-            # for el in ui_group:
-            #     if el.rect.collidepoint(mouse_pos):
-            #         el.is_move = True
+
             if shovel.rect.collidepoint(mouse_pos):
                 shovel.is_move = True
             for slot in slots_group.entities:
