@@ -88,6 +88,7 @@ free_money = default_free_money = 75
 upgrades = {}
 your_coins = {}
 event_stage = 0
+developer_mode = False
 
 
 class ExtendedGroup(sprite.Group):
@@ -6626,6 +6627,7 @@ def menu_positioning():
             general_volume, \
             music_volume, \
             sound_effects_volume, \
+            developer_mode, \
             current_scroll_offset_state
 
     if game_state == "main_menu":
@@ -6633,8 +6635,11 @@ def menu_positioning():
         screen.blit(game_name, (416, 10))
 
         if new_game_button.click(screen, (30, 460)):    # 380
-            last_game_state = game_state
-            game_state = "yes_no_window"  # новая игра
+            if developer_mode:
+                last_game_state = game_state
+                game_state = "yes_no_window"  # новая игра
+            else:
+                Alert("Анжела Вячеславовна, Вам сюда нельзя", (200, 400), 150, font60, (0, 255, 255))
 
         # if continue_level:
         #     if resume_button.click(screen, (30, 460)):
@@ -6647,9 +6652,12 @@ def menu_positioning():
         #     resume_button.click(screen, (30, 460), col=(130, 130, 130))
 
         if to_map_button.click(screen, (30, 540)):
-            last_game_state = game_state
-            scroller.set_scroll_offset(scroller.remembered_scroll_offsets["global_map"])
-            game_state = "global_map"
+            if developer_mode:
+                last_game_state = game_state
+                scroller.set_scroll_offset(scroller.remembered_scroll_offsets["global_map"])
+                game_state = "global_map"
+            else:
+                Alert("Анжела Вячеславовна, Вам сюда нельзя", (200, 400), 150, font60, (0, 255, 255))
         if preview_button.click(screen, (30, 620)):
             last_game_state = game_state
             game_state = "manual_menu"
@@ -6658,6 +6666,13 @@ def menu_positioning():
             game_state = "settings_menu"
         if quit_button.click(screen, (30, 780)):
             running = False
+        if level1_button.click(screen, (600, 620)):
+            level=Level("3", 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="2")
+            scroller.scroll_offset_y = 0
+            level.refresh()
+            last_game_state = game_state
+            game_state = "tower_select"
+            
 
     if game_state == "yes_no_window":
         screen.blit(main_menu, (0, 0))
@@ -6935,7 +6950,10 @@ def menu_positioning():
         if to_map_button.click(screen, (669, 360)):     # 449
             # level.refresh()
             # level = Level(*levels_config[str(level.current_level + 1)])   # fix
-            game_state = "global_map"
+            if developer_mode:
+                game_state = "global_map"
+            else:
+                Alert("Анжела Вячеславовна, Вам сюда нельзя", (200, 400), 150, font60, (0, 255, 255))
         if restart_button.click(screen, (582, 440)):
             last_game_state = game_state
             level.refresh()
@@ -7238,6 +7256,7 @@ sound_effects_volume_button = Button("img", "other", "volume_bar")
 sound_effects_volume_up_button = Button("img", "other", "up")
 sound_effects_volume_down_button = Button("img", "other", "down")
 sound_effects_volume_mute_button = Button("img", "other", "mute")
+level1_button = Button("text", font60, "Нажать чтобы играть!")
 
 TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death", "cheat", "settings_menu"))
 level_num = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
@@ -7245,7 +7264,7 @@ level_money = TextSprite(font40.render("300", True, (0, 0, 0)), (88, 53), ("run"
 
 
 # GlobalMapLevel((0, 0), level=Level((0, 0), 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))
-GlobalMapLevel((0, 0), level=Level((0, 0), 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))
+GlobalMapLevel((0, 0), level=Level((0, 0), 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="2"))
 GlobalMapLevel((0, 1), level=Level((0, 1), 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))
 GlobalMapLevel((1, 0))
 GlobalMapLevel((2, 3), chest=Chest((2, 3), rewards=chests_rewards[(2, 3)]))
@@ -7443,7 +7462,7 @@ while running:
             if e.key == K_r:
                 level.give_reward()
             if e.key == K_o:
-                pass
+                developer_mode = True
                 # for ent in global_map.entities:
                 #     if ent.chest:
                 #         ent.chest.refresh()
