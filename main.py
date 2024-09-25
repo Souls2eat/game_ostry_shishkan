@@ -6977,6 +6977,12 @@ def menu_positioning():
                 game_state = "run"
                 level.clear(ui_group, slots_group)
                 level.state = "not_run"
+                for obj in [*towers_group, *nekusaemie_group]:
+                    if not obj.name == 'krest':
+                        if hasattr(obj, "bullet"):
+                            obj.bullet.kill()
+                        obj.alive = False
+                        obj.kill()
                 # select_towers_preview_group.remember_entities.clear()
             else:
                 Alert("Остались свободные слоты", (400, 760), 75)
@@ -7046,33 +7052,32 @@ def menu_positioning():
         if general_volume_up_button.click(screen, (989, 600)):
             if general_volume*10//1 < 10:
                 general_volume = ((general_volume*10//1)+1)/10
-                print(general_volume)
         if general_volume_down_button.click(screen, (580, 600)):
             if general_volume*10//1 > 0:
                 general_volume = ((general_volume*10//1)-1)/10
-                print(general_volume)
+        if general_volume_mute_button.click(screen, (1030, 604)): 
+            general_volume = 0.0
 
         if music_volume_button.click(screen, (619, 650)):
             pass
         if music_volume_up_button.click(screen, (989, 650)):
             if music_volume*10//1 < 10:
                 music_volume = ((music_volume*10//1)+1)/10
-                print(music_volume)
         if music_volume_down_button.click(screen, (580, 650)):
             if music_volume*10//1 > 0:
                 music_volume = ((music_volume*10//1)-1)/10
-                print(music_volume)
+        if music_volume_mute_button.click(screen, (1030, 654)): 
+            music_volume = 0.0
 
         if sound_effects_volume_button.click(screen, (619, 700)):
             pass
         if sound_effects_volume_up_button.click(screen, (989, 700)):
             if sound_effects_volume*10//1 < 10:
                 sound_effects_volume = ((sound_effects_volume*10//1)+1)/10
-                print(sound_effects_volume)
         if sound_effects_volume_down_button.click(screen, (580, 700)):
-            if sound_effects_volume*10//1 > 0:
                 sound_effects_volume = ((sound_effects_volume*10//1)-1)/10
-                print(sound_effects_volume)
+        if sound_effects_volume_mute_button.click(screen, (1030, 704)): 
+            sound_effects_volume = 0.0
 
     if game_state == "death":
         screen.blit(pause_menu, (480, 250))
@@ -7224,20 +7229,24 @@ kill_enemy_on_click_button = Button("img", "other", "kill_enemy_onclick")
 general_volume_button = Button("img", "other", "volume_bar")
 general_volume_up_button = Button("img", "other", "up")
 general_volume_down_button = Button("img", "other", "down")
+general_volume_mute_button = Button("img", "other", "mute")
 music_volume_button = Button("img", "other", "volume_bar")
 music_volume_up_button = Button("img", "other", "up")
 music_volume_down_button = Button("img", "other", "down")
+music_volume_mute_button = Button("img", "other", "mute")
 sound_effects_volume_button = Button("img", "other", "volume_bar")
 sound_effects_volume_up_button = Button("img", "other", "up")
 sound_effects_volume_down_button = Button("img", "other", "down")
+sound_effects_volume_mute_button = Button("img", "other", "mute")
 
 TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death", "cheat", "settings_menu"))
 level_num = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
 level_money = TextSprite(font40.render("300", True, (0, 0, 0)), (88, 53), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
 
 
-GlobalMapLevel((0, 0), level=Level((0, 0), 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))
-GlobalMapLevel((0, 1), level=Level((0, 1), 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))
+# GlobalMapLevel((0, 0), level=Level((0, 0), 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))
+GlobalMapLevel((0, 0), level=Level((0, 0), 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))
+GlobalMapLevel((0, 1), level=Level((0, 1), 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))
 GlobalMapLevel((1, 0))
 GlobalMapLevel((2, 3), chest=Chest((2, 3), rewards=chests_rewards[(2, 3)]))
 global_map_levels_builder()
