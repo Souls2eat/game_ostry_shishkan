@@ -55,9 +55,8 @@ chests_rewards = {
         "snow_coin": 2,
         "terpila": "unlock",
         "big_mechman": "unlock",
-
     },
-    "6б": {
+    (5, 5): {
         "forest_coin": 2,
         "mountain_coin": 1,
         "zeus": "unlock",
