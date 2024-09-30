@@ -1150,7 +1150,7 @@ class Event:
         else:
             self.action()
 
-    def finish_event(self, next_game_state):
+    def finish_event(self, next_game_state="global_map"):
         global game_state, last_game_state, event_stage
         if self.name not in completed_events:
             completed_events.append(self.name)
@@ -6212,7 +6212,7 @@ class Scroller:
 
 
 def render_bg_decorator(func):
-    @functools.wraps(func)
+    @functools.wraps(func)  # нужно для func.__name__
     def wrapper():
         screen.blit(global_map2.event.bg_image, (0, 0))
 
@@ -6727,12 +6727,14 @@ def global_map_levels_builder():
 # пример
 @render_bg_decorator
 def new_event():
-    global game_state, last_game_state
-    select_menu.blit(font60.render("Болото", True, (0, 0, 0)), (352, 10))
+    if event_stage == 1:
+        screen.blit(gg_dialog, (100, 100))
 
-    if first_event_button.click(screen, (370, 300)):
-        global_map2.level_completed(global_map2.gg_pos)
-        global_map2.event.finish_event(next_game_state="global_map")
+        render_text("Главный герой", screen, (130, 580), 400, font_=font40)
+        render_text("Где это я?", screen, (150, 650), 1300)
+
+    if event_stage == 2:
+        global_map2.event.finish_event()
 
 
 # пример
@@ -6746,7 +6748,7 @@ def new_event_with_chest():
         global_map2.event.finish_event(next_game_state="reward_first_stage")
 
 
-# пример
+# ивент для начала уровня   !!! написать action_args=Level(...) !!!
 def start_level_event(level_: Level):
     global game_state, last_game_state, level
     last_game_state = game_state
@@ -6760,7 +6762,7 @@ def level_complete_event():
     select_menu.blit(font60.render("Болото", True, (0, 0, 0)), (352, 10))
 
     if first_event_button.click(screen, (370, 300)):
-        global_map2.event.finish_event(next_game_state="global_map")
+        global_map2.event.finish_event()
 
 
 # доделать
@@ -6769,7 +6771,7 @@ def hello_game_event():
     if event_stage == 1:
         screen.blit(gg_dialog, (100, 100))
 
-        render_text("Великий и ужасный", screen, (130, 580), 400, font_=font40)
+        render_text("Главный герой", screen, (130, 580), 400, font_=font40)
         render_text("Где это я?", screen, (150, 650), 1300)
 
     if event_stage == 2:
@@ -6779,7 +6781,7 @@ def hello_game_event():
         render_text("Я нашёл тебя тут.  ...(Сюжет будет потом)... Тебе нужно в деревню", screen, (150, 650), 1300)
 
     if event_stage == 3:
-        global_map2.event.finish_event(next_game_state="global_map")
+        global_map2.event.finish_event()
 
 
 @render_bg_decorator
@@ -6791,7 +6793,7 @@ def village_event():
         render_text("О нет, на нас напали", screen, (150, 650), 1300)
 
     if event_stage == 2:
-        global_map2.event.finish_event("global_map")
+        global_map2.event.finish_event()
         global_map2.event = Event(start_level_event, on_map_image="None", bg_image="None", action_args=Level((13, 8), 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="2"))
         global_map2.event.do()
 
@@ -6872,7 +6874,7 @@ def menu_positioning():
 
             last_game_state = game_state
 
-            global_map2.event = Event(hello_game_event)    # стартовый ивент
+            global_map2.event = Event(hello_game_event, on_map_image="None")    # стартовый ивент
             game_state = "event"
             event_stage = 1
 
