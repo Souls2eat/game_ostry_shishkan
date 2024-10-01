@@ -21,7 +21,7 @@ pause_menu = image.load("images/menu/pause_menu.png").convert_alpha()
 pause_menu_copy = pause_menu.__copy__()
 pause_menu_w = image.load("images/menu/pause_menu_w.png").convert_alpha()
 pause_menu_w_copy = pause_menu_w.__copy__()
-main_menu = image.load("images/menu/main_menu.png").convert_alpha()
+main_menu = image.load("images/maps/global_map/events/bg_images/hello_game_event.png").convert_alpha()     # "images/menu/main_menu.png"
 additional_menu = image.load("images/menu/additional_menu.png").convert_alpha()
 preview_menu = image.load("images/menu/preview_menu.png").convert_alpha()
 select_menu = image.load("images/menu/level_select_menu.png").convert_alpha()
@@ -92,7 +92,7 @@ upgrades = {}
 your_coins = {}
 event_stage = 0
 developer_mode = True
-temp_gg_pos = (9, 5)
+temp_hero_pos = (9, 5)
 temp_scroll_offset = (0, 0)
 
 
@@ -157,7 +157,7 @@ class BasePreviewGroup:
             # if vector == "x":
             en.pos = en.pos[0] + scroller.scroll_offset_x - self.scroll_pos[0], en.pos[1] + scroller.scroll_offset_y - self.scroll_pos[1]
             en.rect = en.image.get_rect(topleft=en.pos)
-        self.scroll_pos = scroller.scroll_offset_x, scroller.scroll_offset_y
+        self.scroll_pos = scroller.current_scroll_offset()
 
     def check_hover(self, surf, offset_pos=(0, 0)):
         surf_width = surf.get_width()
@@ -471,20 +471,20 @@ class GlobalMap2:
         self.map_size = Rect((66, 66), (1280, 768))
         self.on_map = False
         self.pushed = False
-        self.gg_pos = (0, 0)
-        self.levels = {}
+        self.hero_pos = (0, 0)
+        self.tiles = {}
         self.chest = None
         self.event = None
         self.smokes_pos = []
         self.where_is_smoke()
 
-    def add(self, level):
-        if level.id not in self.levels:
-            self.levels[level.id] = level
+    def add(self, tile):
+        if tile.id not in self.tiles:
+            self.tiles[tile.id] = tile
 
-    def remove(self, level):
-        if level.id in self.levels:
-            del self.levels[level.id]
+    def remove(self, tile):
+        if tile.id in self.tiles:
+            del self.tiles[tile.id]
 
     @staticmethod
     def is_level_available(level_id):
@@ -498,51 +498,48 @@ class GlobalMap2:
                         return True
         return False
 
-    def use_clicked_object(self):
+    def actions(self):
         global game_state, last_game_state, event_stage
 
         def go_level():
             global last_game_state, game_state, level
-            level = self.levels[self.gg_pos].level
-            scroller.remembered_scroll_offsets["global_map"] = scroller.scroll_offset_x, scroller.scroll_offset_y
+            level = self.tiles[self.hero_pos].level
+            scroller.remembered_scroll_offsets["global_map"] = scroller.current_scroll_offset()
             scroller.scroll_offset_y = 0
             level.refresh()
             last_game_state = game_state
             game_state = "tower_select"
 
-        def chest_opening():
-            self.chest = self.levels[self.gg_pos].chest
-            self.chest.opening()
-
         if self.on_click() and self.on_map:
             new_pos = (mouse_pos[0] - 66 - scroller.scroll_offset_x) // 128, (mouse_pos[1] - 66 - scroller.scroll_offset_y) // 128
             if self.is_level_available(new_pos):
-                self.gg_pos = new_pos
-                scroller.scroll_offset_x = (self.gg_pos[0] + 1) * -128 + 640 + 64
-                scroller.scroll_offset_y = (self.gg_pos[1] + 1) * -128 + 384 + 64
+                self.hero_pos = new_pos
+                scroller.scroll_offset_x = (self.hero_pos[0] + 1) * -128 + 640 + 64
+                scroller.scroll_offset_y = (self.hero_pos[1] + 1) * -128 + 384 + 64
 
-            if self.gg_pos in self.levels:
-                global_level = self.levels[self.gg_pos]
+            if self.hero_pos in self.tiles:
+                global_level = self.tiles[self.hero_pos]
                 if global_level.level:
-                    if self.is_level_available(self.gg_pos) and global_level.id not in passed_levels:
+                    if self.is_level_available(self.hero_pos) and global_level.id not in passed_levels:
                         go_level()
 
                 if global_level.chest:
-                    if self.is_level_available(self.gg_pos):
-                        if not self.levels[self.gg_pos].chest.open:
-                            chest_opening()
+                    if self.is_level_available(self.hero_pos):
+                        if not self.tiles[self.hero_pos].chest.open:
+                            self.chest = self.tiles[self.hero_pos].chest
+                            self.chest.opening()
 
                 if global_level.event:
-                    if self.is_level_available(self.gg_pos):
+                    if self.is_level_available(self.hero_pos):
                         self.event = global_level.event
                         last_game_state = game_state
                         event_stage = 1
                         self.event.do()
 
-            if self.gg_pos in self.levels:
-                if (not self.levels[self.gg_pos].level) and (not self.levels[self.gg_pos].chest) and (not self.levels[self.gg_pos].event):
-                    if self.levels[self.gg_pos].id not in passed_levels:
-                        self.level_completed(self.levels[self.gg_pos].id)
+            if self.hero_pos in self.tiles:
+                if (not self.tiles[self.hero_pos].level) and (not self.tiles[self.hero_pos].chest) and (not self.tiles[self.hero_pos].event):
+                    if self.tiles[self.hero_pos].id not in passed_levels:
+                        self.level_completed(self.tiles[self.hero_pos].id)
 
     def where_is_smoke(self):
         self.smokes_pos = []
@@ -556,7 +553,7 @@ class GlobalMap2:
             if -128 <= 66 + smoke_pos[0] * 128 + scroller.scroll_offset_x <= 1408 and -128 <= 66 + smoke_pos[1] * 128 + scroller.scroll_offset_y <= 896:
                 screen.blit(smoke, (66 + smoke_pos[0] * 128 + scroller.scroll_offset_x, 66 + smoke_pos[1] * 128 + scroller.scroll_offset_y))
 
-        for pos, global_tile in self.levels.items():
+        for pos, global_tile in self.tiles.items():
             if global_tile.chest and self.is_level_available(pos):
                 screen.blit(global_tile.chest.image, (66 + pos[0] * 128 + scroller.scroll_offset_x, 66 + pos[1] * 128 + scroller.scroll_offset_y))
             if global_tile.event and self.is_level_available(pos):
@@ -565,7 +562,7 @@ class GlobalMap2:
             if global_tile.level and self.is_level_available(pos) and pos not in passed_levels:
                 screen.blit(enemy_tile, (66 + pos[0] * 128 + scroller.scroll_offset_x, 66 + pos[1] * 128 + scroller.scroll_offset_y))
 
-        screen.blit(gg_on_map, (66 + self.gg_pos[0] * 128 + scroller.scroll_offset_x, 66 + self.gg_pos[1] * 128 + scroller.scroll_offset_y))
+        screen.blit(gg_on_map, (66 + self.hero_pos[0] * 128 + scroller.scroll_offset_x, 66 + self.hero_pos[1] * 128 + scroller.scroll_offset_y))
         screen.blit(global_map_overlay, (0, 0))
 
     def on_click(self) -> bool:
@@ -581,11 +578,11 @@ class GlobalMap2:
         self.where_is_smoke()
 
     def refresh(self):
-        for level_ in self.levels.values():
+        for level_ in self.tiles.values():
             if level_.chest:
                 level_.chest.refresh()
         self.where_is_smoke()
-        self.gg_pos = (9, 5)
+        self.hero_pos = (9, 5)
         scroller.remembered_scroll_offsets["global_map"] = (-578, -318)
 
     def update(self):
@@ -1098,8 +1095,8 @@ class Chest:
         self.image = image.load("images/maps/global_map/chests/chest_open.png")
         # if global_map.pushed_entity.number not in passed_levels:
         #     passed_levels.append(global_map.pushed_entity.number)
-        if global_map2.gg_pos not in passed_levels:
-            passed_levels.append(global_map2.gg_pos)
+        if global_map2.hero_pos not in passed_levels:
+            passed_levels.append(global_map2.hero_pos)
         game_state = "reward_first_stage"
 
     def refresh(self):
@@ -1150,10 +1147,11 @@ class Event:
         else:
             self.action()
 
-    def finish_event(self, next_game_state="global_map"):
+    def finish_event(self, next_game_state="global_map", can_repeat=False):
         global game_state, last_game_state, event_stage
         if self.name not in completed_events:
-            completed_events.append(self.name)
+            if not can_repeat:
+                completed_events.append(self.name)
             last_game_state = game_state
             game_state = next_game_state
             event_stage = 1
@@ -6179,7 +6177,7 @@ class Scroller:
         }
         self.remembered_scroll_offset = (0, 0)
         self.remembered_scroll_offsets = {
-            "global_map": (0, 0)
+            "global_map": (0, 0),
         }
 
     # def set_scroll_offset(self, offset, next_game_state="current"):
@@ -6209,6 +6207,9 @@ class Scroller:
             if self.last_offset_state != game_state:
                 self.scroll_offset_y = 0
                 self.last_offset_state = game_state
+
+    def current_scroll_offset(self) -> tuple:
+        return self.scroll_offset_x, self.scroll_offset_y
 
 
 def render_bg_decorator(func):
@@ -6307,7 +6308,7 @@ def upload_data(default=False):
         mountain_coins, \
         snow_coins, \
         completed_events, \
-        temp_gg_pos, \
+        temp_hero_pos, \
         temp_scroll_offset
 
     load_file = "saves/current_save.save"
@@ -6336,7 +6337,7 @@ def upload_data(default=False):
             completed_events = []
 
         line = str(*file.readline().strip().split(" = ")[1:]).split(",")
-        temp_gg_pos = tuple(map(int, line))
+        temp_hero_pos = tuple(map(int, line))
 
         line = str(*file.readline().strip().split(" = ")[1:]).split(",")
         temp_scroll_offset = tuple(map(int, line))
@@ -6366,7 +6367,7 @@ def save_data():
         file.write(f"encountered_enemies = " + str(encountered_enemies).replace("['", "").replace("']", "").replace("'", "") + "\n")
         file.write(f"not_encountered_enemies = " + str(not_encountered_enemies).replace("['", "").replace("']", "").replace("'", "") + "\n")
         file.write(f"completed_events = " + str(completed_events).replace("['", "").replace("']", "").replace("'", "") + "\n")
-        file.write(f"gg_pos = {str(global_map2.gg_pos[0])}, {str(global_map2.gg_pos[1])}" + "\n")
+        file.write(f"hero_pos = {str(global_map2.hero_pos[0])}, {str(global_map2.hero_pos[1])}" + "\n")
         file.write(f"global_map_scroll_offset = {str(scroller.remembered_scroll_offsets['global_map'][0])}, {str(scroller.remembered_scroll_offsets['global_map'][1])}" + "\n")
         file.write(f"-----\n")
         for k, v in your_coins.items():
@@ -6740,7 +6741,6 @@ def new_event():
 # пример
 @render_bg_decorator
 def new_event_with_chest():
-    global game_state, last_game_state
     select_menu.blit(font60.render("Болото", True, (0, 0, 0)), (352, 10))
 
     if first_event_button.click(screen, (370, 300)):
@@ -6781,6 +6781,12 @@ def hello_game_event():
         render_text("Я нашёл тебя тут.  ...(Сюжет будет потом)... Тебе нужно в деревню", screen, (150, 650), 1300)
 
     if event_stage == 3:
+        screen.blit(fire_mag, (1000, 100))
+
+        render_text("Фаермаг", screen, (1100, 580), 400, font_=font40)
+        render_text("PS: карту можно крутить зажав колёсико мыши", screen, (150, 650), 1300)
+
+    if event_stage == 4:
         global_map2.event.finish_event()
 
 
@@ -6796,6 +6802,18 @@ def village_event():
         global_map2.event.finish_event()
         global_map2.event = Event(start_level_event, on_map_image="None", bg_image="None", action_args=Level((13, 8), 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="2"))
         global_map2.event.do()
+
+
+@render_bg_decorator
+def lost_in_forest_event():
+    if event_stage == 1:
+        screen.blit(gg_dialog, (100, 100))
+
+        render_text("Главный герой", screen, (130, 580), 400, font_=font40)
+        render_text("О нет, там я потеряюсь. Нужно вернуться на тропинку", screen, (150, 650), 1300)
+
+    if event_stage == 2:
+        global_map2.event.finish_event(can_repeat=True)
 
 
 def menu_positioning():
@@ -6842,8 +6860,9 @@ def menu_positioning():
                 game_state = "global_map"
             else:
                 Alert("Анжела Вячеславовна, Вам сюда нельзя", (200, 400), 150, font60, (0, 255, 255))
-        if preview_button.click(screen, (30, 620)):
+        if manual_menu_button.click(screen, (30, 620)):
             last_game_state = game_state
+            scroller.set_scroll_offset((0, 0))
             game_state = "manual_menu"
         if settings_button.click(screen, (30, 700)):
             last_game_state = game_state
@@ -6851,7 +6870,7 @@ def menu_positioning():
         if quit_button.click(screen, (30, 780)):
             running = False
 
-        if level1_button.click(screen, (600, 620)):
+        if level1_button.click(screen, (600, 620), col=(255, 0, 0)):
             level = Level((3, 0), 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="2")
             scroller.scroll_offset_y = 0
             level.refresh()
@@ -7039,7 +7058,8 @@ def menu_positioning():
             and game_state != "yes_no_window"\
             and game_state != "global_map"\
             and game_state != "reward"\
-            and game_state != "event":
+            and game_state != "event"\
+            and game_state != "global_map_paused":
         screen.blit(level.image, (0, 0))
         if level.cheat:
             # screen.blit(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110))
@@ -7048,7 +7068,7 @@ def menu_positioning():
             level.draw_level_time()
             # screen.blit(font40.render(str(level.level_time) + " осталось", True, (255, 255, 255)), (853, 110))    # циферки
         # screen.blit(font40.render(str(level.current_level) + " уровень", True, (255, 255, 255)), (893, 30))
-        level_num.update_text(font40.render(str(level.current_level) + " уровень", True, (255, 255, 255)))
+        # level_num.update_text(font40.render(str(level.current_level) + " уровень", True, (255, 255, 255)))    # уровень №
         # screen.blit(font40.render(str(level.money), True, (0, 0, 0)), (88, 53))
         level_money.update_text(font40.render(str(level.money), True, (0, 0, 0)))
 
@@ -7069,7 +7089,7 @@ def menu_positioning():
         #     scroller.remembered_scroll_offset = scroller.scroll_offset_x, scroller.scroll_offset_y
         # global_map.check_hover(screen)
         # global_map.use_clicked_object()
-        global_map2.use_clicked_object()     # тут
+        global_map2.actions()     # тут
         scroller.check_possible_scrolling()     # 2 раза, чтобы картинка не дёргалась
         # global_map.move_element_by_scroll()
         # global_map.hiding_map_secrets()
@@ -7077,14 +7097,29 @@ def menu_positioning():
 
         global_map2.render_overlay()
 
-        if back_button.click(screen, (0, -10), col=(200, 0, 0)):  # 30, 20
+        if pause_button.click(screen, (1515, 58)):
             last_game_state = game_state
-            scroller.remembered_scroll_offsets["global_map"] = scroller.scroll_offset_x, scroller.scroll_offset_y
-            game_state = "main_menu"
+            game_state = "global_map_paused"
+
+        if manual_menu_img_button.click(screen, (1445, 58)):
+            last_game_state = game_state
+            scroller.remembered_scroll_offsets["global_map"] = scroller.current_scroll_offset()
+            scroller.set_scroll_offset((0, 0))
+            game_state = "manual_menu"
+
+        if settings_button_img.click(screen, (1375, 58)):
+            last_game_state = game_state
+            scroller.remembered_scroll_offsets["global_map"] = scroller.current_scroll_offset()
+            game_state = "global_map_settings_menu"
+
+        # if back_button.click(screen, (0, -10), col=(200, 0, 0)):  # 30, 20
+        #     last_game_state = game_state
+        #     scroller.remembered_scroll_offsets["global_map"] = scroller.current_scroll_offset()
+        #     game_state = "main_menu"
 
     if game_state == "run":
         game_state = level.update()
-        if pause_button.click(screen, (1550, 30)):
+        if pause_button.click(screen, (1515, 58)):  # 1550 30
             last_game_state = game_state
             Alert("Пауза", (700, 200), 75)
             game_state = "paused"
@@ -7124,13 +7159,47 @@ def menu_positioning():
             level.refresh()
             last_game_state = game_state
             game_state = "main_menu"
-        if pause_button.click(screen, (1550, 30)):
+        if pause_button.click(screen, (1515, 58)):
             Alert("Пауза", (700, 200), 75)
             if level.state == "run":
                 last_game_state = game_state
                 game_state = "run"
             else:
                 game_state, last_game_state = last_game_state, game_state
+
+    if game_state == "global_map_paused":
+        screen.blit(game_map, (66 + scroller.scroll_offset_x, 66 + scroller.scroll_offset_y))
+        global_map2.render_overlay()
+        screen.blit(pause_menu, (480, 250))
+
+        if resume_button.click(screen, (614, 280)):
+            last_game_state = game_state
+            game_state = "global_map"
+
+        if settings_button.click(screen, (642, 360)):
+            last_game_state = game_state
+            game_state = "global_map_settings_menu"
+
+        if manual_menu_button.click(screen, (621, 440)):
+            scroller.remembered_scroll_offsets["global_map"] = scroller.current_scroll_offset()
+            last_game_state = game_state
+            game_state = "manual_menu"
+
+        if main_menu_button.click(screen, (567, 520)):
+            level.refresh()
+            last_game_state = game_state
+            game_state = "main_menu"
+
+        if pause_button.click(screen, (1515, 58)):
+            # Alert("Пауза", (700, 200), 75)
+            # last_game_state = game_state
+            game_state, last_game_state = last_game_state, game_state
+
+        if manual_menu_img_button.click(screen, (1445, 58)):
+            pass
+
+        if settings_button_img.click(screen, (1375, 58)):
+            pass
 
     if game_state == "level_complited":
         screen.blit(pause_menu, (480, 250))
@@ -7198,7 +7267,7 @@ def menu_positioning():
                 # select_towers_preview_group.remember_entities.clear()
             else:
                 Alert("Остались свободные слоты", (400, 760), 75)
-        if pause_button.click(screen, (1550, 30)):
+        if pause_button.click(screen, (1515, 58)):
             last_game_state = game_state
             Alert("Пауза", (700, 200), 75)
             game_state = "paused"
@@ -7291,6 +7360,101 @@ def menu_positioning():
         if sound_effects_volume_mute_button.click(screen, (1030, 704)): 
             sound_effects_volume = 0.0
 
+    if game_state == "global_map_settings_menu":
+        screen.blit(game_map, (66 + scroller.scroll_offset_x, 66 + scroller.scroll_offset_y))
+        global_map2.render_overlay()
+        screen.blit(pause_menu, (480, 250))
+        for i in range(int(general_volume*10//1)):
+            screen.blit(red_32x32, (622+(i*36), 602))
+        for i in range(int(music_volume*10//1)):
+            screen.blit(nota, (622+(i*36), 652))
+        for i in range(int(sound_effects_volume*10//1)):
+            screen.blit(unvulnerable, (622+(i*36), 702))
+
+        if back_button.click(screen, (709, 520)):
+            game_state, last_game_state = last_game_state, game_state
+
+        if pause_button.click(screen, (1515, 58)):  # чтобы не пропадала кнопка паузы
+            pass
+
+        if manual_menu_img_button.click(screen, (1445, 58)):
+            pass
+
+        if settings_button_img.click(screen, (1375, 58)):
+            pass
+
+        if cheat_button.click(screen, (550, 280)):
+            if level.cheat:
+                cheat_button.ok = False
+                level.cheat = False
+            else:
+                cheat_button.ok = True
+                level.cheat = True
+
+        if rect_visible_button.click(screen, (735, 280)):
+            if level.rect_visible:
+                rect_visible_button.ok = False
+                level.rect_visible = False
+            else:
+                rect_visible_button.ok = True
+                level.rect_visible = True
+
+        if no_death_animation.click(screen, (930, 280)):
+            if level.no_death_animation:
+                no_death_animation.ok = False
+                level.no_death_animation = False
+            else:
+                no_death_animation.ok = True
+                level.no_death_animation = True
+                Alert("Анимации смерти выключена", (100, 450), 150)
+
+        if unlock_all_button.click(screen, (600, 420)):
+            unlock_all_button.ok = True
+
+            for tower in not_received_towers:
+                received_towers.append(tower)
+            not_received_towers.clear()
+
+            for enemy_ in not_encountered_enemies:
+                encountered_enemies.append(enemy_)
+            not_encountered_enemies.clear()
+
+            passed_levels = [(0, 0), (0, 1), (0, 2)]
+            preview_group.refresh(3)
+            print("all_unlocked")
+
+        if general_volume_button.click(screen, (619, 600)):
+            pass
+        if general_volume_up_button.click(screen, (989, 600)):
+            if general_volume*10//1 < 10:
+                general_volume = ((general_volume*10//1)+1)/10
+        if general_volume_down_button.click(screen, (580, 600)):
+            if general_volume*10//1 > 0:
+                general_volume = ((general_volume*10//1)-1)/10
+        if general_volume_mute_button.click(screen, (1030, 604)):
+            general_volume = 0.0
+
+        if music_volume_button.click(screen, (619, 650)):
+            pass
+        if music_volume_up_button.click(screen, (989, 650)):
+            if music_volume*10//1 < 10:
+                music_volume = ((music_volume*10//1)+1)/10
+        if music_volume_down_button.click(screen, (580, 650)):
+            if music_volume*10//1 > 0:
+                music_volume = ((music_volume*10//1)-1)/10
+        if music_volume_mute_button.click(screen, (1030, 654)):
+            music_volume = 0.0
+
+        if sound_effects_volume_button.click(screen, (619, 700)):
+            pass
+        if sound_effects_volume_up_button.click(screen, (989, 700)):
+            if sound_effects_volume*10//1 < 10:
+                sound_effects_volume = ((sound_effects_volume*10//1)+1)/10
+        if sound_effects_volume_down_button.click(screen, (580, 700)):
+            sound_effects_volume = ((sound_effects_volume*10//1)-1)/10
+        if sound_effects_volume_mute_button.click(screen, (1030, 704)):
+            sound_effects_volume = 0.0
+
     if game_state == "death":
         screen.blit(pause_menu, (480, 250))
         screen.blit(font60.render("Вы проиграли", True, (193, 8, 42)), (590, 280))
@@ -7320,7 +7484,7 @@ def menu_positioning():
 
     if game_state == "reward_second_stage":
         # scroller.check_possible_scrolling()
-        scroller.remembered_scroll_offsets["global_map"] = scroller.scroll_offset_x, scroller.scroll_offset_y
+        scroller.remembered_scroll_offsets["global_map"] = scroller.current_scroll_offset()
         # screen.blit(game_map, (66 + scroller.scroll_offset_x, 66 + scroller.scroll_offset_y))
         # global_map2.render_smoke()
         # global_map2.render_overlay()
@@ -7416,12 +7580,13 @@ text_sprites_group = sprite.Group()
 rewards_preview_group = RewardsPreviewGroup()
 slots_group = SlotsGroup(slots_rarity={"common": 5, "spell": 2})  # "common": 2, "spell": 2, "legendary/common": 2, "spell/common": 1
 global_map2 = GlobalMap2()
-global_map2.gg_pos = temp_gg_pos
+global_map2.hero_pos = temp_hero_pos
 
-pause_button = Button("text", font40, "||",)
+pause_button = Button("img", "other", "pause_button")
 restart_button = Button("text", font60, "Перезапустить")
 resume_button = Button("text", font60, "Продолжить")
 settings_button = Button("text", font60, "Настройки")
+settings_button_img = Button("img", "other", "settings_button")
 main_menu_button = Button("text", font60, "В главное меню")
 back_button = Button("text", font60, "Назад")
 quit_button = Button("text", font60, "Выход")
@@ -7434,7 +7599,8 @@ no_death_animation = Button("img", "other", "no_death_animation")
 no_death_animation.ok = True
 start_level_button = Button("text", font60, "Начать")
 random_choice_button = Button("text", font50, "Случайно")
-preview_button = Button("text", font60, "Справочник")
+manual_menu_button = Button("text", font60, "Справочник")
+manual_menu_img_button = Button("img", "other", "manual_menu_button")
 change_preview_turn_button = Button("img", "coins", "city_coin")
 accept_button = Button("text", font60, "Да")
 deny_button = Button("text", font60, "Нет")
@@ -7461,20 +7627,15 @@ sound_effects_volume_mute_button = Button("img", "other", "mute")
 level1_button = Button("text", font60, "Нажать чтобы играть!")
 
 TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death", "cheat", "settings_menu"))
-level_num = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
+# level_num = TextSprite(font40.render("0" + " уровень", True, (255, 255, 255)), (893, 30), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
 level_money = TextSprite(font40.render("300", True, (0, 0, 0)), (88, 53), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
 
 
-GlobalMapTile((0, 1), level=Level((0, 0), 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))
-# GlobalMapLevel((1, 0), level=Level((1, 0), 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="2", action_after_complete=Event(level_complete_event, image_="boloto_event", bg_image="boloto_event")))
+GlobalMapTile((0, 1), level=Level((0, 1), 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))
 GlobalMapTile((0, 2), level=Level((0, 2), 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))
 GlobalMapTile((13, 8), event=Event(village_event, bg_image="hello_game_event"))
-# GlobalMapLevel((1, 0))
-# GlobalMapLevel((1, 2), event=Event(new_event, image_="boloto_event", bg_image="boloto_event"))
-# GlobalMapLevel((2, 3), chest=Chest((2, 3), rewards=chests_rewards[(2, 3)], action_after_open=Event(new_event, image_="boloto_event", bg_image="boloto_event")))
-# GlobalMapLevel((2, 4), chest=Chest((2, 4), rewards=chests_rewards[(2, 3)], bg_image="bg_image_(2, 3)", action_after_open=Event(start_level_event, image_="boloto_event", bg_image="boloto_event", action_args=Level((0, 1), 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))))
-# GlobalMapLevel((5, 5), event=Event(new_event_with_chest, image_="boloto_event", bg_image="boloto_event"))
-
+GlobalMapTile((9, 6), level=Level((9, 6), 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))
+GlobalMapTile((10, 6), event=Event(lost_in_forest_event, on_map_image="None"))
 
 global_map_levels_builder()
 # GlobalMapLevelButton("1", "0", (118, 668), level=Level("1", 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))    # !!! все буквы русские !!!
@@ -7486,25 +7647,6 @@ global_map_levels_builder()
 # GlobalMapLevelButton("4", "3", (671, 507), level=Level("4", 22500, 225, 50, level_waves["4"], level_allowed_enemies["4"], level_image="2"))
 # GlobalMapLevelButton("5", "4", (824, 462), level=Level("5", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))
 # GlobalMapLevelButton("6", "5", (1374, 304), event=Event(village_event, image_="village", parent_number="6", repeat=True))    # на 6 поменять
-# GlobalMapLevelButton("6а", "6", (1000, 100), level=Level("6а", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))  # поменять
-# GlobalMapLevelButton("6б", "6а", (750, 100), chest=Chest(parent_number="6б", rewards=chests_rewards["6б"]))
-# GlobalMapLevelButton("6в", "6б", (400, 100), level=Level("6в", 10, 225, 50, level_waves["5"], level_allowed_enemies["6в"], level_image="1"))  # поменять
-# GlobalMapLevelButton("6г", "6в", (250, 200), event=Event(found_fiery_vasilky_event, "fiery_vasilky", "6г"))  # поменять
-# GlobalMapLevelButton("7", "6", (1400, 200), required_done_events=("6",), level=Level("7", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-# GlobalMapLevelButton("8", "7", (1650, 165), level=Level("8", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-# GlobalMapLevelButton("9", "8", (1890, 150), event=Event(boloto_event, "boloto_event", "9"))    # поменять
-# GlobalMapLevelButton("9а", "9", (1910, 300), level=Level("9а", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-# GlobalMapLevelButton("9б", "9а", (2100, 400), level=Level("9б", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-# GlobalMapLevelButton("9в", "9б", (2230, 620), chest=Chest(parent_number="9в", rewards=chests_rewards["9в"]))    # поменять
-# GlobalMapLevelButton("9г", "9б", (1970, 580), level=Level("9г", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-# GlobalMapLevelButton("9д", "9г", (1780, 580), level=Level("9д", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-# GlobalMapLevelButton("10", "9", (2200, 140), level=Level("10", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-# GlobalMapLevelButton("11", "10", (2514, 140), event=Event(cave_event, "cave_event", parent_number="11"))    # поменять
-# GlobalMapLevelButton("11а", "11", (2514, 340), level=Level("11а", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-# GlobalMapLevelButton("11б", "11а", (2530, 620), level=Level("11б", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-# GlobalMapLevelButton("11в", "11б", (2920, 690), level=Level("11в", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-# GlobalMapLevelButton("12", "11", (2800, 150), level=Level("12", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
-# GlobalMapLevelButton("13", "12", (3050, 160), level=Level("13", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))    # поменять
 
 # level = global_map.entities[0].level
 level = Level((0, 0), 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2")
@@ -7555,19 +7697,20 @@ while running:
         else:
             button.color_manage = False
 
-    if level.state == 'run' and game_state == 'run':
-        if free_money > 0:
-            free_money -= 1
-        else:
-            free_money = default_free_money
-            level.money += 1
-            Alert('+1', (200, 30), 75, col=(0, 0, 0))
+    if level:
+        if level.state == 'run' and game_state == 'run':
+            if free_money > 0:
+                free_money -= 1
+            else:
+                free_money = default_free_money
+                level.money += 1
+                Alert('+1', (200, 30), 75, col=(0, 0, 0))
 
     alert_group.update()
     alert_group.draw(screen)
     if mouse.get_focused():
         screen.blit(cursor, mouse_pos)
-        # screen.blit(font30.render(str(f"{mouse_pos[0] - scroller.scroll_offset}, {mouse_pos[1]}"), True, (255, 0, 0)), (mouse_pos[0] - 60, mouse_pos[1] - 40))
+        screen.blit(font30.render(str(f"{mouse_pos[0]}, {mouse_pos[1]}"), True, (255, 0, 0)), (mouse_pos[0] - 60, mouse_pos[1] - 40))
         # for ii in range(10):
         #     draw.line(screen, (0, 0, 0), (ii * 160, 0), (ii * 160, 900), 5)
         #     draw.line(screen, (0, 0, 0), (0, ii * 90), (1600, ii * 90), 5)
@@ -7593,15 +7736,17 @@ while running:
                                       or game_state == "settings_menu"
                                       or game_state == "tower_select"
                                       or game_state == "global_map"
-                                      or game_state == "manual_menu"):
+                                      or game_state == "manual_menu"
+                                      or game_state == "global_map_paused"
+                                      or game_state == "global_map_settings_menu"):
                 if game_state == "run":
                     last_game_state = game_state
                     Alert("Пауза", (700, 200), 75)
                     game_state = "paused"
                 elif game_state == "global_map":
-                    scroller.remembered_scroll_offsets["global_map"] = scroller.scroll_offset_x, scroller.scroll_offset_y
+                    scroller.remembered_scroll_offsets["global_map"] = scroller.current_scroll_offset()
                     last_game_state = game_state
-                    game_state = "main_menu"
+                    game_state = "global_map_paused"
                 elif game_state == "tower_select":
                     last_game_state = game_state
                     Alert("Пауза", (700, 200), 75)
@@ -7619,11 +7764,18 @@ while running:
                     game_state = "tower_select"
                 elif game_state == "manual_menu":
                     last_game_state, game_state = game_state, last_game_state
+                    scroller.set_scroll_offset(scroller.remembered_scroll_offsets["global_map"])
                 elif game_state == "reward_second_stage":
                     last_game_state = game_state
                     game_state = "global_map"
                     rewards_preview_group.clear_rewards()
                     scroller.set_scroll_offset(scroller.remembered_scroll_offsets["global_map"])
+                elif game_state == "global_map_paused":
+                    last_game_state = game_state
+                    game_state = "global_map"
+                elif game_state == "global_map_settings_menu":
+                    last_game_state = game_state
+                    game_state = "global_map_paused"
 
             if e.key == K_z:
                 Enemy("popusk", (1508, 192))
