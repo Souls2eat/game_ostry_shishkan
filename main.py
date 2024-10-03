@@ -91,7 +91,7 @@ free_money = default_free_money = 75
 upgrades = {}
 your_coins = {}
 event_stage = 0
-developer_mode = True
+developer_mode = False
 temp_hero_pos = (9, 5)
 temp_scroll_offset = (0, 0)
 
@@ -6408,12 +6408,12 @@ def menu_positioning():
                 game_state = "run"
                 level.clear(ui_group, slots_group)
                 level.state = "not_run"
-                for obj in [*towers_group, *nekusaemie_group]:
-                    if not obj.name == 'krest':
-                        if hasattr(obj, "bullet"):
-                            obj.bullet.kill()
-                        obj.alive = False
-                        obj.kill()
+                for obj_ in [*towers_group, *nekusaemie_group]:
+                    if not obj_.name == 'krest':
+                        if hasattr(obj_, "bullet"):
+                            obj_.bullet.kill()
+                        obj_.alive = False
+                        obj_.kill()
             else:
                 Alert("Остались свободные слоты", (400, 760), 75)
         if pause_button.click(screen, (1515, 58)):
@@ -6505,7 +6505,7 @@ def menu_positioning():
             if sound_effects_volume*10//1 < 10:
                 sound_effects_volume = ((sound_effects_volume*10//1)+1)/10
         if sound_effects_volume_down_button.click(screen, (580, 700)):
-                sound_effects_volume = ((sound_effects_volume*10//1)-1)/10
+            sound_effects_volume = ((sound_effects_volume*10//1)-1)/10
         if sound_effects_volume_mute_button.click(screen, (1030, 704)): 
             sound_effects_volume = 0.0
 
