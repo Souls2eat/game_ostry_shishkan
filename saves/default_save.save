@@ -4,7 +4,7 @@ not_received_towers = terpila, thunder, yascerica, zeus, barrier_mag, urag_anus,
 encountered_enemies = popusk, sigma
 not_encountered_enemies = josky, zeleniy_strelok, sportik, rojatel, mega_strelok, slabiy, armorik, telezhnik, drobik, fire_res, ice_res, water_res, poison_res, light_res, tyazhik
 completed_events = []
-gg_pos = 9, 5
+hero_pos = 9, 5
 global_map_scroll_offset = -578, -318
 -----
 city_coin = 25

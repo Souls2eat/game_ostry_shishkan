@@ -1,16 +1,16 @@
-passed_levels = (9, 5), (10, 5)
-received_towers = fire_mag, pukish, boomchick, davalka, kopitel, matricayshon, parasitelniy, spike, easy_money, vistrel
-not_received_towers = terpila, thunder, yascerica, zeus, barrier_mag, urag_anus, big_mechman, drachun, tolkan, knight_on_horse, gnome_cannon1, electric, struyniy, dark_druid, gribnik, pen, bolotnik, nekr, electro_maga, inquisitor, priest, ded_moroz, uvelir, krovnyak, kokol, sliz, klonys, kot, furry_druid, oruzhik, kar_mag, chistiy, prokach, pulelom, shabriri, ares, vozmezdik, bomb, perec, molniya, vodka, tp_back, joltiy_pomidor, heal, zaduv, holod
-encountered_enemies = popusk, sigma
-not_encountered_enemies = josky, zeleniy_strelok, sportik, rojatel, mega_strelok, slabiy, armorik, telezhnik, drobik, fire_res, ice_res, water_res, poison_res, light_res, tyazhik
-completed_events = hello_game_event
-hero_pos = 10, 6
-global_map_scroll_offset = -578, -318
+passed_levels = (9, 5), (9, 6), (9, 7), (9, 8), (8, 8), (7, 8), (6, 8), (5, 8), (5, 7), (4, 7), (4, 8), (3, 8), (3, 7), (3, 6), (3, 5), (3, 4), (4, 4), (5, 4), (5, 5), (6, 5), (6, 4), (6, 7), (6, 6), (6, 3), (6, 2), (7, 2), (8, 2), (9, 2), (10, 2), (11, 2), (12, 2), (13, 2), (14, 2), (15, 2), (16, 2), (16, 3), (16, 4), (16, 5), (16, 6), (16, 7), (15, 7), (14, 7), (13, 7), (12, 7), (12, 8)
+received_towers = fire_mag, pukish, boomchick, davalka, kopitel, matricayshon, parasitelniy, spike, easy_money, vistrel, terpila, thunder, yascerica, zeus, barrier_mag, urag_anus, big_mechman, drachun, tolkan, knight_on_horse, gnome_cannon1, electric, struyniy, dark_druid, gribnik, pen, bolotnik, nekr, electro_maga, inquisitor, priest, ded_moroz, uvelir, krovnyak, kokol, sliz, klonys, kot, furry_druid, oruzhik, kar_mag, chistiy, prokach, pulelom, shabriri, ares, vozmezdik, bomb, perec, molniya, vodka, tp_back, joltiy_pomidor, heal, zaduv, holod
+not_received_towers = []
+encountered_enemies = popusk, sigma, josky, zeleniy_strelok, sportik, rojatel, mega_strelok, slabiy, armorik, telezhnik, drobik, fire_res, ice_res, water_res, poison_res, light_res, tyazhik
+not_encountered_enemies = []
+completed_events = []
+hero_pos = 9, 5
+global_map_scroll_offset = --578, -318
 -----
 city_coin = 25
 forest_coin = 25
 evil_coin = 25
-mountain_coin = 25
+mountain_coin = 30
 snow_coin = 25
 -----
 fire_mag = 1
