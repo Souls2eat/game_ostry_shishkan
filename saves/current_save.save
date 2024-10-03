@@ -5,7 +5,7 @@ encountered_enemies = popusk, sigma, josky, zeleniy_strelok, sportik, rojatel, m
 not_encountered_enemies = []
 completed_events = []
 hero_pos = 9, 5
-global_map_scroll_offset = --578, -318
+global_map_scroll_offset = -578, -318
 -----
 city_coin = 25
 forest_coin = 25
