@@ -6896,7 +6896,7 @@ Cloud((1800, 90))
 shovel = Shovel((1500, 800))
 
 
-a = TextField("Главный герой", (130, 580), 400, font_=font40)
+a = TextField("Главный герой", (130, 580), 400, font_=font40)   # ee
 
 running = True
 while running:
