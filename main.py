@@ -152,8 +152,8 @@ class BasePreviewGroup:
 
     def move_element_by_scroll(self):
         for en in self.entities:
-            en.pos = en.pos[0] + scroller.scroll_offset_x - self.scroll_pos[0], en.pos[1] + scroller.scroll_offset_y - self.scroll_pos[1]
-            en.rect = en.image.get_rect(topleft=en.pos)
+            en.topleft_pos = en.topleft_pos[0] + scroller.scroll_offset_x - self.scroll_pos[0], en.topleft_pos[1] + scroller.scroll_offset_y - self.scroll_pos[1]
+            en.rect = en.image.get_rect(topleft=en.topleft_pos)
         self.scroll_pos = scroller.current_scroll_offset()
 
     def check_hover(self, surf, offset_pos=(0, 0)):
@@ -161,7 +161,7 @@ class BasePreviewGroup:
         surf_height = surf.get_height()
         on_surf = surf_width + offset_pos[0] > mouse_pos[0] > offset_pos[0] and surf_height + offset_pos[1] > mouse_pos[1] > offset_pos[1]
         for en in filter(self.filter_by_turn, self.entities):
-            en.rect = en.image.get_rect(topleft=(en.pos[0] + offset_pos[0], en.pos[1] + offset_pos[1]))
+            en.rect = en.image.get_rect(topleft=(en.topleft_pos[0] + offset_pos[0], en.topleft_pos[1] + offset_pos[1]))
             if en.rect.collidepoint(mouse_pos) and on_surf:
                 self.hovered_entity = en
                 return True
@@ -173,7 +173,7 @@ class BasePreviewGroup:
         surf_height = surf.get_height()
         on_surf = surf_width + offset_pos[0] > mouse_pos[0] > offset_pos[0] and surf_height + offset_pos[1] > mouse_pos[1] > offset_pos[1]
         for en in filter(self.filter_by_turn, self.entities):
-            en.rect = en.image.get_rect(topleft=(en.pos[0] + offset_pos[0], en.pos[1] + offset_pos[1]))
+            en.rect = en.image.get_rect(topleft=(en.topleft_pos[0] + offset_pos[0], en.topleft_pos[1] + offset_pos[1]))
             if not en.rect.collidepoint(mouse_pos):
                 en.pushed = False
             if en.rect.collidepoint(mouse_pos):
@@ -224,7 +224,7 @@ class PreviewGroup(BasePreviewGroup):
 
     def custom_draw(self, surf, offset_pos=(0, 0)):
         for en in filter(self.filter_by_turn, self.entities):
-            en.rect = en.image.get_rect(topleft=(en.pos[0] + offset_pos[0], en.pos[1] + offset_pos[1]))
+            en.rect = en.image.get_rect(topleft=(en.topleft_pos[0] + offset_pos[0], en.topleft_pos[1] + offset_pos[1]))
 
             if en.name in received_towers or en.name in encountered_enemies:
                 surf.blit(en.image, (en.rect.x - offset_pos[0], en.rect.y - offset_pos[1]))
@@ -352,7 +352,7 @@ class RewardsPreviewGroup(BasePreviewGroup):
 
     def custom_draw(self, surf, offset_pos=(0, 0)):
         for tower in self.entities:
-            tower.rect = tower.image.get_rect(topleft=(tower.pos[0] + offset_pos[0], tower.pos[1] + offset_pos[1]))
+            tower.rect = tower.image.get_rect(topleft=(tower.topleft_pos[0] + offset_pos[0], tower.topleft_pos[1] + offset_pos[1]))
             surf.blit(tower.image, (tower.rect.x - offset_pos[0], tower.rect.y - offset_pos[1]))
             if hasattr(tower, "rarity"):
                 if tower.rarity == "legendary":
@@ -374,7 +374,7 @@ class GlobalMap:
         self.map_size = Rect((66, 66), (1280, 768))
         self.on_map = False
         self.pushed = False
-        self.hero_pos = (0, 0)
+        self.last_hero_pos = self.hero_pos = (0, 0)
         self.tiles = {}
         self.chest = None
         self.event = None
@@ -417,9 +417,9 @@ class GlobalMap:
         if self.on_click() and self.on_map:
             new_pos = (mouse_pos[0] - 66 - scroller.scroll_offset_x) // 128, (mouse_pos[1] - 66 - scroller.scroll_offset_y) // 128
             if self.is_level_available(new_pos):
+                self.last_hero_pos = self.hero_pos
                 self.hero_pos = new_pos
-                scroller.scroll_offset_x = (self.hero_pos[0] + 1) * -128 + 640 + 64
-                scroller.scroll_offset_y = (self.hero_pos[1] + 1) * -128 + 384 + 64
+                self.focus_on_hero()
 
             if self.hero_pos in self.tiles:
                 global_level = self.tiles[self.hero_pos]
@@ -444,6 +444,10 @@ class GlobalMap:
                 if (not self.tiles[self.hero_pos].level) and (not self.tiles[self.hero_pos].chest) and (not self.tiles[self.hero_pos].event):
                     if self.tiles[self.hero_pos].id not in passed_levels:
                         self.level_completed(self.tiles[self.hero_pos].id)
+
+    def focus_on_hero(self):
+        scroller.scroll_offset_x = (self.hero_pos[0] + 1) * -128 + 640 + 64
+        scroller.scroll_offset_y = (self.hero_pos[1] + 1) * -128 + 384 + 64
 
     def where_is_smoke(self):
         self.smokes_pos = []
@@ -502,7 +506,7 @@ class TowerUpgradesGroup(BasePreviewGroup):
 
     def custom_draw(self, surf, offset_pos=(0, 0)):
         for upgrade in filter(self.filter_by_turn, self.entities):
-            upgrade.rect = upgrade.image.get_rect(topleft=(upgrade.pos[0] + offset_pos[0], upgrade.pos[1] + offset_pos[1]))
+            upgrade.rect = upgrade.image.get_rect(topleft=(upgrade.topleft_pos[0] + offset_pos[0], upgrade.topleft_pos[1] + offset_pos[1]))
             surf.blit(upgrade.image, (upgrade.rect.x - offset_pos[0], upgrade.rect.y - offset_pos[1]))
 
             if self.pushed_entity == upgrade:
@@ -582,7 +586,7 @@ class SlotsGroup(BasePreviewGroup):
 
         if len(select_towers_preview_group.remember_entities) <= 6 - len(level.blocked_slots) or tower.in_slot:
             if not tower.in_slot:
-                for slot_ in sorted(self.entities, key=lambda s: s.pos[1]):
+                for slot_ in sorted(self.entities, key=lambda s: s.topleft_pos[1]):
                     if not slot_.unit_inside:
                         if tower.rarity in self.slots_rarity and self.slots_rarity[tower.rarity] > 0:
                             if not slot_.blocked:
@@ -618,9 +622,9 @@ class SlotsGroup(BasePreviewGroup):
 
                 img = font30.render(str(slot_.unit_cost), True, (255, 255, 255))
                 if slot_.unit_cost > 9:
-                    surf.blit(img, img.get_rect(topleft=(slot_.pos[0] + 14, slot_.pos[1] + 4)))
+                    surf.blit(img, img.get_rect(topleft=(slot_.topleft_pos[0] + 14, slot_.topleft_pos[1] + 4)))
                 else:
-                    surf.blit(img, img.get_rect(topleft=(slot_.pos[0] + 21, slot_.pos[1] + 4)))
+                    surf.blit(img, img.get_rect(topleft=(slot_.topleft_pos[0] + 21, slot_.topleft_pos[1] + 4)))
 
                 additional_pixels = 0
                 if 0 <= slot_.kd_time < 10:     # формулу сделать нельзя
@@ -632,7 +636,7 @@ class SlotsGroup(BasePreviewGroup):
                 elif 1000 <= slot_.kd_time < 10000:
                     additional_pixels = -5
                 if additional_pixels != 0:
-                    surf.blit(font30.render(str(slot_.kd_time), True, (255, 255, 255)), (slot_.pos[0] + additional_pixels, slot_.pos[1] + 50))
+                    surf.blit(font30.render(str(slot_.kd_time), True, (255, 255, 255)), (slot_.topleft_pos[0] + additional_pixels, slot_.topleft_pos[1] + 50))
 
         for slot_ in sorted(self.entities, key=self.sort_by_layer):
             if slot_.unit_inside:
@@ -647,6 +651,23 @@ class SlotsGroup(BasePreviewGroup):
     def update(self):
         for slot_ in self.entities:
             slot_.update()
+
+
+class TextFieldsGroup:
+    def __init__(self):
+        self.entities = []
+
+    def add(self, text_field):
+        if text_field not in self.entities:
+            self.entities.append(text_field)
+
+    def remove(self, text_field):
+        if text_field in self.entities:
+            self.entities.remove(text_field)
+
+    def update(self):
+        for entity in self.entities:
+            entity.update()
 
 
 class TextSprite(sprite.Sprite):
@@ -777,7 +798,7 @@ class Level:
         self.clear(*dont_clear_groups)
 
         for slot_ in slots_group:
-            if slot_.pos[1] in self.blocked_slots:
+            if slot_.topleft_pos[1] in self.blocked_slots:
                 slot_.blocked = True
             else:
                 slot_.blocked = False
@@ -5751,6 +5772,53 @@ class Scroller:
         return self.scroll_offset_x, self.scroll_offset_y
 
 
+class TextField:
+    def __init__(self, text, topleft_pos, max_width, color_=(0, 0, 0), font_=font25):
+        self.default_text = self.not_shown_text = text
+        self.text = ""
+        self.topleft_pos = topleft_pos
+        self.max_width = max_width
+        self.color = color_
+        self.font = font_
+        self.anim_count = 0
+        self.text_speed = 15
+        text_fields_group.add(self)
+
+    def render_text(self, surf):
+        def get_whitespace_width():
+            return self.font.render(" ", True, self.color).get_width()
+
+        def get_word_width(word_):
+            return self.font.render("".join(word_), True, self.color).get_width()
+
+        lines = 1
+        word_pos = self.topleft_pos
+        for word in self.text.split():
+            word_width = get_word_width(word)
+            if word_pos[0] + word_width > self.max_width + self.topleft_pos[0]:
+                word_pos = self.topleft_pos[0], word_pos[1] + self.get_font_height()
+                lines += 1
+            surf.blit(self.font.render(word, True, self.color), word_pos)
+            if level.rect_visible:
+                draw.rect(screen, (0, 200, 0), self.font.render(word, True, self.color).get_rect(topleft=word_pos), 5)  # отображение границы слова
+            word_pos = word_pos[0] + word_width + get_whitespace_width(), word_pos[1]
+
+        if level.rect_visible:
+            draw.rect(screen, (200, 0, 0), Rect(self.topleft_pos[0], self.topleft_pos[1], self.max_width, self.get_font_height() * lines), 5)   # отображение границы текста
+
+    def get_font_height(self):
+        return self.font.render(" ", True, self.color).get_height()
+
+    def update(self):
+        if self.anim_count < self.text_speed:
+            self.anim_count += 1
+        else:
+            self.anim_count = 0
+            if self.not_shown_text != "":
+                self.text += self.not_shown_text[0]
+                self.not_shown_text = self.not_shown_text[1:]
+
+
 def render_bg_decorator(func):
     @functools.wraps(func)  # нужно для func.__name__
     def wrapper():
@@ -6026,6 +6094,8 @@ def lost_in_forest_event():
 
         render_text("Главный герой", screen, (130, 580), 400, font_=font40)
         render_text("О нет, там я потеряюсь. Нужно вернуться на тропинку", screen, (150, 650), 1300)
+        global_map.hero_pos = global_map.last_hero_pos
+        global_map.focus_on_hero()
 
     if event_stage == 2:
         global_map.event.finish_event(can_repeat=True)
@@ -6655,7 +6725,7 @@ def menu_positioning():
             for entity in preview_group.entities:
                 if entity.name == rewards_preview_group.pushed_entity.name:
                     preview_group.pushed_entity = entity
-                    scroller.set_scroll_offset((-preview_group.pushed_entity.pos[0], -preview_group.pushed_entity.pos[1]))
+                    scroller.set_scroll_offset((-preview_group.pushed_entity.topleft_pos[0], -preview_group.pushed_entity.topleft_pos[1]))
 
         if take_button.click(screen, (680, 540), col=(0, 0, 0)):
             if not global_map.chest.action_after_open:
@@ -6714,7 +6784,8 @@ text_sprites_group = sprite.Group()
 rewards_preview_group = RewardsPreviewGroup()
 slots_group = SlotsGroup(slots_rarity={"common": 5, "spell": 2})  # "common": 2, "spell": 2, "legendary/common": 2, "spell/common": 1
 global_map = GlobalMap()
-global_map.hero_pos = temp_hero_pos
+global_map.hero_pos = global_map.last_hero_pos = temp_hero_pos
+text_fields_group = TextFieldsGroup()
 
 pause_button = Button("img", "other", "pause_button")
 restart_button = Button("text", font60, "Перезапустить")
@@ -6825,12 +6896,16 @@ Cloud((1800, 90))
 shovel = Shovel((1500, 800))
 
 
+a = TextField("Главный герой", (130, 580), 400, font_=font40)
+
 running = True
 while running:
 
     mouse_pos = mouse.get_pos()
     global_map.update()
     menu_positioning()
+    a.render_text(screen)
+    text_fields_group.update()
 
     for button in buttons_group:
         if button.on_hover():
