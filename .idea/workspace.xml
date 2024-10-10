@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="49dbe47e-c6ad-4d41-9b70-2732df5f0c86" name="Changes" comment="anim2">
+    <list default="true" id="49dbe47e-c6ad-4d41-9b70-2732df5f0c86" name="Changes" comment="new smooth_movement in Scroller &#10;optimize tiles builder &#10;small bug fix">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/saves/current_save.save" beforeDir="false" afterPath="$PROJECT_DIR$/saves/current_save.save" afterDir="false" />
     </list>
@@ -267,7 +268,14 @@
       <option name="project" value="LOCAL" />
       <updated>1728293964951</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="new smooth_movement in Scroller &#10;optimize tiles builder &#10;small bug fix">
+      <created>1728582619690</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1728582619690</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -321,19 +329,20 @@
     <MESSAGE value="test5" />
     <MESSAGE value="anim" />
     <MESSAGE value="anim2" />
-    <option name="LAST_COMMIT_MESSAGE" value="anim2" />
+    <MESSAGE value="new smooth_movement in Scroller &#10;optimize tiles builder &#10;small bug fix" />
+    <option name="LAST_COMMIT_MESSAGE" value="new smooth_movement in Scroller &#10;optimize tiles builder &#10;small bug fix" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main.py</url>
-          <line>7203</line>
+          <line>7106</line>
           <option name="timeStamp" value="4" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main.py</url>
-          <line>6541</line>
+          <line>6448</line>
           <option name="timeStamp" value="9" />
         </line-breakpoint>
       </breakpoints>

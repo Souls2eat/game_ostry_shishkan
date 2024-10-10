@@ -102,14 +102,7 @@ class ExtendedGroup(sprite.Group):
 
     def custom_draw(self, surf):
         for sprite_ in sorted(self.sprites(), key=self.sort_by_layer):
-            if hasattr(sprite_, "active_game_states"):
-                if "cheat" in sprite_.active_game_states:
-                    if level.cheat:
-                        surf.blit(sprite_.image, sprite_.rect)
-                elif game_state in sprite_.active_game_states:
-                    surf.blit(sprite_.image, sprite_.rect)
-            else:
-                surf.blit(sprite_.image, sprite_.rect)
+            surf.blit(sprite_.image, sprite_.rect)
 
             if level.rect_visible:
                 if hasattr(sprite_, "rect"):
@@ -416,18 +409,9 @@ class GlobalMap:
             for j in range(25):     # временно создаёт просто одинаковые уровни
                 enemy_tile_ = choice([0, 0, 0, 1])   # 25%
                 if enemy_tile_ == 1:
-                    GlobalMapTile((i, j), level_meta={
-                        "level_id": (i, j),
-                        "level_time": 31500,
-                        "time_to_spawn": 225,
-                        "start_money": 50,
-                        "waves": level_waves["5"],
-                        "allowed_enemies": level_allowed_enemies["5"],
-                        # "allowed_cords": (192, 320, 448, 576, 704),
-                        # "blocked_slots": (),
-                        "level_image": "2",
-                        # "action_after_complete": None
-                    })  # тут мегафикс
+                    level_meta = choice(level_meta_pool)
+                    level_meta.update({"level_id": (i, j)})
+                    GlobalMapTile((i, j), level_meta=level_meta)
                     # GlobalMapTile((i, j), level=Level((i, j), 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"]))
                 else:
                     GlobalMapTile((i, j))
@@ -726,18 +710,6 @@ class TextFieldsGroup:
         return False
 
 
-class TextSprite(sprite.Sprite):
-    def __init__(self, sprite_, pos, active_game_states=()):
-        super().__init__(all_sprites_group, text_sprites_group)
-        self.image = sprite_
-        self.rect = self.image.get_rect(topleft=pos)
-        self.render_layer = 2
-        self.active_game_states = list(active_game_states)
-
-    def update_text(self, sprite_):
-        self.image = sprite_
-
-
 class GlobalMapTile:
     def __init__(self, level_id: tuple, level_meta=None, chest=None, event=None, cant_step=False):    # noqa
         self.id = level_id
@@ -833,10 +805,10 @@ class Level:
         for sprite_ in all_sprites_group:
             if dont_clear_groups:
                 for group in dont_clear_groups:
-                    if sprite_ not in group and sprite_ not in text_sprites_group and sprite_ not in clouds_group and hasattr(sprite_, "name") and sprite_.name != "shovel":
+                    if sprite_ not in group and sprite_ not in clouds_group and hasattr(sprite_, "name") and sprite_.name != "shovel":
                         sprite_.kill()
             else:
-                if sprite_ not in text_sprites_group and sprite_ not in clouds_group :
+                if sprite_ not in clouds_group:
                     if hasattr(sprite_, "name"):
                         if sprite_.name != "shovel" and sprite_.name != "krest":
                             sprite_.kill()
@@ -5939,32 +5911,6 @@ def render_bg_decorator(func):
     return wrapper
 
 
-def render_text(text, surf, pos, max_width, color_=(0, 0, 0), font_=font25):
-    def get_font_height():
-        return font_.render(" ", True, color_).get_height()
-
-    def get_whitespace_width():
-        return font_.render(" ", True, color_).get_width()
-
-    def get_word_width(word_):
-        return font_.render("".join(word_), True, color_).get_width()
-
-    lines = 1
-    word_pos = pos
-    for word in text.split():
-        word_width = get_word_width(word)
-        if word_pos[0] + word_width > max_width + pos[0]:
-            word_pos = pos[0], word_pos[1] + get_font_height()
-            lines += 1
-        surf.blit(font_.render(word, True, color_), word_pos)
-        if level.rect_visible:
-            draw.rect(screen, (0, 200, 0), font_.render(word, True, color_).get_rect(topleft=word_pos), 5)  # отображение границы слова
-        word_pos = word_pos[0] + word_width + get_whitespace_width(), word_pos[1]
-
-    if level.rect_visible:
-        draw.rect(screen, (200, 0, 0), Rect(pos[0], pos[1], max_width, get_font_height() * lines), 5)   # отображение границы текста
-
-
 def is_free(new_tower):
     is_free_list = []           # Проверка свободна ли клетка
     for tower in towers_group:
@@ -6108,42 +6054,6 @@ def draw_info(pos, current_value, max_value, reversed_=False):       # (196, 380
     draw.rect(modification_preview_menu, (0, 0, 0), (*pos, 300, 35), 5)
 
 
-# def global_map_levels_builder():    # пока не используется как задумано
-#     # тут создавалось 1025 объектов уровня в 1 тик и игра не отвечала +-5 секунд)))
-#     for i in range(41):
-#         for j in range(25):
-#             enemy_tile_ = choice([0, 0, 0, 1])   # 25%
-#             if enemy_tile_ == 1:
-#                 GlobalMapTile((i, j), level_meta={
-#                     "level_id": (i, j),
-#                     "level_time": 31500,
-#                     "time_to_spawn": 225,
-#                     "start_money": 50,
-#                     "waves": level_waves["5"],
-#                     "allowed_enemies": level_allowed_enemies["5"],
-#                     # "allowed_cords": (192, 320, 448, 576, 704),
-#                     # "blocked_slots": (),
-#                     "level_image": "2",
-#                     # "action_after_complete": None
-#                 })  # тут мегафикс
-#                 # GlobalMapTile((i, j), level=Level((i, j), 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"]))
-#             else:
-#                 GlobalMapTile((i, j))
-
-
-# пример
-@render_bg_decorator
-def new_event():
-    if event_stage == 1:
-        screen.blit(gg_dialog, (100, 100))
-
-        render_text("Главный герой", screen, (130, 580), 400, font_=font40)
-        render_text("Где это я?", screen, (150, 650), 1300)
-
-    if event_stage == 2:
-        global_map.event.finish_event()
-
-
 # пример
 @render_bg_decorator
 def new_event_with_chest():
@@ -6168,15 +6078,6 @@ def cant_step_event():
     global_map.hero_pos = global_map.last_hero_pos
     scroller.set_scroll_offset((scroller.scroll_offset_x, scroller.scroll_offset_y))    # чтобы камера не фокусировалась на чела
     game_state = "global_map"
-
-
-# пример
-@render_bg_decorator
-def level_complete_event():
-    select_menu.blit(font60.render("Болото", True, (0, 0, 0)), (352, 10))
-
-    if first_event_button.click(screen, (370, 300)):
-        global_map.event.finish_event()
 
 
 # доделать
@@ -6262,6 +6163,7 @@ def menu_positioning():
             event_stage
 
     if game_state == "main_menu":
+        text_fields_group.clear()   # на всякий
         screen.blit(main_menu, (0, 0))
         screen.blit(game_name, (416, 10))
 
@@ -6323,6 +6225,7 @@ def menu_positioning():
             last_game_state, game_state = game_state, last_game_state
 
     if game_state == "manual_menu":
+        text_fields_group.clear()   # если есть text_field не в ивенте, то нужно использовать clear в начале game_state | анимация работает только в ивентах
         screen.blit(preview_menu, (0, 0))
         preview_menu.blit(entity_preview_menu, (250, 120))      # 50 100 пофиксить/вырезать нафиг
         entity_preview_menu.blit(entity_preview_menu_copy, (0, 0))
@@ -6426,10 +6329,10 @@ def menu_positioning():
                         your_coins[upgrade_coin_name] -= upgrade_cost
 
                 if tower_upgrades_group.pushed_entity.number not in upgrades[preview_group.pushed_entity.name] and not tower_upgrades_group.possible_upgrade_path():
-                    render_text("Нужен предыдущий навык", screen, (875, 660), 450, (255, 0, 0), font_=font30)
+                    TextField("Нужен предыдущий навык", (875, 660), 450, (255, 0, 0), font_=font30, enable_animation=False)
 
                 if tower_upgrades_group.pushed_entity.number in upgrades[preview_group.pushed_entity.name] and preview_group.pushed_entity.upgrade_level == tower_upgrades_group.pushed_entity.number:
-                    render_text("Выбрано", screen, (960, 630), 300, (255, 0, 0), font_=font60)
+                    TextField("Выбрано", (960, 630), 300, (255, 0, 0), font_=font60, enable_animation=False)
 
                 if tower_upgrades_group.pushed_entity.number in upgrades[preview_group.pushed_entity.name] and preview_group.pushed_entity.upgrade_level != tower_upgrades_group.pushed_entity.number:
                     if choice_button.click(screen, (960, 630), col=(0, 0, 0)):
@@ -6437,7 +6340,7 @@ def menu_positioning():
                         selected_upgrade_level = upgrades[preview_group.pushed_entity.name].pop(upgrades[preview_group.pushed_entity.name].index(tower_upgrades_group.pushed_entity.number))
                         upgrades[preview_group.pushed_entity.name].append(selected_upgrade_level)
 
-            render_text(upgrade_descriptions[preview_group.pushed_entity.name][tower_upgrades_group.pushed_entity.number], screen, (850, 420), 450, font_=font25)
+            TextField(upgrade_descriptions[preview_group.pushed_entity.name][tower_upgrades_group.pushed_entity.number], (850, 420), 450, font_=font25, enable_animation=False)
 
         if back_button.click(screen, (1000, 750), col=(0, 0, 0)):
             game_state, last_game_state = last_game_state, game_state
@@ -6466,7 +6369,10 @@ def menu_positioning():
         if not level.cheat:
             level.draw_level_time()
 
-        level_money.update_text(font40.render(str(level.money), True, (0, 0, 0)))
+        text_fields_group.clear()
+        TextField(str(level.money), (88, 53), 100, font_=font40, enable_animation=False)
+        if level.cheat:
+            TextField("CHEAT MODE", (853, 110), 300, (255, 0, 0), font_=font40, enable_animation=False)
 
         all_sprites_group.custom_draw(screen)
         all_sprites_group.draw_other(screen)
@@ -6474,6 +6380,7 @@ def menu_positioning():
         slots_group.custom_draw(screen)
 
     if game_state == "global_map":
+        text_fields_group.clear()   # на всякий
         scroller.check_possible_scrolling()
         screen.blit(game_map, (66 + scroller.scroll_offset_x, 66 + scroller.scroll_offset_y))
         global_map.actions()
@@ -6930,7 +6837,6 @@ krests_group = sprite.Group()
 preview_group = PreviewGroup(Tower, Enemy)
 select_towers_preview_group = PreviewGroup(Tower)
 tower_upgrades_group = TowerUpgradesGroup()
-text_sprites_group = sprite.Group()
 rewards_preview_group = RewardsPreviewGroup()
 slots_group = SlotsGroup(slots_rarity={"common": 5, "spell": 2})  # "common": 2, "spell": 2, "legendary/common": 2, "spell/common": 1
 global_map = GlobalMap()
@@ -6980,9 +6886,6 @@ sound_effects_volume_up_button = Button("img", "other", "up")
 sound_effects_volume_down_button = Button("img", "other", "down")
 sound_effects_volume_mute_button = Button("img", "other", "mute")
 level1_button = Button("text", font60, "Нажать чтобы играть!")
-
-TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death", "cheat", "settings_menu"))
-level_money = TextSprite(font40.render("300", True, (0, 0, 0)), (88, 53), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
 
 global_map.tiles_builder()
 # global_map_levels_builder()

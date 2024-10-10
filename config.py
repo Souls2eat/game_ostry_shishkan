@@ -83,6 +83,33 @@ chests_rewards = {
 
 }
 
+level_meta_pool = [
+    {
+        # "level_id": (i, j),
+        "level_time": 31500,
+        "time_to_spawn": 225,
+        "start_money": 50,
+        "waves": level_waves["5"],
+        "allowed_enemies": level_allowed_enemies["5"],
+        # "allowed_cords": (192, 320, 448, 576, 704),
+        # "blocked_slots": (),
+        "level_image": "2",
+        # "action_after_complete": None
+    },
+    {
+        # "level_id": (i, j),
+        "level_time": 13500,
+        "time_to_spawn": 13501,
+        "start_money": 20,
+        "waves": level_waves["5"],
+        "allowed_enemies": level_allowed_enemies["2"],
+        "allowed_cords": (320, 448, 576),
+        # "blocked_slots": (),
+        "level_image": "2",
+        # "action_after_complete": None
+    }
+]
+
 enemy_costs = {
     "josky": 2,
     "popusk": 1,
