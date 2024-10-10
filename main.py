@@ -45,7 +45,7 @@ tower_window_active = image.load("images/tower_select_windows/tower_select_windo
 line_ = image.load("images/other/line.png").convert_alpha()
 unknown_entity = image.load("images/buttons_states/unknown_entity.png").convert_alpha()
 # game_map = image.load("images/maps/global_map/game_map.png").convert_alpha()
-game_map = image.load("images/maps/global_map/game_map_new2.png").convert_alpha()
+game_map = image.load("images/maps/global_map/game_map_new3.png").convert_alpha()
 global_level_image = image.load("images/maps/global_map/global_level.png").convert_alpha()
 ok = image.load("images/buttons_states/ok.png").convert_alpha()
 upgrade_tower_red = image.load("images/buttons_states/upgrade_tower_red.png").convert_alpha()
@@ -91,7 +91,7 @@ free_money = default_free_money = 75
 upgrades = {}
 your_coins = {}
 event_stage = 0
-developer_mode = False
+developer_mode = True
 temp_hero_pos = (9, 5)
 temp_scroll_offset = (0, 0)
 
@@ -385,9 +385,52 @@ class GlobalMap:
         if tile.id not in self.tiles:
             self.tiles[tile.id] = tile
 
-    def remove(self, tile):
-        if tile.id in self.tiles:
-            del self.tiles[tile.id]
+    @staticmethod
+    def tiles_builder():
+        GlobalMapTile((8, 4), event=Event(lost_in_forest_event, on_map_image="None"))
+        GlobalMapTile((8, 5), event=Event(lost_in_forest_event, on_map_image="None"))
+        GlobalMapTile((8, 6), event=Event(lost_in_forest_event, on_map_image="None"))
+        GlobalMapTile((8, 7), event=Event(lost_in_forest_event, on_map_image="None"))
+        GlobalMapTile((9, 4), event=Event(lost_in_forest_event, on_map_image="None"))
+        GlobalMapTile((10, 4), event=Event(lost_in_forest_event, on_map_image="None"))
+        GlobalMapTile((10, 5), event=Event(lost_in_forest_event, on_map_image="None"))
+        GlobalMapTile((10, 6), event=Event(lost_in_forest_event, on_map_image="None"))
+        GlobalMapTile((11, 7), event=Event(lost_in_forest_event, on_map_image="None"))
+        GlobalMapTile((12, 12), cant_step=True)
+
+        GlobalMapTile((13, 8), event=Event(village_event, bg_image="hello_game_event"))
+        GlobalMapTile((9, 6), level_meta={
+                            "level_id": (9, 6),
+                            "level_time": 6750,
+                            "time_to_spawn": 1500,
+                            "start_money": 20,
+                            "waves": level_waves["1"],
+                            "allowed_enemies": level_allowed_enemies["1"],
+                            "allowed_cords": (448,),
+                            # "blocked_slots": (),
+                            "level_image": "2",
+                            # "action_after_complete": None
+                        })
+
+        for i in range(41):         # тут создавалось 1025 объектов уровня в 1 тик и игра не отвечала +-5 секунд)))
+            for j in range(25):     # временно создаёт просто одинаковые уровни
+                enemy_tile_ = choice([0, 0, 0, 1])   # 25%
+                if enemy_tile_ == 1:
+                    GlobalMapTile((i, j), level_meta={
+                        "level_id": (i, j),
+                        "level_time": 31500,
+                        "time_to_spawn": 225,
+                        "start_money": 50,
+                        "waves": level_waves["5"],
+                        "allowed_enemies": level_allowed_enemies["5"],
+                        # "allowed_cords": (192, 320, 448, 576, 704),
+                        # "blocked_slots": (),
+                        "level_image": "2",
+                        # "action_after_complete": None
+                    })  # тут мегафикс
+                    # GlobalMapTile((i, j), level=Level((i, j), 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"]))
+                else:
+                    GlobalMapTile((i, j))
 
     @staticmethod
     def is_level_available(level_id):
@@ -407,7 +450,8 @@ class GlobalMap:
 
         def go_level():
             global last_game_state, game_state, level
-            level = self.tiles[self.hero_pos].level
+            level = Level(**self.tiles[self.hero_pos].level_meta)   # тут мегафикс
+            # level = self.tiles[self.hero_pos].level
             scroller.remembered_scroll_offsets["global_map"] = scroller.current_scroll_offset()
             scroller.scroll_offset_y = 0
             level.refresh()
@@ -419,11 +463,11 @@ class GlobalMap:
             if self.is_level_available(new_pos):
                 self.last_hero_pos = self.hero_pos
                 self.hero_pos = new_pos
-                self.focus_on_hero()
+                scroller.set_target_scroll_offset(((self.hero_pos[0] + 1) * -128 + 640 + 64, (self.hero_pos[1] + 1) * -128 + 384 + 64))
 
             if self.hero_pos in self.tiles:
                 global_level = self.tiles[self.hero_pos]
-                if global_level.level:
+                if global_level.level_meta:
                     if self.is_level_available(self.hero_pos) and global_level.id not in passed_levels:
                         go_level()
 
@@ -441,7 +485,7 @@ class GlobalMap:
                         self.event.do()
 
             if self.hero_pos in self.tiles:
-                if (not self.tiles[self.hero_pos].level) and (not self.tiles[self.hero_pos].chest) and (not self.tiles[self.hero_pos].event):
+                if (not self.tiles[self.hero_pos].level_meta) and (not self.tiles[self.hero_pos].chest) and (not self.tiles[self.hero_pos].event):
                     if self.tiles[self.hero_pos].id not in passed_levels:
                         self.level_completed(self.tiles[self.hero_pos].id)
 
@@ -451,8 +495,8 @@ class GlobalMap:
 
     def where_is_smoke(self):
         self.smokes_pos = []
-        for i in range(21):
-            for j in range(13):
+        for i in range(41):
+            for j in range(25):
                 if not self.is_level_available((i, j)):
                     self.smokes_pos.append((i, j))
 
@@ -467,7 +511,7 @@ class GlobalMap:
             if global_tile.event and self.is_level_available(pos):
                 if global_tile.event.image is not None:
                     screen.blit(global_tile.event.image, (66 + pos[0] * 128 + scroller.scroll_offset_x, 66 + pos[1] * 128 + scroller.scroll_offset_y))
-            if global_tile.level and self.is_level_available(pos) and pos not in passed_levels:
+            if global_tile.level_meta and self.is_level_available(pos) and pos not in passed_levels:
                 screen.blit(enemy_tile, (66 + pos[0] * 128 + scroller.scroll_offset_x, 66 + pos[1] * 128 + scroller.scroll_offset_y))
 
         screen.blit(gg_on_map, (66 + self.hero_pos[0] * 128 + scroller.scroll_offset_x, 66 + self.hero_pos[1] * 128 + scroller.scroll_offset_y))
@@ -481,9 +525,11 @@ class GlobalMap:
             return True
         return False
 
-    def level_completed(self, level_id):
-        passed_levels.append(level_id)
-        self.where_is_smoke()
+    def level_completed(self, level_id, detect_smoke=True):
+        if level_id not in passed_levels:
+            passed_levels.append(level_id)
+        if detect_smoke:
+            self.where_is_smoke()
 
     def refresh(self):
         for level_ in self.tiles.values():
@@ -693,11 +739,13 @@ class TextSprite(sprite.Sprite):
 
 
 class GlobalMapTile:
-    def __init__(self, level_id: tuple, level=None, chest=None, event=None):    # noqa
+    def __init__(self, level_id: tuple, level_meta=None, chest=None, event=None, cant_step=False):    # noqa
         self.id = level_id
-        self.level = level
+        self.level_meta = level_meta
         self.chest = chest
         self.event = event
+        if cant_step:
+            self.event = Event(cant_step_event, on_map_image="None", bg_image="None", has_event_stages=False)
         global_map.add(self)
 
 
@@ -5740,14 +5788,16 @@ class Scroller:
     def __init__(self):
         self.scroll_offset_x = 0
         self.scroll_offset_y = 0
+        self.target_scroll_offset_x = 0
+        self.target_scroll_offset_y = 0
         self.rules = {
             "manual_menu": {
                 "x": {"min": 0, "max": 0},
                 "y": {"min": -2300, "max": 0}
             },
             "global_map": {
-                "x": {"min": -1278, "max": 0},
-                "y": {"min": -766, "max": 0}
+                "x": {"min": -3838, "max": 0},  # -2
+                "y": {"min": -2302, "max": 0}   # -2
             },
             "reward_second_stage": {
                 "x": {"min": 0, "max": 0},
@@ -5765,6 +5815,12 @@ class Scroller:
     def set_scroll_offset(self, offset):
         self.scroll_offset_x = offset[0]
         self.scroll_offset_y = offset[1]
+        self.target_scroll_offset_x = offset[0]
+        self.target_scroll_offset_y = offset[1]
+
+    def set_target_scroll_offset(self, offset):
+        self.target_scroll_offset_x = offset[0]
+        self.target_scroll_offset_y = offset[1]
 
     def check_possible_scrolling(self):
         if game_state in self.rules:
@@ -5778,8 +5834,40 @@ class Scroller:
             if self.scroll_offset_y > self.rules[game_state]["y"]["max"]:
                 self.scroll_offset_y = self.rules[game_state]["y"]["max"]
 
+    def smooth_movement(self):
+        if self.target_scroll_offset_x - self.scroll_offset_x > 40:
+            self.scroll_offset_x += 6
+        elif self.target_scroll_offset_x - self.scroll_offset_x > 20:
+            self.scroll_offset_x += 3
+        elif self.target_scroll_offset_x - self.scroll_offset_x > 1:
+            self.scroll_offset_x += 1
+
+        if self.target_scroll_offset_x - self.scroll_offset_x < -40:
+            self.scroll_offset_x -= 6
+        elif self.target_scroll_offset_x - self.scroll_offset_x < -20:
+            self.scroll_offset_x -= 3
+        elif self.target_scroll_offset_x - self.scroll_offset_x < -1:
+            self.scroll_offset_x -= 1
+
+        if self.target_scroll_offset_y - self.scroll_offset_y > 40:
+            self.scroll_offset_y += 6
+        elif self.target_scroll_offset_y - self.scroll_offset_y > 20:
+            self.scroll_offset_y += 3
+        elif self.target_scroll_offset_y - self.scroll_offset_y > 1:
+            self.scroll_offset_y += 1
+
+        if self.target_scroll_offset_y - self.scroll_offset_y < -40:
+            self.scroll_offset_y -= 6
+        elif self.target_scroll_offset_y - self.scroll_offset_y < -20:
+            self.scroll_offset_y -= 3
+        elif self.target_scroll_offset_y - self.scroll_offset_y < -1:
+            self.scroll_offset_y -= 1
+
     def current_scroll_offset(self) -> tuple:
         return self.scroll_offset_x, self.scroll_offset_y
+
+    def current_target_scroll_offset(self) -> tuple:
+        return self.target_scroll_offset_x, self.target_scroll_offset_y
 
 
 class TextField:
@@ -6020,10 +6108,27 @@ def draw_info(pos, current_value, max_value, reversed_=False):       # (196, 380
     draw.rect(modification_preview_menu, (0, 0, 0), (*pos, 300, 35), 5)
 
 
-def global_map_levels_builder():    # пока не используется как задумано
-    for i in range(21):
-        for j in range(13):
-            GlobalMapTile((i, j))
+# def global_map_levels_builder():    # пока не используется как задумано
+#     # тут создавалось 1025 объектов уровня в 1 тик и игра не отвечала +-5 секунд)))
+#     for i in range(41):
+#         for j in range(25):
+#             enemy_tile_ = choice([0, 0, 0, 1])   # 25%
+#             if enemy_tile_ == 1:
+#                 GlobalMapTile((i, j), level_meta={
+#                     "level_id": (i, j),
+#                     "level_time": 31500,
+#                     "time_to_spawn": 225,
+#                     "start_money": 50,
+#                     "waves": level_waves["5"],
+#                     "allowed_enemies": level_allowed_enemies["5"],
+#                     # "allowed_cords": (192, 320, 448, 576, 704),
+#                     # "blocked_slots": (),
+#                     "level_image": "2",
+#                     # "action_after_complete": None
+#                 })  # тут мегафикс
+#                 # GlobalMapTile((i, j), level=Level((i, j), 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"]))
+#             else:
+#                 GlobalMapTile((i, j))
 
 
 # пример
@@ -6058,6 +6163,13 @@ def start_level_event(level_: Level):
     game_state = "tower_select"
 
 
+def cant_step_event():
+    global game_state
+    global_map.hero_pos = global_map.last_hero_pos
+    scroller.set_scroll_offset((scroller.scroll_offset_x, scroller.scroll_offset_y))    # чтобы камера не фокусировалась на чела
+    game_state = "global_map"
+
+
 # пример
 @render_bg_decorator
 def level_complete_event():
@@ -6070,37 +6182,47 @@ def level_complete_event():
 # доделать
 @render_bg_decorator
 def hello_game_event():
+    global event_stage
     if event_stage == 1:
-        screen.blit(gg_dialog, (100, 100))
-
-        render_text("Главный герой", screen, (130, 580), 400, font_=font40)
-        render_text("Где это я?", screen, (150, 650), 1300)
+        TextField("Главный герой", (130, 580), 400, font_=font40, enable_animation=False)
+        TextField("Где это я?", (150, 650), 1300)
+        event_stage += 1
 
     if event_stage == 2:
-        screen.blit(fire_mag, (1000, 100))
-
-        render_text("Фаермаг", screen, (1100, 580), 400, font_=font40)
-        render_text("Я нашёл тебя тут.  ...(Сюжет будет потом)... Тебе нужно в деревню", screen, (150, 650), 1300)
+        screen.blit(gg_dialog, (100, 100))
 
     if event_stage == 3:
-        screen.blit(fire_mag, (1000, 100))
-
-        render_text("Фаермаг", screen, (1100, 580), 400, font_=font40)
-        render_text("PS: карту можно крутить зажав колёсико мыши", screen, (150, 650), 1300)
+        TextField("Фаермаг", (1100, 580), 400, font_=font40, enable_animation=False)
+        TextField("Я нашёл тебя тут.  ...(Сюжет будет потом)... Тебе нужно в деревню", (150, 650), 1300)
+        event_stage += 1
 
     if event_stage == 4:
+        screen.blit(fire_mag, (1000, 100))
+
+    if event_stage == 5:
+        TextField("Фаермаг", (1100, 580), 400, font_=font40, enable_animation=False)
+        TextField("PS: карту можно двигать зажав колёсико мыши", (150, 650), 1300)
+        event_stage += 1
+
+    if event_stage == 6:
+        screen.blit(fire_mag, (1000, 100))
+
+    if event_stage == 7:
         global_map.event.finish_event()
 
 
 @render_bg_decorator
 def village_event():
+    global event_stage
     if event_stage == 1:
-        screen.blit(villager, (1000, 100))
-
-        render_text("Жители деревни", screen, (1100, 580), 400, font_=font40)
-        render_text("О нет, на нас напали", screen, (150, 650), 1300)
+        TextField("Жители деревни", (1100, 580), 400, font_=font40, enable_animation=False)
+        TextField("О нет, на нас напали", (150, 650), 1300)
+        event_stage += 1
 
     if event_stage == 2:
+        screen.blit(villager, (1000, 100))
+
+    if event_stage == 3:
         global_map.event.finish_event()
         global_map.event = Event(start_level_event, on_map_image="None", bg_image="None", action_args=Level((13, 8), 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="2"))
         global_map.event.do()
@@ -6115,15 +6237,12 @@ def lost_in_forest_event():
         event_stage += 1
 
     if event_stage == 2:
-        # render_text("Главный герой", screen, (130, 580), 400, font_=font40)
-        # render_text("О нет, там я потеряюсь. Нужно вернуться на тропинку", screen, (150, 650), 1300)
         screen.blit(gg_dialog, (100, 100))
         global_map.hero_pos = global_map.last_hero_pos
         global_map.focus_on_hero()
 
     if event_stage == 3:
         global_map.event.finish_event(can_repeat=True)
-        text_fields_group.clear()
 
 
 def menu_positioning():
@@ -6194,6 +6313,8 @@ def menu_positioning():
             event_stage = 1
 
             scroller.set_scroll_offset(scroller.remembered_scroll_offsets["global_map"])
+            global_map.tiles.clear()
+            global_map.tiles_builder()
 
         if accept_button.on_hover():
             screen.blit(font30.render("!!! Весь прогресс сотрётся !!!", True, (200, 0, 0)), (598, 580))
@@ -6356,8 +6477,9 @@ def menu_positioning():
         scroller.check_possible_scrolling()
         screen.blit(game_map, (66 + scroller.scroll_offset_x, 66 + scroller.scroll_offset_y))
         global_map.actions()
-        scroller.check_possible_scrolling()     # 2 раза, чтобы картинка не дёргалась
         global_map.render_overlay()
+        scroller.smooth_movement()
+        scroller.check_possible_scrolling()     # 2 раза, чтобы картинка не дёргалась
 
         if pause_button.click(screen, (1515, 58)):
             last_game_state = game_state
@@ -6416,6 +6538,9 @@ def menu_positioning():
             level.refresh()
             last_game_state = game_state
             game_state = "main_menu"
+
+            global_map.hero_pos = global_map.last_hero_pos
+            global_map.focus_on_hero()
         if pause_button.click(screen, (1515, 58)):
             Alert("Пауза", (700, 200), 75)
             if level.state == "run":
@@ -6859,24 +6984,8 @@ level1_button = Button("text", font60, "Нажать чтобы играть!")
 TextSprite(font40.render("CHEAT MODE", True, (255, 0, 0)), (853, 110), ("run", "paused", "level_complited", "tower_select", "death", "cheat", "settings_menu"))
 level_money = TextSprite(font40.render("300", True, (0, 0, 0)), (88, 53), ("run", "paused", "level_complited", "tower_select", "death", "settings_menu"))
 
-
-GlobalMapTile((0, 1), level=Level((0, 1), 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))
-GlobalMapTile((0, 2), level=Level((0, 2), 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))
-GlobalMapTile((13, 8), event=Event(village_event, bg_image="hello_game_event"))
-GlobalMapTile((9, 6), level=Level((9, 6), 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))
-
-
-GlobalMapTile((8, 4), event=Event(lost_in_forest_event, on_map_image="None"))
-GlobalMapTile((8, 5), event=Event(lost_in_forest_event, on_map_image="None"))
-GlobalMapTile((8, 6), event=Event(lost_in_forest_event, on_map_image="None"))
-GlobalMapTile((8, 7), event=Event(lost_in_forest_event, on_map_image="None"))
-GlobalMapTile((9, 4), event=Event(lost_in_forest_event, on_map_image="None"))
-GlobalMapTile((10, 4), event=Event(lost_in_forest_event, on_map_image="None"))
-GlobalMapTile((10, 5), event=Event(lost_in_forest_event, on_map_image="None"))
-GlobalMapTile((10, 6), event=Event(lost_in_forest_event, on_map_image="None"))
-GlobalMapTile((11, 7), event=Event(lost_in_forest_event, on_map_image="None"))
-
-global_map_levels_builder()
+global_map.tiles_builder()
+# global_map_levels_builder()
 # GlobalMapLevelButton("1", "0", (118, 668), level=Level("1", 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))    # !!! все буквы русские !!!
 # GlobalMapLevelButton("2", "1", (295, 570), level=Level("2", 13500, 13501, 20, level_waves["2"], level_allowed_enemies["2"], allowed_cords=(320, 448, 576), level_image="2"))
 # GlobalMapLevelButton("2а", "2", (409, 700), required_done_events=("spike_chest_allow",), level=Level("2а", 10, 13501, 20, level_waves["2"], level_allowed_enemies["2"], level_image="2"))
@@ -6949,7 +7058,7 @@ while running:
     alert_group.draw(screen)
     if mouse.get_focused():
         screen.blit(cursor, mouse_pos)
-        screen.blit(font30.render(str(f"{mouse_pos[0]}, {mouse_pos[1]}"), True, (255, 0, 0)), (mouse_pos[0] - 60, mouse_pos[1] - 40))
+        # screen.blit(font30.render(str(f"{mouse_pos[0]}, {mouse_pos[1]}"), True, (255, 0, 0)), (mouse_pos[0] - 60, mouse_pos[1] - 40))
         # for ii in range(10):
         #     draw.line(screen, (0, 0, 0), (ii * 160, 0), (ii * 160, 900), 5)
         #     draw.line(screen, (0, 0, 0), (0, ii * 90), (1600, ii * 90), 5)
@@ -7064,13 +7173,18 @@ while running:
                 game_state = "level_complited"
             if e.key == K_q:
                 running = False
+            if e.key == K_s:
+                for o in range(41):
+                    for p in range(25):
+                        global_map.level_completed((o, p), detect_smoke=False)
+                global_map.where_is_smoke()
+
         if e.type == QUIT:
             running = False
 
         if e.type == MOUSEMOTION and game_state == "global_map":
             if global_map.on_map and mouse.get_pressed() == (0, 1, 0):
-                scroller.scroll_offset_x += e.rel[0]
-                scroller.scroll_offset_y += e.rel[1]
+                scroller.set_scroll_offset((scroller.scroll_offset_x + e.rel[0], scroller.scroll_offset_y + e.rel[1]))
 
         if e.type == MOUSEBUTTONDOWN and e.button == 1:
             mouse_pos = mouse.get_pos()
@@ -7085,6 +7199,7 @@ while running:
             if game_state == "event":
                 if text_anim_over:
                     event_stage += 1
+                    text_fields_group.clear()
                 else:
                     text_fields_group.finish_text_animation()
             mouse_pos = mouse.get_pos()
