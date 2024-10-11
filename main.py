@@ -367,7 +367,7 @@ class GlobalMap:
         self.map_size = Rect((66, 66), (1280, 768))
         self.on_map = False
         self.pushed = False
-        self.last_hero_pos = self.hero_pos = (0, 0)
+        self.next_hero_pos = self.last_hero_pos = self.hero_pos = (0, 0)
         self.tiles = {}
         self.chest = None
         self.event = None
@@ -379,7 +379,8 @@ class GlobalMap:
             self.tiles[tile.id] = tile
 
     @staticmethod
-    def tiles_builder():
+    def build_tiles(default=False):
+
         GlobalMapTile((8, 4), event=Event(lost_in_forest_event, on_map_image="None"))
         GlobalMapTile((8, 5), event=Event(lost_in_forest_event, on_map_image="None"))
         GlobalMapTile((8, 6), event=Event(lost_in_forest_event, on_map_image="None"))
@@ -392,29 +393,44 @@ class GlobalMap:
         GlobalMapTile((12, 12), cant_step=True)
 
         GlobalMapTile((13, 8), event=Event(village_event, bg_image="hello_game_event"))
-        GlobalMapTile((9, 6), level_meta={
-                            "level_id": (9, 6),
-                            "level_time": 6750,
-                            "time_to_spawn": 1500,
-                            "start_money": 20,
-                            "waves": level_waves["1"],
-                            "allowed_enemies": level_allowed_enemies["1"],
-                            "allowed_cords": (448,),
-                            # "blocked_slots": (),
-                            "level_image": "2",
-                            # "action_after_complete": None
-                        })
 
-        for i in range(41):         # тут создавалось 1025 объектов уровня в 1 тик и игра не отвечала +-5 секунд)))
-            for j in range(25):     # временно создаёт просто одинаковые уровни
-                enemy_tile_ = choice([0, 0, 0, 1])   # 25%
-                if enemy_tile_ == 1:
-                    level_meta = choice(level_meta_pool)
-                    level_meta.update({"level_id": (i, j)})
-                    GlobalMapTile((i, j), level_meta=level_meta)
-                    # GlobalMapTile((i, j), level=Level((i, j), 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"]))
-                else:
-                    GlobalMapTile((i, j))
+        GlobalMapTile((9, 6), level_meta={
+                                "level_id": (9, 6),
+                                "level_time": 6750,
+                                "time_to_spawn": 1500,
+                                "start_money": 20,
+                                "waves": level_waves["1"],
+                                "allowed_enemies": level_allowed_enemies["1"],
+                                "allowed_cords": (448,),
+                                # "blocked_slots": (),
+                                "level_image": "2",
+                                # "action_after_complete": None
+                            })
+
+        if default:
+            enemy_levels.clear()
+            enemy_levels.append((9, 6))
+            for i in range(41):         # тут создавалось 1025 объектов уровня в 1 тик и игра не отвечала +-5 секунд)))
+                for j in range(25):
+                    enemy_tile_ = choice([0, 0, 0, 1])   # 25%
+                    if enemy_tile_ == 1:
+                        level_meta = choice(level_meta_pool)
+                        level_meta.update({"level_id": (i, j)})
+                        GlobalMapTile((i, j), level_meta=level_meta.copy())
+                        enemy_levels.append((i, j))
+                    else:
+                        GlobalMapTile((i, j))
+            save_data()
+
+        if not default:
+            for i in range(41):
+                for j in range(25):
+                    if (i, j) in enemy_levels:
+                        level_meta = choice(level_meta_pool)
+                        level_meta.update({"level_id": (i, j)})
+                        GlobalMapTile((i, j), level_meta=level_meta.copy())
+                    else:
+                        GlobalMapTile((i, j))
 
     @staticmethod
     def is_level_available(level_id):
@@ -435,7 +451,6 @@ class GlobalMap:
         def go_level():
             global last_game_state, game_state, level
             level = Level(**self.tiles[self.hero_pos].level_meta)   # тут мегафикс
-            # level = self.tiles[self.hero_pos].level
             scroller.remembered_scroll_offsets["global_map"] = scroller.current_scroll_offset()
             scroller.scroll_offset_y = 0
             level.refresh()
@@ -474,8 +489,8 @@ class GlobalMap:
                         self.level_completed(self.tiles[self.hero_pos].id)
 
     def focus_on_hero(self):
-        scroller.scroll_offset_x = (self.hero_pos[0] + 1) * -128 + 640 + 64
-        scroller.scroll_offset_y = (self.hero_pos[1] + 1) * -128 + 384 + 64
+        scroller.set_scroll_offset(((self.next_hero_pos[0] + 1) * -128 + 640 + 64, (self.next_hero_pos[1] + 1) * -128 + 384 + 64))  # камера улетает на нажатый объект
+        scroller.set_target_scroll_offset(((self.hero_pos[0] + 1) * -128 + 640 + 64, (self.hero_pos[1] + 1) * -128 + 384 + 64))     # затем плавно возвращается на чела
 
     def where_is_smoke(self):
         self.smokes_pos = []
@@ -5703,15 +5718,10 @@ class Alert(sprite.Sprite):
                 self.alert_time -= 1
 
 
-class Button2:
-    def __init__(self):
+class UpgradeTowerButton:
+    def __init__(self, number: str, pos):
         self.pushed = False
         self.activate = False
-
-
-class UpgradeTowerButton(Button2):
-    def __init__(self, number: str, pos):
-        super().__init__()
         self.number = number
         self.pos = pos
         self.image = upgrade_tower_red
@@ -5969,7 +5979,8 @@ def upload_data(default=False):
         snow_coins, \
         completed_events, \
         temp_hero_pos, \
-        temp_scroll_offset
+        temp_scroll_offset, \
+        enemy_levels
 
     load_file = "saves/current_save.save"
     if default:
@@ -5982,6 +5993,13 @@ def upload_data(default=False):
             if i % 2 == 0:
                 pos = row[i], row[i+1]
                 passed_levels.append(pos)
+
+        row = list(map(int, str(*file.readline().strip().split(" = ")[1:]).replace("(", "").replace(")", "").split(",")))
+        enemy_levels = []
+        for i in range(len(row)):
+            if i % 2 == 0:
+                pos = row[i], row[i+1]
+                enemy_levels.append(pos)
 
         received_towers = str(*file.readline().strip().split(" = ")[1:]).split(", ")       # считать список
         not_received_towers = str(*file.readline().strip().split(" = ")[1:]).split(", ")
@@ -6022,6 +6040,7 @@ def upload_data(default=False):
 def save_data():
     with open("saves/current_save.save", "w", encoding="utf-8") as file:
         file.write(f"passed_levels = " + str(passed_levels).replace("[", "").replace("]", "").replace("'", "") + "\n")
+        file.write(f"enemy_levels = " + str(enemy_levels).replace("[", "").replace("]", "").replace("'", "") + "\n")
         file.write(f"received_towers = " + str(received_towers).replace("['", "").replace("']", "").replace("'", "") + "\n")
         file.write(f"not_received_towers = " + str(not_received_towers).replace("['", "").replace("']", "").replace("'", "") + "\n")
         file.write(f"encountered_enemies = " + str(encountered_enemies).replace("['", "").replace("']", "").replace("'", "") + "\n")
@@ -6075,7 +6094,7 @@ def start_level_event(level_: Level):
 
 def cant_step_event():
     global game_state
-    global_map.hero_pos = global_map.last_hero_pos
+    global_map.hero_pos, global_map.next_hero_pos = global_map.last_hero_pos, global_map.hero_pos
     scroller.set_scroll_offset((scroller.scroll_offset_x, scroller.scroll_offset_y))    # чтобы камера не фокусировалась на чела
     game_state = "global_map"
 
@@ -6135,11 +6154,12 @@ def lost_in_forest_event():
     if event_stage == 1:
         TextField("Главный герой", (130, 580), 400, font_=font40, enable_animation=False)
         TextField("О нет, там я потеряюсь. Нужно вернуться на тропинку", (150, 650), 1300)
+        global_map.hero_pos, global_map.next_hero_pos = global_map.last_hero_pos, global_map.hero_pos
         event_stage += 1
 
     if event_stage == 2:
         screen.blit(gg_dialog, (100, 100))
-        global_map.hero_pos = global_map.last_hero_pos
+
         global_map.focus_on_hero()
 
     if event_stage == 3:
@@ -6216,7 +6236,7 @@ def menu_positioning():
 
             scroller.set_scroll_offset(scroller.remembered_scroll_offsets["global_map"])
             global_map.tiles.clear()
-            global_map.tiles_builder()
+            global_map.build_tiles(default=True)
 
         if accept_button.on_hover():
             screen.blit(font30.render("!!! Весь прогресс сотрётся !!!", True, (200, 0, 0)), (598, 580))
@@ -6446,7 +6466,7 @@ def menu_positioning():
             last_game_state = game_state
             game_state = "main_menu"
 
-            global_map.hero_pos = global_map.last_hero_pos
+            global_map.hero_pos, global_map.next_hero_pos = global_map.last_hero_pos, global_map.hero_pos
             global_map.focus_on_hero()
         if pause_button.click(screen, (1515, 58)):
             Alert("Пауза", (700, 200), 75)
@@ -6807,6 +6827,7 @@ def menu_positioning():
 
 # --- from save
 passed_levels = []  # должно быть тут
+enemy_levels = []
 received_towers = []
 not_received_towers = []
 encountered_enemies = []
@@ -6840,7 +6861,7 @@ tower_upgrades_group = TowerUpgradesGroup()
 rewards_preview_group = RewardsPreviewGroup()
 slots_group = SlotsGroup(slots_rarity={"common": 5, "spell": 2})  # "common": 2, "spell": 2, "legendary/common": 2, "spell/common": 1
 global_map = GlobalMap()
-global_map.hero_pos = global_map.last_hero_pos = temp_hero_pos
+global_map.hero_pos = global_map.last_hero_pos = global_map.next_hero_pos = temp_hero_pos
 text_fields_group = TextFieldsGroup()
 
 pause_button = Button("img", "other", "pause_button")
@@ -6887,7 +6908,7 @@ sound_effects_volume_down_button = Button("img", "other", "down")
 sound_effects_volume_mute_button = Button("img", "other", "mute")
 level1_button = Button("text", font60, "Нажать чтобы играть!")
 
-global_map.tiles_builder()
+global_map.build_tiles()
 # global_map_levels_builder()
 # GlobalMapLevelButton("1", "0", (118, 668), level=Level("1", 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2"))    # !!! все буквы русские !!!
 # GlobalMapLevelButton("2", "1", (295, 570), level=Level("2", 13500, 13501, 20, level_waves["2"], level_allowed_enemies["2"], allowed_cords=(320, 448, 576), level_image="2"))
@@ -7133,4 +7154,4 @@ while running:
 
                         if 1536 > unit_pos[0] >= 384 and 832 > unit_pos[1] >= 192:
                             tower_placement(slot)
-save_data() # 1
+save_data()
