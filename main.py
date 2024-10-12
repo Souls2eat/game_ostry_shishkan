@@ -432,6 +432,21 @@ class GlobalMap:
                     else:
                         GlobalMapTile((i, j))
 
+    # @staticmethod     # dont delete
+    # def build_tiles(default=False):
+    #     GlobalMapTile((9, 6), level_meta={
+    #                             "level_id": (9, 6),
+    #                             "level_time": 6750,
+    #                             "time_to_spawn": 1500,
+    #                             "start_money": 20,
+    #                             "waves": level_waves2["boloto"],
+    #                             "allowed_enemies": level_allowed_enemies["1"],
+    #                             "allowed_cords": (448,),
+    #                             # "blocked_slots": (),
+    #                             "level_image": "2",
+    #                             # "action_after_complete": None
+    #                         })
+
     @staticmethod
     def is_level_available(level_id):
         for i in range(2):
@@ -742,7 +757,7 @@ class Level:
                  time_to_spawn: int,
                  start_money: int,
                  waves: dict,
-                 allowed_enemies: tuple,
+                 allowed_enemies: tuple,    # used to random spawn enemies. Will be deleted later
                  allowed_cords=(192, 320, 448, 576, 704),
                  blocked_slots=(),
                  level_image="default",
@@ -761,6 +776,7 @@ class Level:
         self.no_death_animation = True
         self.kill_enemy_on_click = False
         self.waves = waves
+        self.current_wave = None
         self.allowed_enemies = allowed_enemies
         self.allowed_cords = allowed_cords
         self.blocked_slots = blocked_slots
@@ -777,23 +793,24 @@ class Level:
         draw.rect(screen, (233, 126, 72), (self.x, self.y, self.w, self.h))
         draw.rect(screen, (55, 127, 236), (self.x, self.y, self.w * ratio, self.h))
         draw.rect(screen, (0, 0, 0), (self.x, self.y, self.w, self.h), 4)
-        for wave in self.waves:
-            wave_description = wave[:1]
-            wave_time = int(wave[1:])
+        for wave_time in self.waves:
+            # wave_description = wave[:1]
+            # wave_time = int(wave[1:])
+            # wave_description =
             mark_ratio = wave_time / self.start_level_time
-            if wave_description == "v":
+            if self.waves[wave_time]["visible"]:
                 screen.blit(amogus, (self.x + int(mark_ratio * self.w), self.y - 30))
 
-    def wave_spawn_enemies(self, wave_time, wave_description):
-        waves_points = self.waves[wave_description + str(wave_time)]
-        enemy_x_cord = 1600
-        while waves_points > 0:
-            enemy_name = choice(self.allowed_enemies)
-            if waves_points - enemy_costs[enemy_name] >= 0:
-                enemy_y_cord = choice(self.allowed_cords)
-                Enemy(enemy_name, (enemy_x_cord, enemy_y_cord))
-                waves_points -= enemy_costs[enemy_name]
-                enemy_x_cord += randint(10, 30)
+    # def wave_spawn_enemies(self, wave_time, wave_description):
+    #     waves_points = self.waves[wave_description + str(wave_time)]
+    #     enemy_x_cord = 1600
+    #     while waves_points > 0:
+    #         enemy_name = choice(self.allowed_enemies)
+    #         if waves_points - enemy_costs[enemy_name] >= 0:
+    #             enemy_y_cord = choice(self.allowed_cords)
+    #             Enemy(enemy_name, (enemy_x_cord, enemy_y_cord))
+    #             waves_points -= enemy_costs[enemy_name]
+    #             enemy_x_cord += randint(10, 30)
 
     def random_spawn_enemies(self):
         enemy_y_cord = choice(self.allowed_cords)
@@ -830,11 +847,6 @@ class Level:
                     else:
                         sprite_.kill()
 
-    @staticmethod
-    def spawn():
-        
-        return "run"
-
     def refresh(self, *dont_clear_groups):
         self.money = self.start_money
         self.level_time = self.start_level_time
@@ -864,15 +876,20 @@ class Level:
     def update(self):
         all_sprites_group.update()
         slots_group.update()
-        for wave in self.waves:
-            wave_time = int(wave[1:])
-            wave_description = wave[:1]
-            if self.level_time == wave_time:
-                self.wave_spawn_enemies(wave_time, wave_description)
-                if wave_description == "a":
-                    Alert("БомБом", (750, 450), 225)
+        if self.level_time in self.waves:
+            self.current_wave = Wave(parent_level=self, **self.waves[self.level_time])
+            self.current_wave.spawn_enemies()
+        # for wave in self.waves:
+        #     wave_time = int(wave[1:])
+        #     wave_description = wave[:1]
+        #     if self.level_time == wave_time:
+        #         self.wave_spawn_enemies(wave_time, wave_description)
+        #         if wave_description == "a":
+        #             Alert("БомБом", (750, 450), 225)
+        if self.current_wave:
+            self.current_wave.update()
+
         if self.state == "not_run":
-            self.state = self.spawn()
             row1 = False  # ну блин сорян
             row2 = False
             row3 = False
@@ -922,6 +939,39 @@ class Level:
 
     def __repr__(self):
         return str((self.current_level, self.level_time, self.state))
+
+
+class Wave:
+    def __init__(self, parent_level, allowed_enemies: tuple, wave_points: int, spawn_enemies_dict: dict, visible: bool):   # , alert=None, alert_time=75
+        self.parent_level = parent_level
+        self.allowed_enemies = allowed_enemies
+        self.wave_points = wave_points
+        self.spawn_enemies_dict = spawn_enemies_dict    # относительное время: (координата, враг)
+        self.max_life_time = max(self.spawn_enemies_dict)
+        self.visible = visible
+        # self.alert = alert
+        # self.alert_time = alert_time
+
+    def spawn_enemies(self):
+        enemy_x_cord = 1600
+        while self.wave_points > 0:
+            enemy_name = choice(self.allowed_enemies)
+            if self.wave_points - enemy_costs[enemy_name] >= 0:
+                enemy_y_cord = choice(self.parent_level.allowed_cords)
+                Enemy(enemy_name, (enemy_x_cord, enemy_y_cord))
+                self.wave_points -= enemy_costs[enemy_name]
+                enemy_x_cord += randint(10, 30)
+
+    def update(self):
+
+        if self.parent_level.level_time in self.spawn_enemies_dict:
+            for enemy_name, enemy_cord_y in self.spawn_enemies_dict[self.parent_level.level_time]:
+                Enemy(enemy_name, (1600, enemy_cord_y))
+
+        if self.parent_level.level_time > self.max_life_time:
+            if self.parent_level.current_wave == self:
+                self.parent_level.current_wave = None
+            del self
 
 
 class Chest:
@@ -6212,7 +6262,7 @@ def menu_positioning():
             running = False
 
         if level1_button.click(screen, (600, 620), col=(255, 0, 0)):
-            level = Level((3, 0), 22500, 500, 50, level_waves["3"], level_allowed_enemies["3"], level_image="2")
+            level = Level((3, 0), 22500, 500, 50, level_waves2["boloto"], level_allowed_enemies["3"], level_image="2")
             scroller.scroll_offset_y = 0
             level.refresh()
             last_game_state = game_state
@@ -6920,7 +6970,7 @@ global_map.build_tiles()
 # GlobalMapLevelButton("5", "4", (824, 462), level=Level("5", 31500, 225, 50, level_waves["5"], level_allowed_enemies["5"], level_image="2"))
 # GlobalMapLevelButton("6", "5", (1374, 304), event=Event(village_event, image_="village", parent_number="6", repeat=True))    # на 6 поменять
 
-level = Level((0, 0), 6750, 1500, 20, level_waves["1"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2")
+level = Level((0, 0), 6750, 1500, 20, level_waves2["boloto"], level_allowed_enemies["1"], allowed_cords=(448, 448), level_image="2")
 
 UpgradeTowerButton("1", (50, 104))
 UpgradeTowerButton("2a", (216, 36))

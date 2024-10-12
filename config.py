@@ -1,11 +1,8 @@
 level_waves = {
     "1": {
-                        # a -- alert -- в разработке :)
-                        # v -- visible -- !
-                        # n -- invisible -- no!
-        "n6700": 1,
-        "n5000": 2,
-        "n3000": 3,
+        "n6700": 1,     # a -- alert -- в разработке :)
+        "n5000": 2,     # v -- visible -- !
+        "n3000": 3,     # n -- invisible -- no!
         "v500": 5,    
     },
     "2": {
@@ -33,6 +30,29 @@ level_waves = {
         "v12000": 60,
         "v6000": 60
     },
+}
+
+level_waves2 = {
+    "boloto": {     # level_name
+        22300: {
+            "allowed_enemies": ("popusk", "josky"),
+            "wave_points": 1,
+            "spawn_enemies_dict": {
+                22200: [("popusk", 448), ("popusk", 576)],
+                22100: [("josky", 448)]
+            },
+            "visible": True
+        },
+        21000: {
+            "allowed_enemies": ("popusk", "josky"),
+            "wave_points": 1,
+            "spawn_enemies_dict": {
+                100: [("popusk", 448), ("popusk", 576)],
+                200: [("josky", 448)]
+            },
+            "visible": True
+        },
+    }
 }
 
 level_allowed_enemies = {
