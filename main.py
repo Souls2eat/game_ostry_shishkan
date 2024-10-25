@@ -756,6 +756,8 @@ class Level:
         self.state = "not_run"
         self.level_time = self.start_level_time = level_time
         self.start_time_to_spawn = self.time_to_spawn = time_to_spawn
+        self.rate_of_increase_random_points = 1
+        self.random_points_to_spawn = 0
         self.cheat = True
         self.rect_visible = False
         self.no_death_animation = True
@@ -777,28 +779,34 @@ class Level:
         draw.rect(screen, (233, 126, 72), (self.x, self.y, self.w, self.h))
         draw.rect(screen, (55, 127, 236), (self.x, self.y, self.w * ratio, self.h))
         draw.rect(screen, (0, 0, 0), (self.x, self.y, self.w, self.h), 4)
-        for wave in self.waves:
+        for dirty_wave in self.waves:
+            wave = dirty_wave.split("+")[0]
             wave_description = wave[:1]
             wave_time = int(wave[1:])
             mark_ratio = wave_time / self.start_level_time
             if wave_description == "v":
                 screen.blit(amogus, (self.x + int(mark_ratio * self.w), self.y - 30))
 
-    def wave_spawn_enemies(self, wave_time, wave_description):
-        waves_points = self.waves[wave_description + str(wave_time)]
+    def wave_spawn_enemies(self, waves_points):
+        # waves_points = self.waves[wave_description + str(wave_time)]
         enemy_x_cord = 1600
         while waves_points > 0:
             enemy_name = choice(self.allowed_enemies)
-            if waves_points - enemy_costs[enemy_name] >= 0:
-                enemy_y_cord = choice(self.allowed_cords)
-                Enemy(enemy_name, (enemy_x_cord, enemy_y_cord))
-                waves_points -= enemy_costs[enemy_name]
-                enemy_x_cord += randint(10, 30)
+            if enemy_name:
+                if waves_points - enemy_costs[enemy_name] >= 0:
+                    enemy_y_cord = choice(self.allowed_cords)
+                    Enemy(enemy_name, (enemy_x_cord, enemy_y_cord))
+                    waves_points -= enemy_costs[enemy_name]
+                    enemy_x_cord += randint(10, 30)
 
     def random_spawn_enemies(self):
-        enemy_y_cord = choice(self.allowed_cords)
+        self.random_points_to_spawn += self.rate_of_increase_random_points
         enemy_name = choice(self.allowed_enemies)
-        Enemy(enemy_name, (1600, enemy_y_cord))
+        if enemy_name:
+            if self.random_points_to_spawn > enemy_costs[enemy_name]:
+                self.random_points_to_spawn -= enemy_costs[enemy_name]
+                enemy_y_cord = choice(self.allowed_cords)
+                Enemy(enemy_name, (1600, enemy_y_cord))
 
     @staticmethod
     def clear(*dont_clear_groups):
@@ -830,11 +838,6 @@ class Level:
                     else:
                         sprite_.kill()
 
-    @staticmethod
-    def spawn():
-        
-        return "run"
-
     def refresh(self, *dont_clear_groups):
         self.money = self.start_money
         self.level_time = self.start_level_time
@@ -864,15 +867,19 @@ class Level:
     def update(self):
         all_sprites_group.update()
         slots_group.update()
-        for wave in self.waves:
+        for dirty_wave in self.waves:
+
+            wave = dirty_wave.split("+")[0]
+            rate_of_increase_random_points = int(dirty_wave.split("+")[1])
             wave_time = int(wave[1:])
             wave_description = wave[:1]
             if self.level_time == wave_time:
-                self.wave_spawn_enemies(wave_time, wave_description)
-                if wave_description == "a":
-                    Alert("БомБом", (750, 450), 225)
+                self.rate_of_increase_random_points = rate_of_increase_random_points
+                self.wave_spawn_enemies(self.waves[wave_description + str(wave_time) + "+" + str(rate_of_increase_random_points)])
+                # if wave_description == "a":
+                #     Alert("БомБом", (750, 450), 225)
         if self.state == "not_run":
-            self.state = self.spawn()
+            self.state = "run"
             row1 = False  # ну блин сорян
             row2 = False
             row3 = False
@@ -1118,7 +1125,6 @@ class Tower(sprite.Sprite):
                 self.kamen_hp = 5000
             elif self.upgrade_level == '2b' or self.upgrade_level == '3b':
                 self.golem_cooldown = self.basic_golem_cooldown = 900
-
 
         if self.name == 'thunder_kamen':
             self.upgrade_level = upgrades["thunder"][-1]
@@ -6219,6 +6225,7 @@ def menu_positioning():
             game_state = "tower_select"
 
     if game_state == "yes_no_window":
+        text_fields_group.clear()
         screen.blit(main_menu, (0, 0))
         screen.blit(pause_menu, (480, 250))
         screen.blit(font60.render("Начать новую игру?", True, (255, 255, 255)), (507, 280))
@@ -6477,6 +6484,7 @@ def menu_positioning():
                 game_state, last_game_state = last_game_state, game_state
 
     if game_state == "global_map_paused":
+        text_fields_group.clear()
         screen.blit(game_map, (66 + scroller.scroll_offset_x, 66 + scroller.scroll_offset_y))
         global_map.render_overlay()
         screen.blit(pause_menu, (480, 250))
@@ -6657,6 +6665,7 @@ def menu_positioning():
             sound_effects_volume = 0.0
 
     if game_state == "global_map_settings_menu":
+        text_fields_group.clear()
         screen.blit(game_map, (66 + scroller.scroll_offset_x, 66 + scroller.scroll_offset_y))
         global_map.render_overlay()
         screen.blit(pause_menu, (480, 250))
@@ -6779,6 +6788,7 @@ def menu_positioning():
         game_state = "reward_second_stage"
 
     if game_state == "reward_second_stage":
+        text_fields_group.clear()
         scroller.remembered_scroll_offsets["global_map"] = scroller.current_scroll_offset()
         screen.blit(global_map.chest.bg_image, (0, 0))
 

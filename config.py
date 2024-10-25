@@ -1,38 +1,35 @@
 level_waves = {
-    "1": {
-                        # a -- alert -- в разработке :)
-                        # v -- visible -- !
-                        # n -- invisible -- no!
-        "n6700": 1,
-        "n5000": 2,
-        "n3000": 3,
-        "v500": 5,    
-    },
+    # "1": {
+    #     "n6700": 1,
+    #     "n5000": 2,
+    #     "n3000": 3,
+    #     "v500": 5,
+    # },
     "2": {
-        "n13250": 1,
-        "n11000": 2,
-        "n8500": 3,
-        "n6500": 3,
-        "n5000": 5,
-        "n2500": 7,
-        "v500": 10,
+        "v13250+1": 1,
+        "v11000+2": 2,
+        "v8500+3": 3,
+        "v6500+2": 3,
+        "v5000+4": 5,
+        "v2500+6": 7,
+        "v500+1": 10,
     },
-    "3": {
-        "v18000": 30,
-        "v8000": 40,
-    },
-    "4": {
-        "v18000": 40,
-        "v12000": 50,
-        "v6000": 50
-    },
-    "5": {
-        "v31000": 60,
-        "v25000": 40,
-        "v22000": 60,
-        "v12000": 60,
-        "v6000": 60
-    },
+    # "3": {
+    #     "v18000": 30,
+    #     "v8000": 40,
+    # },
+    # "4": {
+    #     "v18000": 40,
+    #     "v12000": 50,
+    #     "v6000": 50
+    # },
+    # "5": {
+    #     "v31000": 60,
+    #     "v25000": 40,
+    #     "v22000": 60,
+    #     "v12000": 60,
+    #     "v6000": 60
+    # },
 }
 
 level_allowed_enemies = {
@@ -84,25 +81,25 @@ chests_rewards = {
 }
 
 level_meta_pool = [
-    {
-        # "level_id": (i, j),
-        "level_time": 31500,
-        "time_to_spawn": 225,
-        "start_money": 50,
-        "waves": level_waves["5"],
-        "allowed_enemies": level_allowed_enemies["5"],
-        # "allowed_cords": (192, 320, 448, 576, 704),
-        # "blocked_slots": (),
-        "level_image": "2",
-        # "action_after_complete": None
-    },
+    # {
+    #     # "level_id": (i, j),
+    #     "level_time": 31500,
+    #     "time_to_spawn": 225,
+    #     "start_money": 50,
+    #     "waves": level_waves["5"],
+    #     "allowed_enemies": ("popusk", "sigma", "josky", "zeleniy_strelok", "sportik", "rojatel", "mega_strelok", "armorik", "telezhnik", "drobik", "klonik", "teleportik"),
+    #     # "allowed_cords": (192, 320, 448, 576, 704),
+    #     # "blocked_slots": (),
+    #     "level_image": "2",
+    #     # "action_after_complete": None
+    # },
     {
         # "level_id": (i, j),
         "level_time": 13500,
-        "time_to_spawn": 13501,
+        "time_to_spawn": 375,
         "start_money": 20,
-        "waves": level_waves["5"],
-        "allowed_enemies": level_allowed_enemies["2"],
+        "waves": level_waves["2"],
+        "allowed_enemies": ("popusk", "josky", None, None),
         "allowed_cords": (320, 448, 576),
         # "blocked_slots": (),
         "level_image": "2",
