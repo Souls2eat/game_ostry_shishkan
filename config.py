@@ -179,6 +179,7 @@ tower_costs = {
     "kirka": 20,
     "elf": 20,
     "cvetochnica": 25,
+    "holodilnik": 30,
     "bomb": 35,
     "perec": 30,
     "vodka": 15,
@@ -254,6 +255,7 @@ towers_kd = {
     "kirka": 375,
     "elf": 375,
     "cvetochnica": 1125,
+    "holodilnik": 525,
     "bomb": 1875,
     "perec": 1500,
     "vodka": 1500,
@@ -627,6 +629,13 @@ upgrade_costs = {
         "2b": "1 forest_coin",
         "3a": "2 forest_coin",
         "3b": "2 forest_coin",
+    },
+    "holodilnik": {
+        "1": "0 city_coin",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
     },
     "bomb": {
         "1": "0 city_coin",
@@ -1058,6 +1067,13 @@ upgrade_descriptions = {
         "2b": "1 forest_coin",
         "3a": "2 forest_coin",
         "3b": "2 forest_coin",
+    },
+    "holodilnik": {
+        "1": "Выстреливает разрывным снарядом, который наносит увеличенный урон по области врагам, которые оказались за основной целью",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
     },
     "bomb": {
         "1": "Моментально взрывается нанося большой урон в области взрыва",

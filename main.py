@@ -1077,6 +1077,15 @@ class Tower(sprite.Sprite):
             if self.upgrade_level == '2a' or self.upgrade_level == '3a':
                 self.attack_count = 0
 
+        if self.name == 'holodilnik':
+            self.hp = self.max_hp = 200
+            self.atk = 10  # типа по кому попадёт получит 10 а остальные по 30
+            self.bullet_speed_x = 5
+            self.bullet_speed_y = 0
+            self.attack_cooldown = self.basic_attack_cooldown = 240
+            self.damage_type = 'ice'  # а потом фаер
+            self.rarity = "common"
+
         if self.name == 'kopitel':
             self.hp = self.max_hp = 200
             self.atk = 20
@@ -2174,6 +2183,7 @@ class Tower(sprite.Sprite):
                 or self.name == 'chistiy'\
                 or self.name == 'electro_maga'\
                 or self.name == 'elf'\
+                or self.name == 'holodilnik'\
                 or self.name == 'shabriri': 
             for enemy in enemies_group:
                 if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
@@ -2471,6 +2481,9 @@ class Tower(sprite.Sprite):
                     self.attack_count = 0
             else:
                 Bullet("yellow_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'boom', self)
+
+        if self.name == "holodilnik":
+            Bullet("blue_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'razrivnaya', self)
 
         if self.name == "gribnik":
             Bullet("grib_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'spore', self)
@@ -4295,7 +4308,7 @@ class Bullet(sprite.Sprite):
 
         if self.name == 'ls':
             self.off = 30
-        if self.name == 'visual_effect' or self.name == 'explosion' or self.name == 'joltiy_explosion' or self.name == 'opal_explosion' or self.name == "mech" or self.name == 'razlet' or self.name == 'holod_row':
+        if self.name == 'visual_effect' or self.name == 'explosion' or self.name == 'joltiy_explosion' or self.name == 'opal_explosion' or self.name == "mech" or self.name == 'razlet' or self.name == 'holod_row'  or self.name == 'razriv':
             self.off = 20
             if self.name == 'razlet':
                 self.pushl = 128
@@ -4652,6 +4665,13 @@ class Bullet(sprite.Sprite):
                     if self.hp <= 0:
                         self.kill()
 
+        if self.name == 'razriv':
+            for enemy in enemies_group:
+                if sprite.collide_rect(enemy, self) and enemy.hp > 0 and self not in enemy.only_one_hit_bullets:
+                    if self.vrag != enemy:
+                        self.dealing_damage(enemy)
+                        enemy.only_one_hit_bullets.add(self)
+
         if self.name == 'ls' or self.name == 'explosion' or self.name == 'joltiy_explosion' or self.name == 'opal_explosion' or self.name == "mech" or self.name == "drachun_gulag_splash" or self.name == "tolkan_bux" or self.name == 'razlet' or self.name == 'holod_row':
             for enemy in enemies_group:
                 if sprite.collide_rect(enemy, self) and enemy.hp > 0 and self not in enemy.only_one_hit_bullets:
@@ -4766,7 +4786,7 @@ class Bullet(sprite.Sprite):
                     break
         for enemy in enemies_group:
             if sprite.collide_rect(enemy, self) and enemy.hp > 0:
-                if self.name == 'default' or self.name == 'hrom' or self.name == 'boom' or self.name == 'big_boom' or self.name == 'struya' or self.name == 'spore' or self.name == 'snejok' or self.name == 'sliz_bul' or self.name == 'stone' or self.name == 'obsidian' or self.name == 'opal' or self.name == 'es' or self.name == 'kok' or self.name == 'zayac_krol'  or self.name == 'chistiy_bullet':
+                if self.name == 'default' or self.name == 'hrom' or self.name == 'boom' or self.name == 'big_boom' or self.name == 'struya' or self.name == 'spore' or self.name == 'snejok' or self.name == 'sliz_bul' or self.name == 'stone' or self.name == 'obsidian' or self.name == 'opal' or self.name == 'es' or self.name == 'kok' or self.name == 'zayac_krol' or self.name == 'chistiy_bullet' or self.name == 'razrivnaya':
                     self.dealing_damage(enemy)
                     if self.bullet_sprite == 'mini_kamen_golem':
                         Creep('mini_golem', (self.rect.x-64, self.rect.y-64), self.parent)
@@ -4778,6 +4798,9 @@ class Bullet(sprite.Sprite):
                         Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self.parent)
                     elif self.name == 'big_boom':
                         Bullet("mega_explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self.parent)
+                    elif self.name == 'razrivnaya':
+                        bul = Bullet("drachun_gulag", self.rect.centerx+64, self.rect.centery, 'fire', self.atk*3, 0, 0, 'razriv', self.parent)
+                        bul.vrag = enemy
                     elif self.name == 'opal':
                         Bullet("opal_explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'opal_explosion', self.parent)
                     elif self.name == 'struya' and not enemy.heavy:

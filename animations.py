@@ -64,6 +64,7 @@ towers_wait = {
     "kirka": [image.load(f"images/towers/kirka/wait/kirka{i}.png") for i in range(1, 5)],
     "elf": [image.load(f"images/towers/elf/wait/elf{i}.png") for i in range(1, 5)],
     "cvetochnica": [image.load(f"images/towers/cvetochnica/wait/cvetochnica{i}.png") for i in range(1, 5)],
+    "holodilnik": [image.load(f"images/towers/holodilnik/wait/holodilnik{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/wait/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/wait/perec{i}.png") for i in range(1, 5)],
@@ -131,6 +132,7 @@ towers_attack = {
     "sekirshik": [image.load(f"images/towers/sekirshik/attack/sekirshik{i}.png") for i in range(1, 13)],
     "kirka": [image.load(f"images/towers/kirka/attack/kirka{i}.png") for i in range(1, 5)],
     "elf": [image.load(f"images/towers/elf/attack/elf{i}.png") for i in range(1, 5)],
+    "holodilnik": [image.load(f"images/towers/holodilnik/attack/holodilnik{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/attack/go_bleen1{i}.png") for i in range(1, 3)],
 
 }
@@ -213,7 +215,8 @@ towers_death = {
     "sekirshik": [image.load(f"images/towers/sekirshik/death/sekirshik{i}.png") for i in range(1, 5)],
     "kirka": [image.load(f"images/towers/kirka/death/kirka{i}.png") for i in range(1, 5)],
     "elf": [image.load(f"images/towers/elf/death/elf{i}.png") for i in range(1, 5)],
-    "cvetochnica": [image.load(f"images/towers/cvetochnica/wait/cvetochnica{i}.png") for i in range(1, 5)],
+    "cvetochnica": [image.load(f"images/towers/cvetochnica/death/cvetochnica{i}.png") for i in range(1, 5)],
+    "holodilnik": [image.load(f"images/towers/holodilnik/death/holodilnik{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/death/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/death/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/death/perec{i}.png") for i in range(1, 5)],
