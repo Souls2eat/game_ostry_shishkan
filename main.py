@@ -5492,6 +5492,10 @@ class Buff(sprite.Sprite):
                 if tower.name == 'cvetochnica':
                     if self.rect2.collidepoint(tower.rect.centerx, tower.rect.centery):
                         self.mozhet_zhit = True
+            if not self.mozhet_zhit:
+                for enemy in self.debuffed_enemies:
+                    enemy.atk *= 1.5
+                    enemy.remove(self.debuffed_enemies)
 
         if self.name == 'mana':
             for tower in towers_group:
