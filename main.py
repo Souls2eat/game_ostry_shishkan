@@ -1199,6 +1199,11 @@ class Tower(sprite.Sprite):
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.damage_type = 'ice'
             self.rarity = "common"
+            if self.upgrade_level == "2a" or self.upgrade_level == '3a':
+                self.attack_count = 0
+                self.ice_form = False
+                self.ice_form_duration = self.basic_ice_form_duration = 4
+                self.ice_form_cooldown = self.basic_ice_form_cooldown = 4
 
         if self.name == 'chistiy':
             self.hp = self.max_hp = 200
@@ -2492,8 +2497,24 @@ class Tower(sprite.Sprite):
             Bullet("grib_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'spore', self)
 
         if self.name == "ded_moroz":
-            Bullet("snejok", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'snejok', self)
-
+            if self.upgrade_level == '2a' or self.upgrade_level == '3a':
+                if not self.ice_form:
+                    if self.attack_count < 1:
+                        Bullet("snejok", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'snejok', self)
+                        self.attack_count += 1
+                        if self.upgrade_level == '3a':
+                            self.ice_form_cooldown -= 1
+                    else:
+                        Bullet("blue_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'snejok_big', self)
+                        self.attack_count = 0
+                        if self.upgrade_level == '3a':
+                            self.ice_form_cooldown -= 1
+                else:
+                    Bullet("blue_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'snejok_big', self)
+                    self.ice_form_duration -= 1
+            else:
+                Bullet("snejok", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'snejok', self)
+            
         if self.name == "sliz":
             Bullet("sliz_bul", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'sliz_bul', self)
 
@@ -3366,7 +3387,22 @@ class Tower(sprite.Sprite):
                     self.fire_form = False
                     self.time_indicator //= 2
                     self.basic_attack_cooldown *= 2
-                screen.blit(rage, (self.rect.centerx-24, self.rect.centery-48)) 
+                screen.blit(rage, (self.rect.centerx-24, self.rect.centery-48))
+
+        if self.name == 'ded_moroz' and self.upgrade_level == '3a':  # надо чтобы миша сюда ещё и анимацию привязал, а то мне страшно туда лезть
+            if not self.ice_form:
+                if self.ice_form_cooldown <= 0:
+                    self.ice_form_duration = self.basic_ice_form_duration
+                    self.ice_form = True
+                    self.time_indicator *= 2
+                    self.basic_attack_cooldown //= 2
+            else:
+                if self.ice_form_duration <= 0:
+                    self.ice_form_cooldown = self.basic_ice_form_cooldown
+                    self.ice_form = False
+                    self.time_indicator //= 2
+                    self.basic_attack_cooldown *= 2
+                screen.blit(rage, (self.rect.centerx-24, self.rect.centery-48))
 
         if self.name == 'drachun' and (self.upgrade_level == "2a" or self.upgrade_level == '3a'):
             if self.rage_cooldown <= 0:
@@ -4797,7 +4833,7 @@ class Bullet(sprite.Sprite):
                     break
         for enemy in enemies_group:
             if sprite.collide_rect(enemy, self) and enemy.hp > 0:
-                if self.name == 'default' or self.name == 'hrom' or self.name == 'boom' or self.name == 'big_boom' or self.name == 'struya' or self.name == 'spore' or self.name == 'snejok' or self.name == 'sliz_bul' or self.name == 'stone' or self.name == 'obsidian' or self.name == 'opal' or self.name == 'es' or self.name == 'kok' or self.name == 'zayac_krol' or self.name == 'chistiy_bullet' or self.name == 'razrivnaya':
+                if self.name == 'default' or self.name == 'hrom' or self.name == 'boom' or self.name == 'big_boom' or self.name == 'struya' or self.name == 'spore' or self.name == 'snejok' or self.name == 'snejok_big' or self.name == 'sliz_bul' or self.name == 'stone' or self.name == 'obsidian' or self.name == 'opal' or self.name == 'es' or self.name == 'kok' or self.name == 'zayac_krol' or self.name == 'chistiy_bullet' or self.name == 'razrivnaya':
                     self.dealing_damage(enemy)
                     if self.bullet_sprite == 'mini_kamen_golem':
                         Creep('mini_golem', (self.rect.x-64, self.rect.y-64), self.parent)
@@ -4810,7 +4846,7 @@ class Bullet(sprite.Sprite):
                     elif self.name == 'big_boom':
                         Bullet("mega_explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self.parent)
                     elif self.name == 'razrivnaya':
-                        bul = Bullet("drachun_gulag", self.rect.centerx+64, self.rect.centery, 'fire', self.atk*3, 0, 0, 'razriv', self.parent)
+                        bul = Bullet("drachun_gulag", enemy.rect.right+64, self.rect.centery, 'fire', self.atk*3, 0, 0, 'razriv', self.parent)
                         bul.vrag = enemy
                     elif self.name == 'opal':
                         Bullet("opal_explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'opal_explosion', self.parent)
@@ -4822,12 +4858,17 @@ class Bullet(sprite.Sprite):
                     elif self.name == 'zayac_krol':
                         enemy.stunned = True
                         enemy.stunned_time += self.parent.bullet_stun_time
-                    elif self.name == 'spore' or self.name == 'snejok':
+                    elif self.name == 'spore' or self.name == 'snejok' or self.name == 'snejok_big':
                         self.parent.parasix = randint(-32, 32)
                         self.parent.parasiy = randint(-48, 48)
                         if self.name == 'spore':
                             Parasite('grib_parasite', enemy.rect.centerx+self.parent.parasix, enemy.rect.centery+self.parent.parasiy, '', 0, enemy, self.parent)
                         elif self.name == 'snejok':
+                            Parasite('sneg_parasite', enemy.rect.centerx+self.parent.parasix, enemy.rect.centery+self.parent.parasiy, '', 0, enemy, self.parent)
+                        elif self.name == 'snejok_big':
+                            Parasite('sneg_parasite', enemy.rect.centerx+self.parent.parasix, enemy.rect.centery+self.parent.parasiy, '', 0, enemy, self.parent)
+                            self.parent.parasix = randint(-32, 32)
+                            self.parent.parasiy = randint(-48, 48)
                             Parasite('sneg_parasite', enemy.rect.centerx+self.parent.parasix, enemy.rect.centery+self.parent.parasiy, '', 0, enemy, self.parent)
                     elif self.name == 'sliz_bul':
                         if enemy.sliz:
