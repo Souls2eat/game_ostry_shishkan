@@ -8,7 +8,7 @@ completed_events = []
 hero_pos = 9, 5
 global_map_scroll_offset = -578, -318
 -----
-city_coin = 25
+city_coin = 19
 forest_coin = 25
 evil_coin = 25
 mountain_coin = 25
@@ -29,7 +29,7 @@ thunder = 1
 yascerica = 1
 zeus = 1
 barrier_mag = 1
-urag_anus = 1
+urag_anus = 1, 2a, 3a, 2b, 3b
 big_mechman = 1
 drachun = 1
 tolkan = 1

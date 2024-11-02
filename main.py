@@ -1408,14 +1408,17 @@ class Tower(sprite.Sprite):
         if self.name == 'urag_anus':
             self.hp = self.max_hp = 700
             self.atk = 0
-            self.uragan_duration = 360
-            self.basic_attack_cooldown = 1800
+            self.uragan_duration = 540
+            self.basic_attack_cooldown = 2340
             self.attack_cooldown = 300
             self.uragan = None
             self.rarity = "common"
-            if self.upgrade_level == "2a" or self.upgrade_level == '3a':
-                self.uragan_duration = 420
+            if self.upgrade_level == "2a":
                 self.uragan_speed = 0.5
+            elif self.upgrade_level == "3a":
+                self.uragan_speed = 1
+            elif self.upgrade_level == "2b" or self.upgrade_level == "3b":
+                self.atk = 1.5
 
         if self.name == 'drachun':
             self.hp = self.max_hp = 700
@@ -3479,7 +3482,7 @@ class Enemy(sprite.Sprite):
         self.stunned = False
         self.stunned_time = 0
         self.banished = False
-        self.vulnerabled = 0
+        self.vulnerabled = 0  # x2
         self.vulnerables_and_resists = {}  # dict()  # 'damage_type' : resist%
         self.heavy = False
 
@@ -4289,7 +4292,8 @@ class Bullet(sprite.Sprite):
         self.speed_y = speed_y
         self.name = name
         self.parent = parent
-        self.penned = 0
+        self.penned = False
+        self.penned_uragan = False
         self.target = None
         self.zloy = False
 
@@ -4517,12 +4521,19 @@ class Bullet(sprite.Sprite):
                 enemy.not_oneshot.add(self.parent)
 
     def check_collision(self):
-        if self.name != "zeleniy_strelok_bullet" and self.name != 'anti_hrom' and self.name != 'explosion' and self.name != 'joltiy_explosion' and self.name != 'opal_explosion' and self.name != 'razlet' and self.name != 'horse' and not self.penned:
-            for tower in towers_group:
-                if tower.name == 'pen' and self.rect.colliderect(tower.rect_pen):
-                    self.speed_x *= 1.5
-                    self.atk *= 1.5
-                    self.penned = True
+        if self.name != "zeleniy_strelok_bullet" and self.name != 'anti_hrom' and self.name != 'explosion' and self.name != 'joltiy_explosion' and self.name != 'opal_explosion' and self.name != 'razlet' and self.name != 'horse':
+            if not self.penned:
+                for tower in towers_group:
+                    if tower.name == 'pen' and self.rect.colliderect(tower.rect_pen):
+                        self.speed_x *= 1.5
+                        self.atk *= 1.5
+                        self.penned = True
+            if not self.penned_uragan:
+                for parasite in parasites_group:
+                    if parasite.name == 'uragan' and parasite.parent.upgrade_level == '3b' and self.rect.colliderect(parasite.rect_pen):
+                        self.speed_x *= 1.5
+                        self.atk *= 1.5
+                        self.penned_uragan = True
         if (self.name == "zeleniy_strelok_bullet" or self.name == 'anti_hrom') and not self.penned:
             for tower in towers_group:
                 if tower.name == 'pen' and self.rect.colliderect(tower.rect_pen):
@@ -4691,7 +4702,7 @@ class Bullet(sprite.Sprite):
                         enemy.stunned = True
                         enemy.stunned_time += self.parent.enemy_stunned_time
                     if self.name == 'opal_explosion':
-                        enemy.vulnerabled += 375
+                        enemy.vulnerabled += 300
                     if self.name == 'holod_row':
                         for i in range(14):
                             self.parent.parasix = randint(-32, 32)
@@ -4993,6 +5004,8 @@ class Parasite(sprite.Sprite):
                     self.speed = self.parent.uragan_speed
                     self.start_x = self.rect.centerx
                     self.real_x = self.rect.x
+                elif self.parent.upgrade_level == '3b':
+                    self.rect_pen = Rect(self.rect.left, self.rect.top+128, 384, 128)
 
         if self.name == 'raven':
             self.home_x = self.rect.centerx
@@ -5102,10 +5115,14 @@ class Parasite(sprite.Sprite):
                     enemy.real_y += enemy.y_vel
 
                     if self.attack_cooldown <= 0:
-                        self.attack_cooldown = 15
+                        self.attack_cooldown = 12
                         self.dealing_damage(enemy)
-            if self.parent.upgrade_level == '2a' or self.parent.upgrade_level == '3a':
+            if self.parent.upgrade_level == '2a':
                 if self.rect.centerx - self.start_x < 256 and self.rect.centerx < 1472:
+                    self.real_x += self.speed
+                    self.rect.x = int(self.real_x)
+            elif self.parent.upgrade_level == '3a':
+                if self.rect.centerx - self.start_x < 512 and self.rect.centerx < 1472:
                     self.real_x += self.speed
                     self.rect.x = int(self.real_x)
 
