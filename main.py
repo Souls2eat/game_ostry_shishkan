@@ -1422,8 +1422,10 @@ class Tower(sprite.Sprite):
                 self.uragan_speed = 0.5
             elif self.upgrade_level == "3a":
                 self.uragan_speed = 1
-            elif self.upgrade_level == "2b" or self.upgrade_level == "3b":
+            elif self.upgrade_level == "2b":
                 self.atk = 1.5
+            elif self.upgrade_level == "3b":
+                self.atk = 0.75  # это чтобы конечный урон от урагана не увеличился(а то там х2 увеличение урона)
 
         if self.name == 'drachun':
             self.hp = self.max_hp = 700
@@ -4329,7 +4331,6 @@ class Bullet(sprite.Sprite):
         self.name = name
         self.parent = parent
         self.penned = False
-        self.penned_uragan = False
         self.target = None
         self.zloy = False
 
@@ -4564,12 +4565,6 @@ class Bullet(sprite.Sprite):
                         self.speed_x *= 1.5
                         self.atk *= 1.5
                         self.penned = True
-            if not self.penned_uragan:
-                for parasite in parasites_group:
-                    if parasite.name == 'uragan' and parasite.parent.upgrade_level == '3b' and self.rect.colliderect(parasite.rect_pen):
-                        self.speed_x *= 1.5
-                        self.atk *= 1.5
-                        self.penned_uragan = True
         if (self.name == "zeleniy_strelok_bullet" or self.name == 'anti_hrom') and not self.penned:
             for tower in towers_group:
                 if tower.name == 'pen' and self.rect.colliderect(tower.rect_pen):
@@ -5046,7 +5041,7 @@ class Parasite(sprite.Sprite):
                     self.start_x = self.rect.centerx
                     self.real_x = self.rect.x
                 elif self.parent.upgrade_level == '3b':
-                    self.rect_pen = Rect(self.rect.left, self.rect.top+128, 384, 128)
+                    self.rect_vulnerable = Rect(self.rect.left+128, self.rect.top+128, 128, 128)
 
         if self.name == 'raven':
             self.home_x = self.rect.centerx
@@ -5148,16 +5143,27 @@ class Parasite(sprite.Sprite):
 
         if self.name == 'uragan':
             for enemy in enemies_group:
-                if self.rect.collidepoint(enemy.rect.centerx, enemy.rect.centery) and not enemy.heavy:
-                    enemy.angle = atan2(self.rect.centery - enemy.rect.centery, self.rect.centerx - enemy.rect.centerx)
-                    enemy.x_vel = cos(enemy.angle) * enemy.speed * 12
-                    enemy.y_vel = sin(enemy.angle) * enemy.speed * 12
-                    enemy.real_x += enemy.x_vel
-                    enemy.real_y += enemy.y_vel
+                if self.rect.collidepoint(enemy.rect.centerx, enemy.rect.centery):
+                    if not enemy.heavy:
+                        enemy.angle = atan2(self.rect.centery - enemy.rect.centery, self.rect.centerx - enemy.rect.centerx)
+                        enemy.x_vel = cos(enemy.angle) * enemy.speed * 12
+                        enemy.y_vel = sin(enemy.angle) * enemy.speed * 12
+                        enemy.real_x += enemy.x_vel
+                        enemy.real_y += enemy.y_vel
 
                     if self.attack_cooldown <= 0:
                         self.attack_cooldown = 12
                         self.dealing_damage(enemy)
+                        if self.parent.upgrade_level == '3b':
+                            if not self.rect_vulnerable.collidepoint(enemy.rect.centerx, enemy.rect.centery):
+                                self.dealing_damage(enemy)
+
+                if self.parent.upgrade_level == '3b':
+                    if self.rect_vulnerable.collidepoint(enemy.rect.centerx, enemy.rect.centery):
+                        if enemy.vulnerabled:
+                            enemy.vulnerabled += 1
+                        else:
+                            enemy.vulnerabled += 2
             if self.parent.upgrade_level == '2a':
                 if self.rect.centerx - self.start_x < 256 and self.rect.centerx < 1472:
                     self.real_x += self.speed
