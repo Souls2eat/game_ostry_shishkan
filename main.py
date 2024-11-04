@@ -1636,6 +1636,17 @@ class Tower(sprite.Sprite):
             self.damage_type = ''
             self.rarity = "common"
 
+        if self.name == 'chorniy':
+            self.hp = self.max_hp = 200
+            self.atk = 0
+            self.bullet_speed_x = 5
+            self.bullet_speed_y = 0
+            self.attack_cooldown = 60
+            self.basic_attack_cooldown = 600
+            self.marks = sprite.Group()
+            self.damage_type = 'dark'
+            self.rarity = "common"
+
         if self.name == 'terpila':
             self.hp = self.max_hp = 7500
             if self.upgrade_level == "2b" or self.upgrade_level == '3b' or self.upgrade_level == '3a':
@@ -2194,6 +2205,7 @@ class Tower(sprite.Sprite):
                 or self.name == 'electro_maga'\
                 or self.name == 'elf'\
                 or self.name == 'holodilnik'\
+                or self.name == 'chorniy'\
                 or self.name == 'shabriri': 
             for enemy in enemies_group:
                 if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
@@ -2497,6 +2509,9 @@ class Tower(sprite.Sprite):
 
         if self.name == "gribnik":
             Bullet("grib_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'spore', self)
+
+        if self.name == "chorniy":
+            Bullet("onyx", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'chorniy_bullet', self)
 
         if self.name == "ded_moroz":
             if self.upgrade_level == '2a' or self.upgrade_level == '3a':
@@ -4828,7 +4843,7 @@ class Bullet(sprite.Sprite):
                     break
         for enemy in enemies_group:
             if sprite.collide_rect(enemy, self) and enemy.hp > 0:
-                if self.name == 'default' or self.name == 'hrom' or self.name == 'boom' or self.name == 'big_boom' or self.name == 'struya' or self.name == 'spore' or self.name == 'snejok' or self.name == 'snejok_big' or self.name == 'sliz_bul' or self.name == 'stone' or self.name == 'obsidian' or self.name == 'opal' or self.name == 'es' or self.name == 'kok' or self.name == 'zayac_krol' or self.name == 'chistiy_bullet' or self.name == 'razrivnaya':
+                if self.name == 'default' or self.name == 'hrom' or self.name == 'boom' or self.name == 'big_boom' or self.name == 'struya' or self.name == 'spore' or self.name == 'snejok' or self.name == 'snejok_big' or self.name == 'sliz_bul' or self.name == 'stone' or self.name == 'obsidian' or self.name == 'opal' or self.name == 'es' or self.name == 'kok' or self.name == 'zayac_krol' or self.name == 'chistiy_bullet' or self.name == 'razrivnaya' or self.name == 'chorniy_bullet':
                     self.dealing_damage(enemy)
                     if self.bullet_sprite == 'mini_kamen_golem':
                         Creep('mini_golem', (self.rect.x-64, self.rect.y-64), self.parent)
@@ -4853,7 +4868,7 @@ class Bullet(sprite.Sprite):
                     elif self.name == 'zayac_krol':
                         enemy.stunned = True
                         enemy.stunned_time += self.parent.bullet_stun_time
-                    elif self.name == 'spore' or self.name == 'snejok' or self.name == 'snejok_big':
+                    elif self.name == 'spore' or self.name == 'snejok' or self.name == 'snejok_big' or self.name == 'chorniy_bullet':
                         self.parent.parasix = randint(-32, 32)
                         self.parent.parasiy = randint(-48, 48)
                         if self.name == 'spore':
@@ -4865,6 +4880,8 @@ class Bullet(sprite.Sprite):
                             self.parent.parasix = randint(-32, 32)
                             self.parent.parasiy = randint(-48, 48)
                             Parasite('sneg_parasite', enemy.rect.centerx+self.parent.parasix, enemy.rect.centery+self.parent.parasiy, '', 0, enemy, self.parent)
+                        elif self.name == 'chorniy_bullet':
+                            Parasite('dark_mark', enemy.rect.centerx+self.parent.parasix, enemy.rect.centery+self.parent.parasiy, self.damage_type, 0, enemy, self.parent)
                     elif self.name == 'sliz_bul':
                         if enemy.sliz:
                             enemy.sliz.hp += self.parent.sliz_hp
@@ -4991,7 +5008,7 @@ class Parasite(sprite.Sprite):
         self.owner = owner  # это враг к которому привязан паразит
         self.parent = parent
 
-        if self.name == 'sosun' or self.name == 'grib_parasite' or self.name == 'sneg_parasite' or self.name == 'ogonek_parasite' or self.name == 'poison_parasite' or self.name == 'metka_inq':
+        if self.name == 'sosun' or self.name == 'grib_parasite' or self.name == 'sneg_parasite' or self.name == 'ogonek_parasite' or self.name == 'poison_parasite' or self.name == 'metka_inq' or self.name == 'dark_mark':
             self.parasix = self.parent.parasix
             self.parasiy = self.parent.parasiy
             if self.name == 'sosun' or self.name == 'ogonek_parasite' or self.name == 'poison_parasite':
@@ -5013,6 +5030,15 @@ class Parasite(sprite.Sprite):
                 self.lifetime = 300
             elif self.name == 'poison_parasite':
                 self.lifetime = 1020
+            elif self.name == 'dark_mark':
+                self.lifetime = 600
+                self.parent.marks.add(self)
+                for parasite in parasites_group:
+                    if parasite.name == self.name and parasite.owner == self.owner and parasite != self:
+                        parasite.kill()
+                for mark in self.parent.marks:
+                    if mark != self:
+                        mark.kill()
 
         if self.name == 'barrier' or self.name == 'onyx_barrier':
             self.hp = self.parent.barrier_hp
@@ -5119,7 +5145,7 @@ class Parasite(sprite.Sprite):
         elif self.name == 'sliz_luja_parasite' and self.hp <= 0:
             self.dead()
 
-        if self.name == 'sosun' or self.name == 'grib_parasite' or self.name == 'sneg_parasite' or self.name == 'ogonek_parasite' or self.name == 'poison_parasite' or self.name == 'metka_inq':
+        if self.name == 'sosun' or self.name == 'grib_parasite' or self.name == 'sneg_parasite' or self.name == 'ogonek_parasite' or self.name == 'poison_parasite' or self.name == 'metka_inq' or self.name == 'dark_mark':
             self.rect.centerx = self.owner.rect.centerx+self.parasix
             self.rect.centery = self.owner.rect.centery+self.parasiy
             if self.name == 'sosun' or self.name == 'ogonek_parasite' or self.name == 'poison_parasite':
@@ -5135,6 +5161,12 @@ class Parasite(sprite.Sprite):
         if self.name == 'terpila_debuff':
             self.rect.centerx = self.owner.rect.centerx
             self.rect.centery = self.owner.rect.centery
+
+        if self.name == 'dark_mark':
+            if self.owner.vulnerabled:
+                self.owner.vulnerabled += 1
+            else:
+                self.owner.vulnerabled += 2
 
         if self.name == 'grib_parasite':
             if self.owner.gribs > 3:

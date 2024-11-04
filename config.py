@@ -180,6 +180,7 @@ tower_costs = {
     "elf": 20,
     "cvetochnica": 25,
     "holodilnik": 30,
+    "chorniy": 25,
     "bomb": 35,
     "perec": 30,
     "vodka": 15,
@@ -256,6 +257,7 @@ towers_kd = {
     "elf": 375,
     "cvetochnica": 1125,
     "holodilnik": 525,
+    "chorniy": 750,
     "bomb": 1875,
     "perec": 1500,
     "vodka": 1500,
@@ -636,6 +638,13 @@ upgrade_costs = {
         "2b": "1 city_coin",
         "3a": "2 city_coin",
         "3b": "2 city_coin",
+    },
+    "chorniy": {
+        "1": "0 evil_coin",
+        "2a": "1 evil_coin",
+        "2b": "1 evil_coin",
+        "3a": "2 evil_coin",
+        "3b": "2 evil_coin",
     },
     "bomb": {
         "1": "0 city_coin",
@@ -1074,6 +1083,13 @@ upgrade_descriptions = {
         "2b": "1 city_coin",
         "3a": "2 city_coin",
         "3b": "2 city_coin",
+    },
+    "chorniy": {
+        "1": "Выстреливает во врага и наносит на него метку тьмы, увеличивающую входящий урон. Эффекты меток не складываются. Не может наложить более одной метки",
+        "2a": "1 evil_coin",
+        "2b": "1 evil_coin",
+        "3a": "2 evil_coin",
+        "3b": "2 evil_coin",
     },
     "bomb": {
         "1": "Моментально взрывается нанося большой урон в области взрыва",
