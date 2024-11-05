@@ -2245,12 +2245,12 @@ class Tower(sprite.Sprite):
 
         if self.name == 'kar_mag':
             for enemy in enemies_group:
-                if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 384 and enemy.alive:
+                if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 384 and enemy.alive:
                     self.target_phase = 'close'
                     return enemy
             for enemy in neutral_objects_group:
                 if enemy.height == "high":
-                    if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 384 and enemy.alive:
+                    if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 384 and enemy.alive:
                         self.target_phase = 'close'
                         return enemy
             for enemy in enemies_group:
@@ -2347,21 +2347,21 @@ class Tower(sprite.Sprite):
 
         if self.name == "electric" or self.name == 'oruzhik_daggers':
             for enemy in enemies_group:
-                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256 and enemy.alive:
+                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 256 and enemy.alive:
                     self.target_phase = 'close'
                     return enemy
             for enemy in neutral_objects_group:
                 if enemy.height == "high":
-                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256 and enemy.alive:
+                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 256 and enemy.alive:
                         self.target_phase = 'close'
                         return enemy
             for enemy in enemies_group:
-                if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x > self.rect.x + 256 and enemy.alive:
+                if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x + 256 and enemy.alive:
                     self.target_phase = 'far'
                     return enemy
             for enemy in neutral_objects_group:
                 if enemy.height == "high":
-                    if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x > self.rect.x + 256 and enemy.alive:
+                    if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x + 256 and enemy.alive:
                         self.target_phase = 'far'
                         return enemy
 
@@ -2421,63 +2421,63 @@ class Tower(sprite.Sprite):
             for enemy in enemies_group:
                 if self.upgrade_level == '2b' or self.upgrade_level == '3b':
                     if self.big_mech_cooldown > 0:
-                        if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.x >= self.rect.x and enemy.alive and enemy.rect.x - self.rect.x <= 256:
+                        if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.x >= self.rect.x and enemy.alive and enemy.rect.x - self.rect.x < 256:
                             return enemy
                     else:
-                        if -266 <= enemy.rect.y - self.rect.y <= 266 and enemy.rect.x >= self.rect.x and enemy.alive and enemy.rect.x - self.rect.x <= 384:
+                        if -266 <= enemy.rect.y - self.rect.y <= 266 and enemy.rect.x >= self.rect.x and enemy.alive and enemy.rect.x - self.rect.x < 384:
                             return enemy
                 else:
-                    if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.x >= self.rect.x and enemy.alive and enemy.rect.x - self.rect.x <= 256:
+                    if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.x >= self.rect.x and enemy.alive and enemy.rect.x - self.rect.x < 256:
                         return enemy
             for enemy in neutral_objects_group:
                 if enemy.height == "high":
                     if self.upgrade_level == '2b' or self.upgrade_level == '3b':
                         if self.big_mech_cooldown > 0:
-                            if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.x >= self.rect.x and enemy.alive and enemy.rect.x - self.rect.x <= 256:
+                            if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.x >= self.rect.x and enemy.alive and enemy.rect.x - self.rect.x < 256:
                                 return enemy
                         else:
-                            if -266 <= enemy.rect.y - self.rect.y <= 266 and enemy.rect.x >= self.rect.x and enemy.alive and enemy.rect.x - self.rect.x <= 384:
+                            if -266 <= enemy.rect.y - self.rect.y <= 266 and enemy.rect.x >= self.rect.x and enemy.alive and enemy.rect.x - self.rect.x < 384:
                                 return enemy
                     else:
-                        if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.x >= self.rect.x and enemy.alive and enemy.rect.x - self.rect.x <= 256:
+                        if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.x >= self.rect.x and enemy.alive and enemy.rect.x - self.rect.x < 256:
                             return enemy
                     
         if self.name == "sekirshik":
             for enemy in enemies_group:
                 if (self.upgrade_level == '2b' and self.spin_attack_cooldown <= 0) or self.upgrade_level == '3b':
-                    if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.right >= self.rect.x - 128 and enemy.alive and enemy.rect.x - self.rect.x <= 256:
+                    if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.right >= self.rect.x - 128 and enemy.alive and enemy.rect.x - self.rect.x < 256:
                         return enemy
             for enemy in neutral_objects_group:
                 if enemy.height == "high":
                     if (self.upgrade_level == '2b' and self.spin_attack_cooldown <= 0) or self.upgrade_level == '3b':
-                        if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.right >= self.rect.x - 128 and enemy.alive and enemy.rect.x - self.rect.x <= 256:
+                        if -138 <= enemy.rect.y - self.rect.y <= 138 and enemy.rect.right >= self.rect.x - 128 and enemy.alive and enemy.rect.x - self.rect.x < 256:
                             return enemy
                     
         if self.name == "kirka":
             for enemy in enemies_group:
-                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256 and enemy.alive and hasattr(enemy, 'armor') and enemy.armor > 0:
+                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 256 and enemy.alive and hasattr(enemy, 'armor') and enemy.armor > 0:
                     return enemy
             for enemy in neutral_objects_group:
                 if enemy.height == "high":
-                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256 and enemy.alive and hasattr(enemy, 'armor') and enemy.armor > 0:
+                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 256 and enemy.alive and hasattr(enemy, 'armor') and enemy.armor > 0:
                         return enemy
 
         if self.name == "drachun" or self.name == "kirka" or self.name == "tolkan" or self.name == "knight" or self.name == "sekirshik" or self.name == 'furry_medved' or self.name == 'furry_volk' or (self.name == 'kot' and ((self.upgrade_level == '2b' and self.lives <= 5) or self.upgrade_level == '3b')):
             for enemy in enemies_group:
-                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256 and enemy.alive:
+                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 256 and enemy.alive:
                     return enemy
             for enemy in neutral_objects_group:
                 if enemy.height == "high":
-                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256 and enemy.alive:
+                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 256 and enemy.alive:
                         return enemy
 
         if self.name == "knight_on_horse":
             for enemy in enemies_group:
-                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 384 and enemy.alive:
+                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 384 and enemy.alive:
                     return enemy
             for enemy in neutral_objects_group:
                 if enemy.height == "high":
-                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 384 and enemy.alive:
+                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 384 and enemy.alive:
                         return enemy
                 
         if self.name == "klonys":
@@ -2492,51 +2492,51 @@ class Tower(sprite.Sprite):
         if self.name == "prokach":
             if self.mech_level <= 2:
                 for enemy in enemies_group:
-                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256 and enemy.alive:
+                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 256 and enemy.alive:
                         return enemy
                 for enemy in neutral_objects_group:
                     if enemy.height == "high":
-                        if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256 and enemy.alive:
+                        if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 256 and enemy.alive:
                             return enemy
             elif self.mech_level == 3:
                 for enemy in enemies_group:
-                    if (enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256 and enemy.alive:
+                    if (enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 256 and enemy.alive:
                         return enemy
                 for enemy in neutral_objects_group:
                     if enemy.height == "high":
-                        if (enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 256 and enemy.alive:
+                        if (enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 256 and enemy.alive:
                             return enemy
             elif self.mech_level == 4:
                 for enemy in enemies_group:
-                    if (((enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x - self.rect.x <= 384) or ((enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x - self.rect.x <= 256)) and enemy.rect.x >= self.rect.x and enemy.alive:
+                    if (((enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x - self.rect.x < 384) or ((enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x - self.rect.x < 256)) and enemy.rect.x >= self.rect.x and enemy.alive:
                         return enemy
                 for enemy in neutral_objects_group:
                     if enemy.height == "high":
-                        if (((enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x - self.rect.x <= 384) or ((enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x - self.rect.x <= 256)) and enemy.rect.x >= self.rect.x and enemy.alive:
+                        if (((enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x - self.rect.x < 384) or ((enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x - self.rect.x < 256)) and enemy.rect.x >= self.rect.x and enemy.alive:
                             return enemy
             elif self.mech_level == 5:
                 for enemy in enemies_group:
-                    if (enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 384 and enemy.alive:
+                    if (enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 384 and enemy.alive:
                         return enemy
                 for enemy in neutral_objects_group:
                     if enemy.height == "high":
-                        if (enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 384 and enemy.alive:
+                        if (enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 384 and enemy.alive:
                             return enemy
             elif self.mech_level == 6:
                 for enemy in enemies_group:
-                    if (((enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x - self.rect.x <= 512) or ((enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x - self.rect.x <= 384)) and enemy.rect.x >= self.rect.x and enemy.alive:
+                    if (((enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x - self.rect.x < 512) or ((enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x - self.rect.x < 384)) and enemy.rect.x >= self.rect.x and enemy.alive:
                         return enemy
                 for enemy in neutral_objects_group:
                     if enemy.height == "high":
-                        if (((enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x - self.rect.x <= 512) or ((enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x - self.rect.x <= 384)) and enemy.rect.x >= self.rect.x and enemy.alive:
+                        if (((enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x - self.rect.x < 512) or ((enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x - self.rect.x < 384)) and enemy.rect.x >= self.rect.x and enemy.alive:
                             return enemy
             elif self.mech_level == 7:
                 for enemy in enemies_group:
-                    if (enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 512 and enemy.alive:
+                    if (enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 512 and enemy.alive:
                         return enemy
                 for enemy in neutral_objects_group:
                     if enemy.height == "high":
-                        if (enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 512 and enemy.alive:
+                        if (enemy.rect.y - self.rect.y <= 138 and self.rect.y - enemy.rect.y <= 138) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 512 and enemy.alive:
                             return enemy
             if self.mech_level < self.max_mech_level:
                 self.mech_level += 1
@@ -2554,11 +2554,11 @@ class Tower(sprite.Sprite):
 
         if self.name == "gnome_flamethrower":
             for enemy in enemies_group:
-                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 192 and enemy.alive:
+                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 192 and enemy.alive:
                     return enemy
             for enemy in neutral_objects_group:
                 if enemy.height == "high":
-                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x <= 192 and enemy.alive:
+                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.x >= self.rect.x and enemy.rect.x - self.rect.x < 192 and enemy.alive:
                         return enemy
 
         if self.name == 'priest':
@@ -4548,10 +4548,12 @@ class Neutral_object(sprite.Sprite):
             self.height = 'high'
 
         if self.name == 'luja':
+            self.hp = self.max_hp = 1
             self.luja_capacity = 3
             self.height = 'low'
 
         if self.name == 'strelka_up' or self.name == 'strelka_down':
+            self.hp = self.max_hp = 1
             self.height = 'low'
 
         # СТАТЫ конец
@@ -4567,10 +4569,59 @@ class Neutral_object(sprite.Sprite):
             self.dead()
         self.image2 = font30.render(str(self.hp), True, (0, 0, 0))
 
+    def omagad(self):
+        if self.name == 'luja':
+            if self.luja_capacity > 0:
+                for enemy in enemies_group:
+                    if self.rect.collidepoint(enemy.rect.centerx, enemy.rect.centery):
+                        enemy.hp = 0
+                        self.luja_capacity -= 1
+                for creep in creeps_group:
+                    if self.rect.collidepoint(creep.rect.centerx, creep.rect.centery):
+                        creep.hp = 0
+                        self.luja_capacity -= 1
+            else:
+                self.alive = False
+                self.dead()
+
+        if self.name == 'strelka_up':
+            for enemy in enemies_group:
+                if self.rect.collidepoint(enemy.rect.centerx, enemy.rect.bottom-1):
+                    enemy.angle = atan2(self.rect.centery-128 - enemy.rect.centery, 0)
+                    enemy.y_vel = sin(enemy.angle) * enemy.speed * 6
+                    enemy.real_y += enemy.y_vel
+                if self.rect.centery-138 <= enemy.rect.centery <= self.rect.centery-118:
+                    enemy.back_to_line()
+            for creep in creeps_group:
+                if self.rect.collidepoint(creep.rect.centerx, creep.rect.bottom-1):
+                    creep.angle = atan2(self.rect.centery-128 - creep.rect.centery, 0)
+                    creep.y_vel = sin(creep.angle) * creep.speed * 6
+                    creep.real_y += creep.y_vel
+                if self.rect.centery-138 <= creep.rect.centery <= self.rect.centery-118:
+                    creep.back_to_line()
+
+        if self.name == 'strelka_down':
+            for enemy in enemies_group:
+                if self.rect.collidepoint(enemy.rect.centerx, enemy.rect.top+1):
+                    enemy.angle = atan2(self.rect.centery+128 - enemy.rect.centery, 0)
+                    enemy.y_vel = sin(enemy.angle) * enemy.speed * 6
+                    enemy.real_y += enemy.y_vel
+                if self.rect.centery+118 <= enemy.rect.centery <= self.rect.centery+138:
+                    enemy.back_to_line()
+            for creep in creeps_group:
+                if self.rect.collidepoint(creep.rect.centerx, creep.rect.top+1):
+                    creep.angle = atan2(self.rect.centery+128 - creep.rect.centery, 0)
+                    creep.y_vel = sin(creep.angle) * creep.speed * 6
+                    creep.real_y += creep.y_vel
+                if self.rect.centery+118 <= creep.rect.centery <= self.rect.centery+138:
+                    creep.back_to_line()
+            
+
     def cooldown(self):
         pass
 
     def update(self):
+        self.omagad()
         self.cooldown()
         self.check_hp()
 
@@ -7870,7 +7921,12 @@ while running:
                 global_map.where_is_smoke()
             
             if e.key == K_m:
-                Neutral_object('block', (1025, 448))
+                Neutral_object('block', (1024, 448))
+            if e.key == K_n:
+                Neutral_object('luja', (1024, 576))
+            if e.key == K_l:
+                Neutral_object('strelka_up', (1152, 704))
+                Neutral_object('strelka_down', (1152, 192))
 
         if e.type == QUIT:
             running = False
