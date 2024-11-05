@@ -1034,6 +1034,7 @@ class Tower(sprite.Sprite):
         self.damaged = False
         self.stunned = False
         self.banished = False
+        self.vulnerabled = 0
         self.unvulnerable = 0
         self.vulnerables_and_resists = {}  # dict()  # 'damage_type' : resist%
 
@@ -1049,7 +1050,7 @@ class Tower(sprite.Sprite):
 
         # СТАТЫ начало
         if self.name == 'fire_mag':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 10
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
@@ -1067,7 +1068,7 @@ class Tower(sprite.Sprite):
                 self.atk_dot = self.atk/10  #1  # dot = damage_over_time    # типа он поджогом дамажит 5 сек по 1 урону и в итоге у него от каждой тычки дамаг в 1,5 раза увеличивается но растянуто
 
         if self.name == 'boomchick':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 10  # типа по кому попадёт получит 20 а остальные по 10
             self.bullet_speed_x = 4
             self.bullet_speed_y = 0
@@ -1078,7 +1079,7 @@ class Tower(sprite.Sprite):
                 self.attack_count = 0
 
         if self.name == 'holodilnik':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 10  # типа по кому попадёт получит 10 а остальные по 30
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
@@ -1087,7 +1088,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'kopitel':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 20
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
@@ -1103,7 +1104,7 @@ class Tower(sprite.Sprite):
                 self.atk_big = self.atk*3  #60
 
         if self.name == 'elf':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 5
             self.atk_dot = self.atk/5  # 1
             self.bullet_speed_x = 5
@@ -1113,7 +1114,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'uvelir':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 1
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
@@ -1129,7 +1130,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'thunder':
-            self.hp = self.max_hp = 250
+            self.hp = self.max_hp = 25
             self.atk = 10
             self.bullet_speed_x = 7
             self.bullet_speed_y = 3
@@ -1138,29 +1139,29 @@ class Tower(sprite.Sprite):
             self.damage_type = 'bludgeoning'  # дробящий
             self.rarity = "common"
             if self.upgrade_level == '2a':
-                self.hp = self.max_hp = 325
+                self.hp = self.max_hp = 32.5
             elif self.upgrade_level == '3a':
-                self.hp = self.max_hp = 500
-                self.kamen_hp = 5000
+                self.hp = self.max_hp = 50
+                self.kamen_hp = 500
             elif self.upgrade_level == '2b' or self.upgrade_level == '3b':
                 self.golem_cooldown = self.basic_golem_cooldown = 900
 
         if self.name == 'thunder_kamen':
             self.upgrade_level = upgrades["thunder"][-1]
-            self.hp = self.max_hp = 2500
+            self.hp = self.max_hp = 250
             self.vulnerables_and_resists['poison'] = -100
             self.vulnerables_and_resists['piercing'] = -25
             self.vulnerables_and_resists['slashing'] = -25
             self.vulnerables_and_resists['bludgeoning'] = 50
             self.rarity = "common"
             if self.upgrade_level == '2a':
-                self.hp = self.max_hp = 3250
+                self.hp = self.max_hp = 325
             elif self.upgrade_level == '3a':
-                self.hp = self.max_hp = 5000
+                self.hp = self.max_hp = 500
                 self.revive_cooldown = 900
 
         if self.name == 'gribnik':
-            self.hp = self.max_hp = 300  # ну а почему бы и нет
+            self.hp = self.max_hp = 30  # ну а почему бы и нет
             self.atk = 15
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
@@ -1172,7 +1173,7 @@ class Tower(sprite.Sprite):
         for i in range(3):
             if self.name == 'grib' + str(i + 1):
                 self.upgrade_level = upgrades["gribnik"][-1]
-                self.hp = self.max_hp = 300 * (i + 1)
+                self.hp = self.max_hp = 30 * (i + 1)
                 self.rarity = "common"
                 if self.upgrade_level == '2a' or self.upgrade_level == '3a':
                     self.atk = 1 * (i + 1)
@@ -1185,14 +1186,14 @@ class Tower(sprite.Sprite):
                         self.gas_duration = 240 * (i + 1)
                 if self.upgrade_level == '2b' or self.upgrade_level == '3b':
                     self.damage_type = 'fire'
-                    self.hp = self.max_hp = 50 * (i + 1)
+                    self.hp = self.max_hp = 5 * (i + 1)
                     if self.upgrade_level == '2b':
                         self.atk = 5 * ((i + 1)**2)
                     elif self.upgrade_level == '3b':
                         self.atk = 20 * ((i + 1)**2)
 
         if self.name == 'ded_moroz':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 5
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
@@ -1206,7 +1207,7 @@ class Tower(sprite.Sprite):
                 self.ice_form_cooldown = self.basic_ice_form_cooldown = 4
 
         if self.name == 'chistiy':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 1
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
@@ -1216,8 +1217,8 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'sliz':
-            self.hp = self.max_hp = 200
-            self.sliz_hp = 500
+            self.hp = self.max_hp = 20
+            self.sliz_hp = 50
             self.atk = 0
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
@@ -1229,7 +1230,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'zeus':
-            self.hp = self.max_hp = 50
+            self.hp = self.max_hp = 5
             self.atk = 15
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
@@ -1238,7 +1239,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'yascerica':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 0
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
@@ -1259,7 +1260,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'krovnyak':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 10
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
@@ -1275,7 +1276,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'electric':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 3  # типо дальней атакой он наносит 45 урона в 1 цель за 4,5 секунды(3,5 сек кд и 1 сек он всё выпускает)
             self.atk2 = self.atk*15  #45  # а ближней он наносит 45 урона сплешом за 3,5 секунды
             self.bullet_speed_x = 5
@@ -1289,7 +1290,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'struyniy':  # пока что он слишком имба под баффом но мы что-нибудь придумаем. хотя мб нет
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 2
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
@@ -1303,7 +1304,7 @@ class Tower(sprite.Sprite):
                 self.ammo = self.basic_ammo = 36 
 
         if self.name == 'dark_druid':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 5
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
@@ -1332,7 +1333,7 @@ class Tower(sprite.Sprite):
                         Parasite('raven', self.rect.centerx - 58, self.rect.bottom - 16*i, self.damage_type, self.atk, self, self)
 
         if self.name == 'electro_maga':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 0
             self.bullet_speed_x = 1
             self.bullet_speed_y = 0
@@ -1342,7 +1343,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'parasitelniy':
-            self.hp = self.max_hp = 2500
+            self.hp = self.max_hp = 250
             self.atk = 5
             self.attack_cooldown = self.basic_attack_cooldown = 120
             self.damage_type = 'piercing'
@@ -1350,7 +1351,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'inquisitor':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 0
             self.attack_cooldown = self.basic_attack_cooldown = 120
             self.damage_type = 'light'
@@ -1359,7 +1360,7 @@ class Tower(sprite.Sprite):
             self.vulnerables_and_resists['dark'] = -25
 
         if self.name == 'nekr':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 30  # я хз надо ли некру писать атк(атака сейчас нигде не используется, оставил чтобы не ломать справочник), можно сделать чтобы его призывники наследовали атаку, а можно и чтобы у них в ините она прописывалась, хз короч, потом решим
             self.attack_cooldown = self.basic_attack_cooldown = 600  # потом отбалансим. кстати можно его не через атаку сделать а через spawn_something, но это потом, пока что делаю через shoot
             self.creeps = sprite.Group()
@@ -1411,7 +1412,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'urag_anus':
-            self.hp = self.max_hp = 700
+            self.hp = self.max_hp = 70
             self.atk = 0
             self.uragan_duration = 540
             self.basic_attack_cooldown = 2340
@@ -1428,7 +1429,7 @@ class Tower(sprite.Sprite):
                 self.atk = 0.75  # это чтобы конечный урон от урагана не увеличился(а то там х2 увеличение урона)
 
         if self.name == 'drachun':
-            self.hp = self.max_hp = 700
+            self.hp = self.max_hp = 70
             self.atk = self.basic_atk = 30
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.damage_type = 'bludgeoning'
@@ -1450,7 +1451,7 @@ class Tower(sprite.Sprite):
                     self.kill_time = 375
 
         if self.name == 'drachun_plavniy':
-            self.hp = self.max_hp = 700
+            self.hp = self.max_hp = 70
             self.atk = self.basic_atk = 30
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.damage_type = 'bludgeoning'
@@ -1458,7 +1459,7 @@ class Tower(sprite.Sprite):
             self.time_indicator *= 2
 
         if self.name == 'kirka':
-            self.hp = self.max_hp = 500
+            self.hp = self.max_hp = 50
             self.atk = 50
             self.damage_multiplier = 10  # х10 урон по армированным
             self.attack_cooldown = self.basic_attack_cooldown = 300
@@ -1466,8 +1467,8 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'knight_on_horse':       # нука кусни нет, потому что он подгружает картинки по кд
-            self.knight_hp = 1500                # nuka_kusni
-            self.horse_hp = 1500  # уменьшить отхилл рыцарю
+            self.knight_hp = 150                # nuka_kusni
+            self.horse_hp = 150  # уменьшить отхилл рыцарю
             self.hp = self.max_hp = self.knight_hp + self.horse_hp
             self.atk = 20
             self.taran_atk = self.atk*20  #400
@@ -1476,14 +1477,14 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == "knight":
-            self.hp = self.max_hp = 1500
+            self.hp = self.max_hp = 150
             self.atk = 20
             self.attack_cooldown = self.basic_attack_cooldown = 120
             self.damage_type = 'piercing'
             self.rarity = "common"
 
         if self.name == 'tolkan':
-            self.hp = self.max_hp = 3000
+            self.hp = self.max_hp = 300
             self.atk = 50
             self.ottalkivanie_solo = self.push = 384
             self.ottalkivanie_ne_solo = 192
@@ -1494,7 +1495,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'big_mechman':
-            self.hp = self.max_hp = 700
+            self.hp = self.max_hp = 70
             self.atk = 60
             self.kulak_time = 15
             self.attack_cooldown = self.basic_attack_cooldown = 300
@@ -1506,7 +1507,7 @@ class Tower(sprite.Sprite):
                 self.big_mech_cooldown = self.basic_big_mech_cooldown = 600
 
         if self.name == 'sekirshik':
-            self.hp = self.max_hp = 700
+            self.hp = self.max_hp = 70
             self.atk = 30  # максимум 180 при 16 врагах
             self.kulak_time = 15
             self.attack_cooldown = self.basic_attack_cooldown = 300
@@ -1518,7 +1519,7 @@ class Tower(sprite.Sprite):
                 self.hp = self.max_hp = 2000
 
         if self.name == 'prokach':  # статы фаермага чтобы справочник не сломался, переделаю его попозже
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 30
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
@@ -1530,7 +1531,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'klonys':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = self.basic_atk = 30
             self.attack_cooldown = self.basic_attack_cooldown = 420
             self.illusions = self.basic_illusions = 5
@@ -1548,7 +1549,7 @@ class Tower(sprite.Sprite):
         #         self.damage_type = ''
 
         if self.name == 'gnome_cannon1':
-            self.hp = self.max_hp = 500
+            self.hp = self.max_hp = 50
             self.atk = 150
             self.bullet_speed_x = 10
             self.bullet_speed_y = 0
@@ -1558,8 +1559,8 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'gnome_cannon2':
-            self.hp = self.max_hp = 2500
-            self.heal = 10
+            self.hp = self.max_hp = 250
+            self.heal = 1
             self.atk = 150
             self.bullet_speed_x = 10
             self.bullet_speed_y = 0
@@ -1570,8 +1571,8 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'gnome_cannon3':
-            self.hp = self.max_hp = 2500
-            self.heal = 10
+            self.hp = self.max_hp = 250
+            self.heal = 1
             self.atk = 150
             self.bullet_speed_x = 10
             self.bullet_speed_y = 0
@@ -1593,7 +1594,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'kokol':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 10
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
@@ -1606,7 +1607,7 @@ class Tower(sprite.Sprite):
             self.vulnerables_and_resists['fire'] = 25
 
         if self.name == 'kar_mag':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 20
             self.atkf = (self.atk/4)*3  #15
             self.bullet_speed_x = 0
@@ -1621,7 +1622,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'shabriri':
-            self.hp = self.max_hp = 300
+            self.hp = self.max_hp = 30
             self.atk = 5
             self.atk_big = 7.5
             self.bullet_speed_x = 6
@@ -1635,7 +1636,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'pulelom':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 0
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
@@ -1645,7 +1646,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'chorniy':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 0
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
@@ -1656,10 +1657,10 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'terpila':
-            self.hp = self.max_hp = 7500
+            self.hp = self.max_hp = 750
             if self.upgrade_level == "2b" or self.upgrade_level == '3b' or self.upgrade_level == '3a':
                 self.received_damage = 0
-                self.max_received_damage = 1000
+                self.max_received_damage = 100
             if self.upgrade_level == "2b":
                 self.ottalkivanie_rect = Rect(self.rect.x+64, self.rect.y, 128, 128)
             elif self.upgrade_level == "3b":
@@ -1675,7 +1676,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
         
         if self.name == 'kot':
-            self.hp = self.max_hp = 1500
+            self.hp = self.max_hp = 150
             self.lives = 9
             self.chill_time = 0
             self.basic_chill_time = 600
@@ -1692,7 +1693,7 @@ class Tower(sprite.Sprite):
                 self.damage_type = 'slashing'
 
         if self.name == 'ares':
-            self.hp = self.max_hp = 1500
+            self.hp = self.max_hp = 150
             self.atk = 25
             self.vpitano_damaged = 0
             self.contrudar = 0
@@ -1702,15 +1703,15 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'barrier_mag':
-            self.hp = self.max_hp = 1500
-            self.barrier_hp = 3000
+            self.hp = self.max_hp = 150
+            self.barrier_hp = 300
             self.best_x = self
             self.basic_spawn_something_cooldown = 2700  # 3375
             self.spawn_something_cooldown = 0
             self.rarity = "common"
 
         if self.name == 'vozmezdik':
-            self.hp = self.max_hp = 3000
+            self.hp = self.max_hp = 300
             self.basic_spawn_something_cooldown = self.spawn_something_cooldown = 600
             self.vremya_casta = self.basic_vremya_casta = 300
             self.col_vo_poglash = 0
@@ -1718,8 +1719,8 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'priest':
-            self.hp = self.max_hp = 200
-            self.atk = 100
+            self.hp = self.max_hp = 20
+            self.atk = 10
             self.attack_cooldown = self.basic_attack_cooldown = 180
             # self.healing = 100
             # self.healing_cooldown = self.basic_healing_cooldown = 180
@@ -1727,7 +1728,7 @@ class Tower(sprite.Sprite):
             self.vulnerables_and_resists['dark'] = -25
 
         if self.name == 'davalka':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.skolko_deneg_dast = 10
             self.basic_spawn_something_cooldown = self.spawn_something_cooldown = 1200
             self.rarity = "common"
@@ -1746,7 +1747,7 @@ class Tower(sprite.Sprite):
                 Buff("mana", self.rect.x, self.rect.y - 128, self)
 
         if self.name == 'matricayshon':
-            self.hp = self.max_hp = 666
+            self.hp = self.max_hp = 66
             for i in range(9):
                 self.buff_x = 1 + (i % 3) * 128 - 128
                 self.buff_y = 1 + (i // 3) * 128 - 128
@@ -1758,7 +1759,7 @@ class Tower(sprite.Sprite):
             self.vulnerables_and_resists['bludgeoning'] = 50
 
         if self.name == 'cvetochnica':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             for i in range(9):
                 self.buff_x = 1 + (i % 3) * 128 - 128
                 self.buff_y = 1 + (i // 3) * 128 - 128
@@ -1766,7 +1767,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'bolotnik':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.bolotos = 5
             if self.upgrade_level == "2a" or self.upgrade_level == "3a":
                 self.bolotos = 7
@@ -1782,7 +1783,7 @@ class Tower(sprite.Sprite):
                 self.basic_attack_cooldown = 1200
 
         if self.name == 'pen':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.rect_pen = Rect(self.rect.x, self.rect.y, 384, 128)
             self.rarity = "common"  # резисты попозже
 
@@ -1791,14 +1792,14 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'furry_medved':  # надо чтобы он сплэшил
-            self.hp = self.max_hp = 5500
+            self.hp = self.max_hp = 550
             self.atk = self.basic_atk = 30
             self.attack_cooldown = self.basic_attack_cooldown = 300
             self.damage_type = 'slashing'
             self.rarity = "common"
 
         if self.name == 'furry_volk':  # а он нет(как драчун)
-            self.hp = self.max_hp = 500
+            self.hp = self.max_hp = 50
             self.rect_furry_volk = Rect(self.rect.x-128, self.rect.y-128, 384, 384)
             self.atk = self.basic_atk = 40  # 80 (8*5=40, 40+40=80)
             self.plus_atk = self.atk/8  #5
@@ -1807,7 +1808,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'furry_zayac':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 10
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
@@ -1821,15 +1822,15 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'oruzhik_claymore':
-            self.hp = self.max_hp = 5500
+            self.hp = self.max_hp = 550
             self.atk = 100
             self.received_damage = 0
-            self.max_received_damage = 1000
+            self.max_received_damage = 100
             self.damage_type = 'slashing'
             self.rarity = "common"
 
         if self.name == 'oruzhik_daggers':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 10
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
@@ -1842,7 +1843,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
 
         if self.name == 'oruzhik_bow':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 10
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
@@ -2987,7 +2988,7 @@ class Tower(sprite.Sprite):
             Bullet("pike", self.rect.centerx + 128, self.rect.centery, self.damage_type, self.atk, 0, 0, 'drachun_gulag_splash', self)
 
         if self.name == 'ares':
-            Bullet("contrsword", self.rect.centerx + 128, self.rect.centery, self.damage_type, self.atk*(1+(self.vpitano_damaged*20//100)), 0, 0, 'drachun_gulag_splash', self)
+            Bullet("contrsword", self.rect.centerx + 128, self.rect.centery, self.damage_type, self.atk*(1+(self.vpitano_damaged*200//100)), 0, 0, 'drachun_gulag_splash', self)
             self.vpitano_damaged = 0
 
         if self.name == 'oruzhik_claymore':
@@ -3716,7 +3717,7 @@ class Enemy(sprite.Sprite):
 
         if self.name == 'popusk':
             self.hp = self.max_hp = 250
-            self.atk = 100
+            self.atk = 10
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 0
@@ -3724,7 +3725,7 @@ class Enemy(sprite.Sprite):
 
         if self.name == 'josky':
             self.hp = self.max_hp = 500
-            self.atk = 100
+            self.atk = 10
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 0
@@ -3732,7 +3733,7 @@ class Enemy(sprite.Sprite):
 
         if self.name == 'sigma':
             self.hp = self.max_hp = 1000
-            self.atk = 200
+            self.atk = 20
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 0
@@ -3742,7 +3743,7 @@ class Enemy(sprite.Sprite):
             self.hp = self.max_hp = 375
             self.armor = 375
             self.have_armor = True
-            self.atk = 100
+            self.atk = 10
             self.atk2 = self.atk * 1.5  # 150
             self.speed = 0.5
             self.speed2 = 1
@@ -3755,7 +3756,7 @@ class Enemy(sprite.Sprite):
 
         if self.name == 'slabiy':
             self.hp = self.max_hp = 125
-            self.atk = 50
+            self.atk = 5
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 0
@@ -3764,7 +3765,7 @@ class Enemy(sprite.Sprite):
 
         if self.name == 'rojatel':
             self.hp = self.max_hp = 625
-            self.atk = 50
+            self.atk = 5
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 0
@@ -3772,7 +3773,7 @@ class Enemy(sprite.Sprite):
 
         if self.name == 'tyazhik':
             self.hp = self.max_hp = 1000
-            self.atk = 50
+            self.atk = 5
             self.speed = 0.25
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 0
@@ -3781,7 +3782,7 @@ class Enemy(sprite.Sprite):
 
         if self.name == 'sportik':  # надо пофиксить таргеты у пукиша
             self.hp = self.max_hp = 250
-            self.atk = 140
+            self.atk = 14
             self.speed = 1
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 0
@@ -3789,7 +3790,7 @@ class Enemy(sprite.Sprite):
 
         if self.name == 'klonik':
             self.hp = self.max_hp = 250
-            self.atk = 100
+            self.atk = 10
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.klonirovanie_cooldown = self.basic_klonirovanie_cooldown = 900
@@ -3798,7 +3799,7 @@ class Enemy(sprite.Sprite):
 
         if self.name == 'teleportik':
             self.hp = self.max_hp = 250
-            self.atk = 100
+            self.atk = 10
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.tp_cooldown = self.basic_tp_cooldown = 60
@@ -3807,7 +3808,7 @@ class Enemy(sprite.Sprite):
 
         if self.name == 'fire_res':
             self.hp = self.max_hp = 100
-            self.atk = 50
+            self.atk = 5
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 0
@@ -3816,7 +3817,7 @@ class Enemy(sprite.Sprite):
 
         if self.name == 'ice_res':
             self.hp = self.max_hp = 100
-            self.atk = 50
+            self.atk = 5
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 0
@@ -3825,7 +3826,7 @@ class Enemy(sprite.Sprite):
 
         if self.name == 'water_res':
             self.hp = self.max_hp = 100
-            self.atk = 50
+            self.atk = 5
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 0
@@ -3834,7 +3835,7 @@ class Enemy(sprite.Sprite):
 
         if self.name == 'poison_res':
             self.hp = self.max_hp = 100
-            self.atk = 50
+            self.atk = 5
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 0
@@ -3843,7 +3844,7 @@ class Enemy(sprite.Sprite):
 
         if self.name == 'light_res':
             self.hp = self.max_hp = 100
-            self.atk = 50
+            self.atk = 5
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.attack_range = 0
@@ -3852,7 +3853,7 @@ class Enemy(sprite.Sprite):
 
         if self.name == "zeleniy_strelok":
             self.hp = self.max_hp = 250
-            self.atk = 75
+            self.atk = 7.5
             self.bullet_speed_x = -5
             self.bullet_speed_y = 0
             self.speed = 0.5
@@ -3865,7 +3866,7 @@ class Enemy(sprite.Sprite):
             self.hp = self.max_hp = 460
             self.armor = 40
             self.have_armor = True
-            self.atk = 80
+            self.atk = 8
             self.atk2 = self.atk * 1.25  # 100
             self.bullet_speed_x = -5
             self.bullet_speed_y = 0
@@ -3879,7 +3880,7 @@ class Enemy(sprite.Sprite):
 
         if self.name == "drobik":
             self.hp = self.max_hp = 550
-            self.atk = 70
+            self.atk = 7
             self.bullet_speed_x = -5
             self.bullet_speed_y = 4
             self.speed = 0.5
@@ -3890,7 +3891,7 @@ class Enemy(sprite.Sprite):
 
         if self.name == 'mega_strelok':
             self.hp = self.max_hp = 750
-            self.atk = 100
+            self.atk = 10
             self.bullet_speed_x = -5
             self.bullet_speed_y = 0
             self.speed = 0.25
@@ -4321,11 +4322,12 @@ class Creep(sprite.Sprite):
             self.summon_cooldown = self.parent.basic_attack_cooldown  # решил сюда табнуть тк это вроде тожу чисто некрская тема
         self.stunned = False
         self.banished = False
+        self.vulnerabled = 0
         self.vulnerables_and_resists = {}  # dict()  # 'damage_type' : resist%  # fake
         self.unvulnerable = 0
 
         if self.name == 'nekr_skelet':
-            self.hp = self.max_hp = 100
+            self.hp = self.max_hp = 10
             self.atk = 40
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
@@ -4337,7 +4339,7 @@ class Creep(sprite.Sprite):
             self.damage_type = 'piercing'
 
         if self.name == 'nekr_zombie':
-            self.hp = self.max_hp = 200
+            self.hp = self.max_hp = 20
             self.atk = 50
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 60
@@ -4345,7 +4347,7 @@ class Creep(sprite.Sprite):
             self.damage_type = 'slashing'
 
         if self.name == 'nekr_zombie_jirny':
-            self.hp = self.max_hp = 500
+            self.hp = self.max_hp = 50
             self.atk = 130
             self.speed = 0.5
             self.attack_cooldown = self.basic_attack_cooldown = 120
@@ -4353,7 +4355,7 @@ class Creep(sprite.Sprite):
             self.damage_type = 'bludgeoning'
 
         if self.name == 'mini_golem':
-            self.hp = self.max_hp = 150
+            self.hp = self.max_hp = 15
             self.atk = 0
             self.speed = 0.25
             self.attack_cooldown = self.basic_attack_cooldown = 0
@@ -4365,7 +4367,7 @@ class Creep(sprite.Sprite):
             self.vulnerables_and_resists['bludgeoning'] = 50
 
         if self.name == 'big_golem':
-            self.hp = self.max_hp = 450
+            self.hp = self.max_hp = 45
             self.atk = 0
             self.speed = 0.25
             self.attack_cooldown = self.basic_attack_cooldown = 0
@@ -4377,7 +4379,7 @@ class Creep(sprite.Sprite):
             self.vulnerables_and_resists['bludgeoning'] = 50
 
         if self.name == 'mega_golem':
-            self.hp = self.max_hp = 1350
+            self.hp = self.max_hp = 135
             self.atk = 0
             self.speed = 0.25
             self.attack_cooldown = self.basic_attack_cooldown = 0
@@ -4389,7 +4391,7 @@ class Creep(sprite.Sprite):
             self.vulnerables_and_resists['bludgeoning'] = 50
 
         if self.name == 'nekr_skelet_strelok':
-            self.hp = self.max_hp = 100
+            self.hp = self.max_hp = 10
             self.atk = 70
             self.speed = 0.5
             self.bullet_speed_x = 5
@@ -4552,8 +4554,20 @@ class Neutral_object(sprite.Sprite):
         # СТАТЫ начало
 
         if self.name == 'block':
-            self.hp = self.max_hp = 3000
+            self.hp = self.max_hp = 500
             self.height = 'high'
+
+        if self.name == 'block_mana':
+            self.hp = self.max_hp = 500
+            self.skolko_deneg_dast = 50
+            self.height = 'high'
+
+        if self.name == 'block_bomb':
+            self.hp = self.max_hp = 500
+            self.atk = 150
+            self.rect_bomb = Rect(self.rect.left-128, self.rect.top-128, 384, 384)
+            self.height = 'high'
+            self.damage_type = 'fire'
 
         if self.name == 'luja':
             self.hp = self.max_hp = 1
@@ -4569,6 +4583,22 @@ class Neutral_object(sprite.Sprite):
         self.image2 = font30.render(str(self.hp), True, (0, 0, 0))
 
     def dead(self):
+        if self.name == 'block_mana':
+            level.money += self.skolko_deneg_dast
+        if self.name == 'block_bomb':
+            Bullet('explosion', self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'visual_effect', self)
+            for enemy in enemies_group:
+                if self.rect_bomb.colliderect(enemy.rect):
+                    self.dealing_damage(enemy)
+            for creep in creeps_group:
+                if self.rect_bomb.colliderect(creep.rect):
+                    self.dealing_damage(creep)
+            for tower in towers_group:
+                if self.rect_bomb.colliderect(tower.rect):
+                    self.dealing_damage(tower)
+            for neutral_object in neutral_objects_group:
+                if self.rect_bomb.colliderect(neutral_object.rect):
+                    self.dealing_damage(neutral_object)
         self.kill()
 
     def check_hp(self):
@@ -4624,6 +4654,24 @@ class Neutral_object(sprite.Sprite):
                 if self.rect.centery+118 <= creep.rect.centery <= self.rect.centery+138:
                     creep.back_to_line()
             
+    def dealing_damage(self, enemy):
+        self.damage = self.atk
+        if enemy.vulnerabled > 0:
+            self.damage *= 2
+        for k, v in enemy.vulnerables_and_resists.items():
+            if k == self.damage_type:
+                self.damage *= (100 + v)/100
+        if hasattr(enemy, 'armor') and enemy.armor > 0:
+            if self.damage <= enemy.armor:
+                enemy.armor -= self.damage
+            else:
+                enemy.hp -= (self.damage - enemy.armor)
+                enemy.armor = 0
+        else:
+            enemy.hp -= self.damage
+        enemy.damaged = True
+        if enemy.alive:
+            enemy.check_hp()
 
     def cooldown(self):
         pass
@@ -7935,6 +7983,10 @@ while running:
             if e.key == K_l:
                 Neutral_object('strelka_up', (1152, 704))
                 Neutral_object('strelka_down', (1152, 192))
+            if e.key == K_j:
+                Neutral_object('block_mana', (1024, 448))
+            if e.key == K_k:
+                Neutral_object('block_bomb', (1024, 448))
 
         if e.type == QUIT:
             running = False
