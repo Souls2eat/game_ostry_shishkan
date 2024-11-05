@@ -66,6 +66,7 @@ towers_wait = {
     "cvetochnica": [image.load(f"images/towers/cvetochnica/wait/cvetochnica{i}.png") for i in range(1, 5)],
     "holodilnik": [image.load(f"images/towers/holodilnik/wait/holodilnik{i}.png") for i in range(1, 5)],
     "chorniy": [image.load(f"images/towers/chorniy/wait/chorniy{i}.png") for i in range(1, 5)],
+    "drachun_plavniy": [image.load(f"images/towers/drachun_plavniy/wait/drachun_plavniy{i}.png") for i in range(1, 9)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/wait/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/wait/perec{i}.png") for i in range(1, 5)],

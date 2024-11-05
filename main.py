@@ -1449,6 +1449,14 @@ class Tower(sprite.Sprite):
                     self.self_buff_level = 0
                     self.kill_time = 375
 
+        if self.name == 'drachun_plavniy':
+            self.hp = self.max_hp = 700
+            self.atk = self.basic_atk = 30
+            self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.damage_type = 'bludgeoning'
+            self.rarity = "common"
+            self.time_indicator *= 2
+
         if self.name == 'kirka':
             self.hp = self.max_hp = 500
             self.atk = 50
@@ -6024,13 +6032,13 @@ class Buff(sprite.Sprite):
                             nekusaemiy.add(self.buffed_towers)
                     else:
                         if nekusaemiy.name == 'spike' or nekusaemiy.name == 'pukish':
-                            if nekusaemiy.basic_attack_cooldown // 2 <= 180:
-                                nekusaemiy.basic_attack_cooldown //= 2
+                            if nekusaemiy.basic_attack_cooldown // 1.5 <= 180:
+                                nekusaemiy.basic_attack_cooldown //= 1.5
                                 self.max_buff = False
                             else:
                                 nekusaemiy.basic_attack_cooldown -= 180
                                 self.max_buff = True
-                            nekusaemiy.time_indicator *= 2
+                            nekusaemiy.time_indicator *= 1.5
                             nekusaemiy.add(self.buffed_towers)
 
     def delat_debuff(self):
