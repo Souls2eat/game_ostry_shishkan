@@ -1516,7 +1516,7 @@ class Tower(sprite.Sprite):
             if self.upgrade_level == "2b":
                 self.spin_attack_cooldown = self.basic_spin_attack_cooldown = 900
             if self.upgrade_level == "3a":
-                self.hp = self.max_hp = 2000
+                self.hp = self.max_hp = 200
 
         if self.name == 'prokach':  # статы фаермага чтобы справочник не сломался, переделаю его попозже
             self.hp = self.max_hp = 20
@@ -2976,6 +2976,10 @@ class Tower(sprite.Sprite):
             for tower in towers_group:
                 if tower.rect.y == self.rect.y and tower.rect.x > self.rect.x and tower.rect.x - self.rect.x <= 128 and tower.name != 'pukish' and tower != self:
                     self.za_towerom = True
+            for tower in neutral_objects_group:
+                if tower.height == 'high':
+                    if tower.rect.y == self.rect.y and tower.rect.x > self.rect.x and tower.rect.x - self.rect.x <= 128 and tower.name != 'pukish' and tower != self:
+                        self.za_towerom = True
             if self.za_towerom:
                 self.push = self.ottalkivanie_ne_solo
             else:
@@ -4508,7 +4512,7 @@ class Creep(sprite.Sprite):
             self.check_hp()
 
 
-class Neutral_object(sprite.Sprite):
+class NeutralObject(sprite.Sprite):
     def __init__(self, unit, pos):
         super().__init__(neutral_objects_group, all_sprites_group)
         self.image = image.load(f"images/neutral_objects/{unit}.png").convert_alpha()
@@ -4917,7 +4921,7 @@ class Bullet(sprite.Sprite):
             if self.parent.name == 'sekirshik' and (self.parent.upgrade_level == "2a" or self.parent.upgrade_level == "3a"):
                 if self.parent.upgrade_level == "3a" and enemy.hp <= 0:
                     if self.parent not in enemy.not_oneshot:
-                        self.parent.hp += 100
+                        self.parent.hp += 10
                         if self.parent.hp > self.parent.max_hp:
                             self.parent.hp = self.parent.max_hp
                 enemy.not_oneshot.add(self.parent)
@@ -7977,16 +7981,16 @@ while running:
                 global_map.where_is_smoke()
             
             if e.key == K_m:
-                Neutral_object('block', (1024, 448))
+                NeutralObject('block', (1024, 448))
             if e.key == K_n:
-                Neutral_object('luja', (1024, 576))
+                NeutralObject('luja', (1024, 576))
             if e.key == K_l:
-                Neutral_object('strelka_up', (1152, 704))
-                Neutral_object('strelka_down', (1152, 192))
+                NeutralObject('strelka_up', (1152, 704))
+                NeutralObject('strelka_down', (1152, 192))
             if e.key == K_j:
-                Neutral_object('block_mana', (1024, 448))
+                NeutralObject('block_mana', (1024, 448))
             if e.key == K_k:
-                Neutral_object('block_bomb', (1024, 448))
+                NeutralObject('block_bomb', (1024, 448))
 
         if e.type == QUIT:
             running = False
