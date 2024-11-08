@@ -133,6 +133,7 @@ tower_costs = {
     "davalka": 10,
     "drachun": 15,
     "drachun_plavniy": 15,
+    "boomchick_plavniy": 15,
     "fire_mag": 20,
     "kopitel": 20,
     "matricayshon": 30,
@@ -211,6 +212,7 @@ towers_kd = {
     "davalka": 375,
     "drachun": 375,
     "drachun_plavniy": 375,
+    "boomchick_plavniy": 15,
     "fire_mag": 375,
     "kopitel": 450,
     "matricayshon": 1125,
@@ -404,6 +406,13 @@ upgrade_costs = {
         "3b": "2 city_coin",
     },
     "drachun_plavniy": {
+        "1": "0 city_coin",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "boomchick_plavniy": {
         "1": "0 city_coin",
         "2a": "1 city_coin",
         "2b": "1 city_coin",
@@ -856,6 +865,13 @@ upgrade_descriptions = {
         "3b": "Ещё сильнее увеличивает хп. Скорость атаки увеличивается если хп меньше половины. Если хп опускаются до 0, входит в безумие в котором скорость атаки увеличивается ещё сильнее на несколько секунд, после чего умирает",
     },
     "drachun_plavniy": {
+        "1": "0 city_coin",
+        "2a": "1 city_coin",
+        "2b": "1 city_coin",
+        "3a": "2 city_coin",
+        "3b": "2 city_coin",
+    },
+    "boomchick_plavniy": {
         "1": "0 city_coin",
         "2a": "1 city_coin",
         "2b": "1 city_coin",

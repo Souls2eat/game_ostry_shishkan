@@ -1458,6 +1458,14 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
             self.time_indicator *= 2
 
+        if self.name == 'boomchick_plavniy':
+            self.hp = self.max_hp = 70
+            self.atk = self.basic_atk = 30
+            self.attack_cooldown = self.basic_attack_cooldown = 60
+            self.damage_type = 'bludgeoning'
+            self.rarity = "common"
+            self.time_indicator *= 2
+
         if self.name == 'kirka':
             self.hp = self.max_hp = 50
             self.atk = 50
