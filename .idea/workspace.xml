@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="49dbe47e-c6ad-4d41-9b70-2732df5f0c86" name="Changes" comment="rollback waves to stable version">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/saves/current_save.save" beforeDir="false" afterPath="$PROJECT_DIR$/saves/current_save.save" afterDir="false" />
     </list>
@@ -48,7 +47,7 @@
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;last_directory_selection&quot;: &quot;C:/Users/Михаил/PycharmProjects/Tower_Defense/saves&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Михаил/PycharmProjects/Tower_Defense&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Михаил/PycharmProjects/pyGame&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.github.ui.GithubSettingsConfigurable&quot;
   }
 }</component>
@@ -305,7 +304,14 @@
       <option name="project" value="LOCAL" />
       <updated>1728972685012</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="rollback waves to stable version">
+      <created>1729844524959</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1729844524959</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
