@@ -66,6 +66,10 @@ towers_wait = {
     "cvetochnica": [image.load(f"images/towers/cvetochnica/wait/cvetochnica{i}.png") for i in range(1, 5)],
     "holodilnik": [image.load(f"images/towers/holodilnik/wait/holodilnik{i}.png") for i in range(1, 5)],
     "chorniy": [image.load(f"images/towers/chorniy/wait/chorniy{i}.png") for i in range(1, 5)],
+    "mega_prizivnik": [image.load(f"images/towers/mega_prizivnik/wait/mega_prizivnik{i}.png") for i in range(1, 5)],
+    "ricar_smerti": [image.load(f"images/towers/ricar_smerti/wait/ricar_smerti{i}.png") for i in range(1, 5)],
+    "dushok": [image.load(f"images/towers/dushok/wait/dushok{i}.png") for i in range(1, 5)],
+    "mana_kamni": [image.load(f"images/towers/mana_kamni/wait/mana_kamni{i}.png") for i in range(1, 5)],
     "drachun_plavniy": [image.load(f"images/towers/drachun_plavniy/wait/drachun_plavniy{i}.png") for i in range(1, 9)],
     "boomchick_plavniy": [image.load(f"images/towers/boomchick_plavniy/wait/boomchick_plavniy{i}.png") for i in range(1, 9)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/wait/go_bleen1{i}.png") for i in range(1, 3)],
@@ -137,6 +141,9 @@ towers_attack = {
     "elf": [image.load(f"images/towers/elf/attack/elf{i}.png") for i in range(1, 5)],
     "holodilnik": [image.load(f"images/towers/holodilnik/attack/holodilnik{i}.png") for i in range(1, 5)],
     "chorniy": [image.load(f"images/towers/chorniy/attack/chorniy{i}.png") for i in range(1, 5)],
+    "mega_prizivnik": [image.load(f"images/towers/mega_prizivnik/attack/mega_prizivnik{i}.png") for i in range(1, 5)],
+    "ricar_smerti": [image.load(f"images/towers/ricar_smerti/attack/ricar_smerti{i}.png") for i in range(1, 5)],
+    "dushok": [image.load(f"images/towers/dushok/attack/dushok{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/attack/go_bleen1{i}.png") for i in range(1, 3)],
 
 }
@@ -149,6 +156,8 @@ towers_give = {
     "kar_mag": [image.load(f"images/towers/kar_mag/give/kar_mag{i}.png") for i in range(1, 5)],
     "shabriri": [image.load(f"images/towers/shabriri/give/shabriri{i}.png") for i in range(1, 5)],
     "vozmezdik": [image.load(f"images/towers/vozmezdik/give/vozmezdik{i}.png") for i in range(1, 21)],
+    "mega_prizivnik": [image.load(f"images/towers/mega_prizivnik/give/mega_prizivnik{i}.png") for i in range(1, 5)],
+    "mana_kamni": [image.load(f"images/towers/mana_kamni/give/mana_kamni{i}.png") for i in range(1, 5)],
 }
 
 towers_hide = {
@@ -222,6 +231,10 @@ towers_death = {
     "cvetochnica": [image.load(f"images/towers/cvetochnica/death/cvetochnica{i}.png") for i in range(1, 5)],
     "holodilnik": [image.load(f"images/towers/holodilnik/death/holodilnik{i}.png") for i in range(1, 5)],
     "chorniy": [image.load(f"images/towers/chorniy/death/chorniy{i}.png") for i in range(1, 5)],
+    "mega_prizivnik": [image.load(f"images/towers/mega_prizivnik/death/mega_prizivnik{i}.png") for i in range(1, 5)],
+    "ricar_smerti": [image.load(f"images/towers/ricar_smerti/death/ricar_smerti{i}.png") for i in range(1, 5)],
+    "dushok": [image.load(f"images/towers/dushok/death/dushok{i}.png") for i in range(1, 5)],
+    "mana_kamni": [image.load(f"images/towers/mana_kamni/death/mana_kamni{i}.png") for i in range(1, 5)],
     # "go_bleen1": [image.load(f"images/towers/go_bleen1/death/go_bleen1{i}.png") for i in range(1, 3)],
     "bomb": [image.load(f"images/towers/bomb/death/bomb{i}.png") for i in range(1, 5)],
     "perec": [image.load(f"images/towers/perec/death/perec{i}.png") for i in range(1, 5)],
