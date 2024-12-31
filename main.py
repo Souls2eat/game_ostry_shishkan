@@ -1872,6 +1872,10 @@ class Tower(sprite.Sprite):
             self.attack_cooldown = self.basic_attack_cooldown = 60
             self.cep_cooldown = 600  # длительность от 2 до 15 секунд
             self.ceps_kolvo = 5
+            if self.upgrade_level == "2a":
+                self.ceps_kolvo = 7
+            if self.upgrade_level == "3a":
+                self.ceps_kolvo = 10
             self.ceps_timer = []
             self.ceps_ready = []
             for i in range(self.ceps_kolvo):
