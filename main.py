@@ -7426,6 +7426,17 @@ def uniq_is_free(new_tower):
                     num = int(tower.name[-1]) + 1
                     return True, tower.name[:-1] + str(num)
         return None, None
+    elif new_tower.name == "vampir":
+        is_free_list2 = []
+        for tower in towers_group:
+            if tower != new_tower and tower.under:
+                is_free_list2.append(tower.rect.collidepoint(new_tower.rect.centerx, new_tower.rect.centery) is False)
+        if all(is_free_list2) or new_tower.free_placement:
+            is_free_list2.clear()
+            return True, 'vampir_bat'
+        else:
+            return None, None
+
 
 
 def tower_placement(slot_):
@@ -7436,7 +7447,7 @@ def tower_placement(slot_):
                 level.money -= tower_costs[slot_.unit_inside.name]
                 slot_.kd_time = slot_.default_kd_time
 
-    elif slot_.unit_inside.name == "gnome_cannon1" or slot_.unit_inside.name == "go_bleen1":
+    elif slot_.unit_inside.name == "gnome_cannon1" or slot_.unit_inside.name == "vampir" or slot_.unit_inside.name == "go_bleen1":
         ok_, tower_name = uniq_is_free(slot_.unit_inside)
         if ok_:
             if level.money - tower_costs[slot_.unit_inside.name] >= 0:
