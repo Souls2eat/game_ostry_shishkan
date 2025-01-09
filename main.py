@@ -25,6 +25,7 @@ main_menu = image.load("images/maps/global_map/events/bg_images/hello_game_event
 additional_menu = image.load("images/menu/additional_menu.png").convert_alpha()
 preview_menu = image.load("images/menu/preview_menu.png").convert_alpha()
 select_menu = image.load("images/menu/level_select_menu.png").convert_alpha()
+botton_select_menu = image.load("images/menu/bottom_select_menu.png").convert_alpha()
 select_menu_copy = select_menu.__copy__()
 entity_preview_menu = image.load("images/menu/entity_preview_menu.png").convert_alpha()
 entity_preview_menu_copy = entity_preview_menu.__copy__()
@@ -5538,7 +5539,7 @@ class Bullet(sprite.Sprite):
                             tower.damaged = True
                             if tower.name == 'paladin':
                                 for towerrr in towers_group:
-                                    if towerr != tower and tower.healing_rect.collidepoint(towerrr.rect.centerx, towerrr.rect.centery):
+                                    if towerrr != tower and tower.healing_rect.collidepoint(towerrr.rect.centerx, towerrr.rect.centery):
                                         if towerrr.max_hp - towerrr.hp > self.damage * 0.1:
                                             towerrr.hp += self.damage * 0.1
                                         else:
@@ -7251,7 +7252,7 @@ class Scroller:
             },
             "tower_select": {
                 "x": {"min": 0, "max": 0},
-                "y": {"min": -1300, "max": 0}
+                "y": {"min": -1110, "max": 0}
             }
         }
         self.remembered_scroll_offsets = {
@@ -7317,7 +7318,7 @@ class Scroller:
 
 
 class TextField:
-    def __init__(self, text, topleft_pos, max_width, color_=(0, 0, 0), font_=font25, text_speed=2, enable_animation=True):
+    def __init__(self, text, topleft_pos, max_width, color_=(0, 0, 0), font_=font25, text_speed=2, enable_animation=True, alignment="left"):
         if enable_animation:
             self.default_text = self.not_shown_text = text
             self.text = ""
@@ -7330,6 +7331,7 @@ class TextField:
         self.font = font_
         self.anim_count = 0
         self.text_speed = text_speed
+        self.alignment = alignment  # right, center
         text_fields_group.add(self)
 
     def render_text(self, surf):
@@ -7340,16 +7342,22 @@ class TextField:
             return self.font.render("".join(word_), True, self.color).get_width()
 
         lines = 1
-        word_pos = self.topleft_pos
-        for word in self.text.split():
-            word_width = get_word_width(word)
-            if word_pos[0] + word_width > self.max_width + self.topleft_pos[0]:
-                word_pos = self.topleft_pos[0], word_pos[1] + self.get_font_height()
-                lines += 1
-            surf.blit(self.font.render(word, True, self.color), word_pos)
-            if level.rect_visible:
-                draw.rect(screen, (0, 200, 0), self.font.render(word, True, self.color).get_rect(topleft=word_pos), 5)  # отображение границы слова
-            word_pos = word_pos[0] + word_width + get_whitespace_width(), word_pos[1]
+        if self.alignment == "left":
+            word_pos = self.topleft_pos
+            for word in self.text.split():
+                word_width = get_word_width(word)
+                if word_pos[0] + word_width > self.max_width + self.topleft_pos[0]:
+                    word_pos = self.topleft_pos[0], word_pos[1] + self.get_font_height()
+                    lines += 1
+                surf.blit(self.font.render(word, True, self.color), word_pos)
+                if level.rect_visible:
+                    draw.rect(screen, (0, 200, 0), self.font.render(word, True, self.color).get_rect(topleft=word_pos), 5)  # отображение границы слова
+                word_pos = word_pos[0] + word_width + get_whitespace_width(), word_pos[1]
+        if self.alignment == "center":      # works only with 1 word
+            if len(self.text.split()) == 1:
+                word = str(self.text)
+                word_pos = (self.max_width - get_word_width(word)) // 2 + self.topleft_pos[0], self.topleft_pos[1]
+                surf.blit(self.font.render(word, True, self.color), word_pos)
 
         if level.rect_visible:
             draw.rect(screen, (200, 0, 0), Rect(self.topleft_pos[0], self.topleft_pos[1], self.max_width, self.get_font_height() * lines), 5)   # отображение границы текста
@@ -7436,7 +7444,6 @@ def uniq_is_free(new_tower):
             return True, 'vampir_bat'
         else:
             return None, None
-
 
 
 def tower_placement(slot_):
@@ -8023,9 +8030,11 @@ def menu_positioning():
             level.action_after_complete.do()
 
     if game_state == "tower_select":
+        text_fields_group.clear()
         screen.blit(select_menu, (250, 150))
         select_menu.blit(select_menu_copy, (0, 0))
         screen.blit(additional_menu, (1210, 150))
+        screen.blit(botton_select_menu, (250, 750))
         scroller.check_possible_scrolling()
 
         select_towers_preview_group.move_element_by_scroll()
@@ -8036,13 +8045,22 @@ def menu_positioning():
         select_towers_preview_group.go_animation()
         select_towers_preview_group.custom_draw(select_menu)
 
-        if clear_button.click(screen, (1250, 470), col=(0, 0, 0)):
+        if select_towers_preview_group.check_hover(select_menu, offset_pos=(250, 150)):
+            if select_towers_preview_group.hovered_entity.name in received_towers:
+                TextField(select_towers_preview_group.hovered_entity.name, (1215, 160), 310, enable_animation=False, font_=font40, alignment="center")
+                TextField(upgrade_descriptions[select_towers_preview_group.hovered_entity.name]["1"], (1230, 220), 280, enable_animation=False)     # [upgrades[select_towers_preview_group.hovered_entity.name][-1]] (1230, 160)
+            else:
+                TextField("???", (1215, 160), 310, enable_animation=False, font_=font40, alignment="center")
+        else:
+            TextField("???", (1215, 160), 310, enable_animation=False, font_=font40, alignment="center")
+
+        if clear_button.click(screen, (321, 770), col=(0, 0, 0)):  # 1250, 470
             slots_group.clear_units()
 
-        if random_choice_button.click(screen, (1248, 550), col=(0, 0, 0)):
+        if random_choice_button.click(screen, (620, 770), col=(0, 0, 0)):  # 1248, 550
             slots_group.random_add_to_slots()
 
-        if start_level_button.click(screen, (1265, 630), col=(0, 0, 0)):
+        if start_level_button.click(screen, (929, 760), col=(0, 0, 0)):    # 1265, 630
             if len(select_towers_preview_group.remember_entities) == 7 - len(level.blocked_slots):
                 scroller.scroll_offset_y = 0
                 game_state = "run"
@@ -8055,7 +8073,7 @@ def menu_positioning():
                         obj_.alive = False
                         obj_.kill()
             else:
-                Alert("Остались свободные слоты", (400, 760), 75)
+                Alert("Остались свободные слоты", (400, 60), 75)
         if pause_button.click(screen, (1515, 58)):
             last_game_state = game_state
             Alert("Пауза", (700, 200), 75)
