@@ -7,6 +7,7 @@ not_encountered_enemies = []
 completed_events = []
 hero_pos = 9, 5
 global_map_scroll_offset = -577, -319
+
 -----
 city_coin = 22
 forest_coin = 25
