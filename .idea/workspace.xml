@@ -1,12 +1,201 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="49dbe47e-c6ad-4d41-9b70-2732df5f0c86" name="Changes" comment="merge with main">
-      <change afterPath="$PROJECT_DIR$/images/menu/bottom_select_menu.png" afterDir="false" />
+    <list default="true" id="49dbe47e-c6ad-4d41-9b70-2732df5f0c86" name="Changes" comment="add towers description at tower_select game_state">
+      <change afterPath="$PROJECT_DIR$/images/creeps/megachel.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/other/grustni.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/bolotnik/wait/bolotnik_new_style.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/boomchick/wait/boomchick_new_style.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/cepnaya/attack/cepnaya1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/cepnaya/attack/cepnaya2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/cepnaya/attack/cepnaya3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/cepnaya/attack/cepnaya4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/cepnaya/cepnaya_preview.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/cepnaya/death/cepnaya1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/cepnaya/death/cepnaya2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/cepnaya/death/cepnaya3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/cepnaya/death/cepnaya4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/cepnaya/wait/cepnaya1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/cepnaya/wait/cepnaya2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/cepnaya/wait/cepnaya3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/cepnaya/wait/cepnaya4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/chort/attack/chort1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/chort/attack/chort2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/chort/attack/chort3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/chort/attack/chort4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/chort/chort_preview.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/chort/death/chort1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/chort/death/chort2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/chort/death/chort3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/chort/death/chort4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/chort/wait/chort1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/chort/wait/chort2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/chort/wait/chort3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/chort/wait/chort4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/davalka/wait/davalka_new_style.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/drachun/wait/drachun_new_style.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/dushok/attack/dushok1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/dushok/attack/dushok2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/dushok/attack/dushok3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/dushok/attack/dushok4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/dushok/death/dushok1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/dushok/death/dushok2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/dushok/death/dushok3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/dushok/death/dushok4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/dushok/dushok_preview.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/dushok/wait/dushok1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/dushok/wait/dushok2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/dushok/wait/dushok3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/dushok/wait/dushok4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/fire_mag/wait/fire_mag_new_style.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/gribnik/wait/gribnik_new_style.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/kopitel/wait/kopitel_new_style.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mana_kamni/death/mana_kamni1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mana_kamni/death/mana_kamni2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mana_kamni/death/mana_kamni3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mana_kamni/death/mana_kamni4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mana_kamni/give/mana_kamni1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mana_kamni/give/mana_kamni2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mana_kamni/give/mana_kamni3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mana_kamni/give/mana_kamni4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mana_kamni/mana_kamni_preview.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mana_kamni/wait/mana_kamni1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mana_kamni/wait/mana_kamni2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mana_kamni/wait/mana_kamni3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mana_kamni/wait/mana_kamni4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mega_prizivnik/attack/mega_prizivnik1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mega_prizivnik/attack/mega_prizivnik2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mega_prizivnik/attack/mega_prizivnik3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mega_prizivnik/attack/mega_prizivnik4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mega_prizivnik/death/mega_prizivnik1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mega_prizivnik/death/mega_prizivnik2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mega_prizivnik/death/mega_prizivnik3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mega_prizivnik/death/mega_prizivnik4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mega_prizivnik/give/mega_prizivnik1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mega_prizivnik/give/mega_prizivnik2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mega_prizivnik/give/mega_prizivnik3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mega_prizivnik/give/mega_prizivnik4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mega_prizivnik/mega_prizivnik_preview.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mega_prizivnik/wait/mega_prizivnik1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mega_prizivnik/wait/mega_prizivnik2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mega_prizivnik/wait/mega_prizivnik3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/mega_prizivnik/wait/mega_prizivnik4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/nizhniy_slizen/death/nizhniy_slizen1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/nizhniy_slizen/death/nizhniy_slizen2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/nizhniy_slizen/death/nizhniy_slizen3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/nizhniy_slizen/death/nizhniy_slizen4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/nizhniy_slizen/nizhniy_slizen_preview.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/nizhniy_slizen/wait/nizhniy_slizen1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/nizhniy_slizen/wait/nizhniy_slizen2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/nizhniy_slizen/wait/nizhniy_slizen3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/nizhniy_slizen/wait/nizhniy_slizen4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/paladin/death/paladin1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/paladin/death/paladin2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/paladin/death/paladin3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/paladin/death/paladin4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/paladin/paladin_preview.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/paladin/wait/paladin1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/paladin/wait/paladin2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/paladin/wait/paladin3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/paladin/wait/paladin4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/plut/attack/plut1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/plut/attack/plut2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/plut/attack/plut3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/plut/attack/plut4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/plut/death/plut1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/plut/death/plut2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/plut/death/plut3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/plut/death/plut4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/plut/plut_preview.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/plut/wait/plut1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/plut/wait/plut2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/plut/wait/plut3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/plut/wait/plut4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/pukish/wait/pukish_new_style.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/ricar_smerti/attack/ricar_smerti1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/ricar_smerti/attack/ricar_smerti2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/ricar_smerti/attack/ricar_smerti3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/ricar_smerti/attack/ricar_smerti4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/ricar_smerti/death/ricar_smerti1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/ricar_smerti/death/ricar_smerti2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/ricar_smerti/death/ricar_smerti3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/ricar_smerti/death/ricar_smerti4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/ricar_smerti/ricar_smerti_preview.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/ricar_smerti/wait/ricar_smerti1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/ricar_smerti/wait/ricar_smerti2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/ricar_smerti/wait/ricar_smerti3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/ricar_smerti/wait/ricar_smerti4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/smert/attack/smert1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/smert/attack/smert2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/smert/attack/smert3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/smert/attack/smert4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/smert/death/smert1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/smert/death/smert2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/smert/death/smert3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/smert/death/smert4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/smert/smert_preview.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/smert/wait/smert1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/smert/wait/smert2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/smert/wait/smert3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/smert/wait/smert4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/sobaka/death/sobaka1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/sobaka/death/sobaka2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/sobaka/death/sobaka3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/sobaka/death/sobaka4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/sobaka/sobaka_preview.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/sobaka/wait/sobaka1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/sobaka/wait/sobaka2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/sobaka/wait/sobaka3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/sobaka/wait/sobaka4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/super_slizen/attack/super_slizen1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/super_slizen/attack/super_slizen2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/super_slizen/attack/super_slizen3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/super_slizen/attack/super_slizen4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/super_slizen/death/super_slizen1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/super_slizen/death/super_slizen2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/super_slizen/death/super_slizen3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/super_slizen/death/super_slizen4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/super_slizen/super_slizen_preview.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/super_slizen/wait/super_slizen1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/super_slizen/wait/super_slizen2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/super_slizen/wait/super_slizen3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/super_slizen/wait/super_slizen4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/terpila/wait/terpila_new_style.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir/attack/vampir1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir/attack/vampir2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir/attack/vampir3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir/attack/vampir4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir/death/vampir1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir/death/vampir2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir/death/vampir3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir/death/vampir4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir/vampir_preview.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir/wait/vampir1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir/wait/vampir2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir/wait/vampir3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir/wait/vampir4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir_bat/attack/vampir_bat1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir_bat/attack/vampir_bat2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir_bat/attack/vampir_bat3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir_bat/attack/vampir_bat4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir_bat/death/vampir_bat1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir_bat/death/vampir_bat2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir_bat/death/vampir_bat3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir_bat/death/vampir_bat4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir_bat/vampir_bat_preview.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir_bat/wait/vampir_bat1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir_bat/wait/vampir_bat2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir_bat/wait/vampir_bat3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/vampir_bat/wait/vampir_bat4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/towers/yascerica/wait/yascerica_new_style.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/images/menu/additional_menu.png" beforeDir="false" afterPath="$PROJECT_DIR$/images/menu/additional_menu.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/animations.py" beforeDir="false" afterPath="$PROJECT_DIR$/animations.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/saves/current_save.save" beforeDir="false" afterPath="$PROJECT_DIR$/saves/current_save.save" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/saves/default_save.save" beforeDir="false" afterPath="$PROJECT_DIR$/saves/default_save.save" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,16 +235,15 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_directory_selection": "C:/Users/Михаил/PycharmProjects/Tower_Defense/saves",
-    "last_opened_file_path": "C:/Users/Михаил/PycharmProjects/Tower_Defense",
-    "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_directory_selection&quot;: &quot;C:/Users/Михаил/PycharmProjects/Tower_Defense/saves&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Михаил/PycharmProjects/Tower_Defense&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.github.ui.GithubSettingsConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Михаил\PycharmProjects\Tower_Defense" />
@@ -309,21 +497,7 @@
       <option name="project" value="LOCAL" />
       <updated>1728972685012</updated>
     </task>
-    <task id="LOCAL-00017" summary="rollback waves to stable version">
-      <created>1729844524959</created>
-      <option name="number" value="00017" />
-      <option name="presentableId" value="LOCAL-00017" />
-      <option name="project" value="LOCAL" />
-      <updated>1729844524959</updated>
-    </task>
-    <task id="LOCAL-00018" summary="merge with main">
-      <created>1731140920917</created>
-      <option name="number" value="00018" />
-      <option name="presentableId" value="LOCAL-00018" />
-      <option name="project" value="LOCAL" />
-      <updated>1731140920917</updated>
-    </task>
-    <option name="localTasksCounter" value="19" />
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -337,7 +511,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="misha" />
+                        <option value="origin/main" />
                       </list>
                     </value>
                   </entry>
@@ -370,7 +544,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="123" />
     <MESSAGE value="test" />
     <MESSAGE value="test2" />
@@ -381,8 +554,7 @@
     <MESSAGE value="new smooth_movement in Scroller &#10;optimize tiles builder &#10;small bug fix" />
     <MESSAGE value="add pool of random levels&#10;delete old unused class TextSprite" />
     <MESSAGE value="rollback waves to stable version" />
-    <MESSAGE value="merge with main" />
-    <option name="LAST_COMMIT_MESSAGE" value="merge with main" />
+    <option name="LAST_COMMIT_MESSAGE" value="rollback waves to stable version" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
