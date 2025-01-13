@@ -636,7 +636,7 @@ class SlotsGroup(BasePreviewGroup):
                 for slot_ in sorted(self.entities, key=lambda s: s.pos[1]):
                     if not slot_.unit_inside:
                         if tower.rarity in self.slots_rarity and self.slots_rarity[tower.rarity] > 0:
-                            if not slot_.blocked:
+                            if not slot_.blocked and tower.rarity == slot_.allowed_rarity:
                                 self.slots_rarity[tower.rarity] -= 1
                                 slot_.allowed_rarity = tower.rarity
                                 directly_add()
@@ -689,9 +689,9 @@ class SlotsGroup(BasePreviewGroup):
             if slot_.unit_inside:
                 surf.blit(slot_.unit_inside.image, slot_.unit_inside.rect)
 
-        if game_state == "tower_select":
-            screen.blit(font60.render(str(self.slots_rarity["common"]), True, (61, 243, 69)), (30, 820))
-            screen.blit(font60.render(str(self.slots_rarity["spell"]), True, (70, 109, 249)), (60, 820))
+        # if game_state == "tower_select":
+        #     screen.blit(font60.render(str(self.slots_rarity["common"]), True, (61, 243, 69)), (30, 820))
+        #     screen.blit(font60.render(str(self.slots_rarity["spell"]), True, (70, 109, 249)), (60, 820))
             # screen.blit(font60.render(str(self.slots_rarity["legendary/common"]), True, (202, 239, 28)), (90, 820))
             # screen.blit(font60.render(str(self.slots_rarity["spell/common"]), True, (28, 227, 239)), (120, 820))
 
@@ -6975,12 +6975,16 @@ class Buff(sprite.Sprite):
 
 
 class Slot:
-    def __init__(self, pos):    # allowed_rarity=("common",)
+    def __init__(self, pos, allowed_rarity):    # allowed_rarity=("common",)
         self.pos = pos
         self.blocked = False
         self.free_placement = False
-        self.allowed_rarity = None
-        self.image = image.load("images/slots_rarity/default_slot.png").convert_alpha()
+        self.allowed_rarity = allowed_rarity
+        if self.allowed_rarity == "common":
+            self.image = image.load("images/slots_rarity/common_slot.png").convert_alpha()
+        if self.allowed_rarity == "spell":
+            self.image = image.load("images/slots_rarity/spell_slot.png").convert_alpha()
+        # self.image = image.load("images/slots_rarity/default_slot.png").convert_alpha()
 
         self.rect = self.image.get_rect(topleft=self.pos)
         self.render_layer = 3
@@ -6995,16 +6999,16 @@ class Slot:
         self.default_kd_time = 0
         slots_group.add(self)
 
-    def repaint(self):
-        if self.unit_inside:
-            if self.unit_inside.rarity == "legendary":
-                self.image = image.load("images/slots_rarity/legendary_slot.png").convert_alpha()
-            if self.unit_inside.rarity == "common":
-                self.image = image.load("images/slots_rarity/common_slot.png").convert_alpha()
-            if self.unit_inside.rarity == "spell":
-                self.image = image.load("images/slots_rarity/spell_slot.png").convert_alpha()
-        else:
-            self.image = image.load("images/slots_rarity/default_slot.png").convert_alpha()
+    # def repaint(self):
+    #     if self.unit_inside:
+    #         if self.unit_inside.rarity == "legendary":
+    #             self.image = image.load("images/slots_rarity/legendary_slot.png").convert_alpha()
+    #         if self.unit_inside.rarity == "common":
+    #             self.image = image.load("images/slots_rarity/common_slot.png").convert_alpha()
+    #         if self.unit_inside.rarity == "spell":
+    #             self.image = image.load("images/slots_rarity/spell_slot.png").convert_alpha()
+    #     else:
+    #         self.image = image.load("images/slots_rarity/default_slot.png").convert_alpha()
 
     def add_unit(self, unit):
         self.unit_inside = Tower(unit.name, (self.unit_rect.x - 100, self.unit_rect.y))   # x - 100 == нет всяких блакиков и ворон
@@ -7015,7 +7019,7 @@ class Slot:
         self.kd_time = -1                            # можно прям в тавер записать
         self.default_kd_time = towers_kd[unit.name]
         self.free_placement = unit.free_placement
-        self.repaint()
+        # self.repaint()
 
     def remove_unit(self):
         self.unit_inside.kill()
@@ -7025,7 +7029,7 @@ class Slot:
         self.kd_time = 0
         self.default_kd_time = 0
         self.unit_inside = None
-        self.repaint()
+        # self.repaint()
 
     def move_unit(self):
         self.unit_inside.rect = self.unit_inside.image.get_rect(center=mouse.get_pos())
@@ -7252,7 +7256,7 @@ class Scroller:
             },
             "tower_select": {
                 "x": {"min": 0, "max": 0},
-                "y": {"min": -1110, "max": 0}
+                "y": {"min": -1430, "max": 0}
             }
         }
         self.remembered_scroll_offsets = {
@@ -8449,13 +8453,13 @@ preview_group.entity_create(3)
 select_towers_preview_group.entity_create(6)
 
 # {160, 256, 352, 448, 544, 640, 736}
-Slot((32, 160))
-Slot((32, 256))
-Slot((32, 352))
-Slot((32, 448))
-Slot((32, 544))
-Slot((32, 640))
-Slot((32, 736))
+Slot((32, 160), "common")
+Slot((32, 256), "common")
+Slot((32, 352), "common")
+Slot((32, 448), "common")
+Slot((32, 544), "common")
+Slot((32, 640), "spell")
+Slot((32, 736), "spell")
 
 Cloud((1000, 100))
 Cloud((600, 60))

@@ -183,7 +183,7 @@ towers_hide = {
 }
 
 towers_death = {
-    "fire_mag": [image.load(f"images/towers/fire_mag/death/fire_mag{i}.png") for i in range(1, 5)],
+    # "fire_mag": [image.load(f"images/towers/fire_mag/death/fire_mag{i}.png") for i in range(1, 5)],
     "davalka": [image.load(f"images/towers/davalka/death/davalka{i}.png") for i in range(1, 5)],
     "kopitel": [image.load(f"images/towers/kopitel/death/kopitel{i}.png") for i in range(1, 5)],
     "matricayshon": [image.load(f"images/towers/matricayshon/death/matricayshon{i}.png") for i in range(1, 5)],
