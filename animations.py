@@ -381,7 +381,7 @@ enemies_rage_attack = {
 }
 
 bullets_move = {
-    "fireball": [image.load(f"images/bullets/fireball/move/fireball{i}.png") for i in range(1, 5)],
+    # "fireball": [image.load(f"images/bullets/fireball/move/fireball{i}.png") for i in range(1, 5)],
     "ab_kokol": [image.load(f"images/bullets/ab_kokol/move/ab_kokol{i}.png") for i in range(1, 5)],
     "amethyst": [image.load(f"images/bullets/amethyst/move/amethyst{i}.png") for i in range(1, 5)],
     "big_kamen": [image.load(f"images/bullets/big_kamen/move/big_kamen{i}.png") for i in range(1, 5)],
