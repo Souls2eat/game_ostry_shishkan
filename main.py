@@ -69,7 +69,7 @@ enemy_tile = image.load("images/maps/global_map/enemy_tile.png").convert_alpha()
 mixer.init()
 # mixer.music.load('jungles.ogg')  # фоновая музыка
 # mixer.music.play()
-general_volume = 0
+general_volume = 1.0
 music_volume = 1.0
 sound_effects_volume = 1.0
 
@@ -1105,7 +1105,7 @@ class Tower(sprite.Sprite):
             self.rarity = "common"
             self.vulnerables_and_resists['dark'] = -25
             if self.upgrade_level == "2a" or self.upgrade_level == '3a':
-                self.atk_big = self.atk*3  #60
+                self.atk_big = self.atk*3  # 60
 
         if self.name == 'elf':
             self.hp = self.max_hp = 20
@@ -1247,7 +1247,7 @@ class Tower(sprite.Sprite):
             self.atk = 0
             self.bullet_speed_x = 0
             self.bullet_speed_y = 0
-            self.basic_attack_cooldown = 900  #1125
+            self.basic_attack_cooldown = 900  # 1125
             if self.upgrade_level == '2a':
                 self.basic_attack_cooldown = 720
             elif self.upgrade_level == '3a':
@@ -1282,7 +1282,7 @@ class Tower(sprite.Sprite):
         if self.name == 'electric':
             self.hp = self.max_hp = 20
             self.atk = 4  # типо дальней атакой он наносит 60 урона в 1 цель за 6 секунд(5 сек кд и 1 сек он всё выпускает)
-            self.atk2 = self.atk*18  #45  # а ближней он наносит 72 урона сплешом за 5 секунд
+            self.atk2 = self.atk*18  # 45  # а ближней он наносит 72 урона сплешом за 5 секунд
             self.bullet_speed_x = 5
             self.bullet_speed_y = 0
             self.attack_cooldown = self.basic_attack_cooldown = 300
@@ -1463,7 +1463,7 @@ class Tower(sprite.Sprite):
             self.damage_type = 'bludgeoning'
             self.rarity = "common"
             if self.upgrade_level == "2a" or self.upgrade_level == '3a':
-                self.rage_duration = self.basic_rage_duration = 666 # так надо это не по рофлу это реально механика сломается если по другому сделать(вроде можно 661, но 666 круче)
+                self.rage_duration = self.basic_rage_duration = 666  # так надо это не по рофлу это реально механика сломается если по другому сделать(вроде можно 661, но 666 круче)
                 self.rage_cooldown = 0
                 self.basic_rage_cooldown = 1200
                 self.rage_amp = 2
@@ -1568,7 +1568,7 @@ class Tower(sprite.Sprite):
             self.horse_hp = 150  # уменьшить отхилл рыцарю
             self.hp = self.max_hp = self.knight_hp + self.horse_hp
             self.atk = 20
-            self.taran_atk = self.atk*20  #400
+            self.taran_atk = self.atk*20  # 400
             self.attack_cooldown = self.basic_attack_cooldown = 120
             self.damage_type = 'piercing'  # у лошади надо bludgeoning
             self.rarity = "common"
@@ -1719,7 +1719,7 @@ class Tower(sprite.Sprite):
             self.damage_type = 'physical'
             for i in range(0, 3, 2):
                 self.buff_y = 1 + i * 128 - 128
-                self.buff = Buff('kuklo', self.rect.x+1, self.rect.y + self.buff_y, self) # с обычным ректом и вычитанием из него не спавнится на крайней левой полосе
+                self.buff = Buff('kuklo', self.rect.x+1, self.rect.y + self.buff_y, self)  # с обычным ректом и вычитанием из него не спавнится на крайней левой полосе
             self.rarity = "common"
             self.vulnerables_and_resists['fire'] = 25
 
@@ -2444,11 +2444,11 @@ class Tower(sprite.Sprite):
             for enemy in enemies_group:
                 if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
                     return enemy
+                    # return True
             for enemy in neutral_objects_group:
                 if enemy.height == "high":
                     if -10 <= enemy.rect.y - self.rect.y <= 10 and enemy.rect.x >= self.rect.x and enemy.alive:
                         return enemy
-            
 
         if self.name == 'kopitel':
             for enemy in enemies_group:
@@ -2797,7 +2797,6 @@ class Tower(sprite.Sprite):
             if self.mech_level < self.max_mech_level:
                 self.mech_level += 1
                 self.attack_cooldown = self.basic_attack_cooldown
-            
 
         if self.name == "pukish":
             for enemy in enemies_group:
@@ -2836,8 +2835,8 @@ class Tower(sprite.Sprite):
                     return tower
                     
         if self.name == 'mega_prizivnik':
-                if self.mega_creep.hp < self.mega_creep.max_hp:
-                    return self.mega_creep
+            if self.mega_creep.hp < self.mega_creep.max_hp:
+                return self.mega_creep
 
         return None
 
@@ -2908,6 +2907,8 @@ class Tower(sprite.Sprite):
                     self.fire_form_duration -= 1
             else:
                 Bullet("fireball", self.rect.right - 10, self.rect.y + 45, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
+
+            targets[id(self)] = None
 
         if self.name == "boomchick":
             if self.upgrade_level == '2a' or self.upgrade_level == '3a':
@@ -3173,7 +3174,7 @@ class Tower(sprite.Sprite):
                         elif targets[id(self)].max_hp >= 1500:
                             stun_time = 120
                         else:
-                            stun_time = 60 * (2 + (15 -(targets[id(self)].max_hp // 100)))
+                            stun_time = 60 * (2 + (15 - (targets[id(self)].max_hp // 100)))
                         self.ceps_timer[self.ceps_ready.index(cep)] = stun_time
                         self.ceps_ready[self.ceps_ready.index(cep)] = 'duration'
                         targets[id(self)].stunned = True
@@ -3732,6 +3733,7 @@ class Tower(sprite.Sprite):
             if hasattr(self, "attack_cooldown"):                    # если баг, то закоментить
                 if self.attack_cooldown <= 0:                       #
                     self.check_target_alive()                       #
+                    # self.find_target()
                 else:                                               #
                     self.add_anim_task("wait", lambda: ...)         #
             else:                                                   #
@@ -3808,7 +3810,6 @@ class Tower(sprite.Sprite):
                     else:
                         self.hp = self.max_hp
                     self.self_healing_cooldown = self.basic_healing_cooldown
-
 
         if self.unvulnerable > 0:
             self.unvulnerable -= 1
@@ -5040,7 +5041,6 @@ class NeutralObject(sprite.Sprite):
         # self.anim_duration = 15     # сколько кадров будет оставаться 1 спрайт
         # self.state = "wait"         # потом будет "attack", "death" и какие придумаете
 
-
         # СТАТЫ начало
 
         if self.name == 'block':
@@ -5227,7 +5227,7 @@ class Bullet(sprite.Sprite):
 
         if self.name == 'ls':
             self.off = 30
-        if self.name == 'visual_effect' or self.name == 'explosion' or self.name == 'joltiy_explosion' or self.name == 'opal_explosion' or self.name == "mech" or self.name == 'razlet' or self.name == 'holod_row'  or self.name == 'razriv':
+        if self.name == 'visual_effect' or self.name == 'explosion' or self.name == 'joltiy_explosion' or self.name == 'opal_explosion' or self.name == "mech" or self.name == 'razlet' or self.name == 'holod_row' or self.name == 'razriv':
             self.off = 20
             if self.name == 'razlet':
                 self.pushl = 128
@@ -5474,8 +5474,8 @@ class Bullet(sprite.Sprite):
                         tower.barrier.hp -= self.atk
                         self.dead()         # тут был кил
                     elif tower.onyx_barrier:
-                            tower.onyx_barrier.hp -= self.atk
-                            self.dead()         # тут был кил
+                        tower.onyx_barrier.hp -= self.atk
+                        self.dead()         # тут был кил
                     else:
                         self.damage = self.atk
                         if tower.unvulnerable > 0:
@@ -6064,7 +6064,8 @@ class Bullet(sprite.Sprite):
 
     def get_count_anim_frames(self):
         if self.state == "move":
-            return len(bullets_move[self.bullet_sprite])     # переделать на name  # НЕТ!!! не будим
+            return 0
+            # return len(bullets_move[self.bullet_sprite])     # переделать на name  # НЕТ!!! не будим
         if self.state == "death":
             return len(bullets_death[self.bullet_sprite])     # переделать на name  # НЕТ!!! не будим
 
@@ -6073,8 +6074,9 @@ class Bullet(sprite.Sprite):
         if 0 <= self.anim_count < self.anim_duration * count_anim_frames:
             if int(self.anim_count//self.anim_duration) != self.last_anim_frame:
                 self.last_anim_frame = int(self.anim_count//self.anim_duration)
-                if self.state == "move":
-                    self.image = bullets_move[self.bullet_sprite][int(self.anim_count//self.anim_duration)]     # переделать на name  # НЕТ!!! не будим
+                # if self.state == "move":
+                #     pass
+                #     self.image = bullets_move[self.bullet_sprite][int(self.anim_count//self.anim_duration)]     # переделать на name  # НЕТ!!! не будим
                 if self.state == "death":
                     self.image = bullets_death[self.bullet_sprite][int(self.anim_count//self.anim_duration)]     # переделать на name  # НЕТ!!! не будим
 
@@ -6083,10 +6085,10 @@ class Bullet(sprite.Sprite):
         else:
             self.anim_count += self.time_indicator
 
-    def sound(self, reason):
-        if reason == 'death':
-            self.death_sound.set_volume(sound_effects_volume * general_volume)
-            self.death_sound.play()
+    # def sound(self, reason):
+    #     if reason == 'death':
+    #         self.death_sound.set_volume(sound_effects_volume * general_volume)
+    #         self.death_sound.play()
             # mixer.Sound(f"sounds/sound_effects/bullets/death/{self.bullet_sprite}.ogg").play()
 
     def dead(self):
@@ -6095,10 +6097,10 @@ class Bullet(sprite.Sprite):
             self.atk = 0
             self.speed_x = 0
             self.add_anim_task("death", self.kill)
-            self.sound('death')
+            # self.sound('death')
         else:
             self.kill()
-            self.sound('death')
+            # self.sound('death')
 
         if self.name == "zeleniy_strelok_bullet" or self.name == 'anti_hrom':
             for tower in towers_group:

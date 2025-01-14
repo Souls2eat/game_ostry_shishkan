@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="49dbe47e-c6ad-4d41-9b70-2732df5f0c86" name="Changes" comment="tower select update">
+    <list default="true" id="49dbe47e-c6ad-4d41-9b70-2732df5f0c86" name="Changes" comment="tower select update 2">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/animations.py" beforeDir="false" afterPath="$PROJECT_DIR$/animations.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
@@ -50,7 +50,7 @@
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;last_directory_selection&quot;: &quot;C:/Users/Михаил/PycharmProjects/Tower_Defense/saves&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Михаил/PycharmProjects/Tower_Defense&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Михаил/PycharmProjects/test&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.github.ui.GithubSettingsConfigurable&quot;
   }
 }</component>
@@ -314,7 +314,14 @@
       <option name="project" value="LOCAL" />
       <updated>1736405330410</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="tower select update 2">
+      <created>1736744307735</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1736744307735</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -372,7 +379,8 @@
     <MESSAGE value="add pool of random levels&#10;delete old unused class TextSprite" />
     <MESSAGE value="rollback waves to stable version" />
     <MESSAGE value="tower select update" />
-    <option name="LAST_COMMIT_MESSAGE" value="tower select update" />
+    <MESSAGE value="tower select update 2" />
+    <option name="LAST_COMMIT_MESSAGE" value="tower select update 2" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
