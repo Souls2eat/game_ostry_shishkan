@@ -33,7 +33,8 @@ modification_preview_menu = image.load("images/menu/modification_guide_menu.png"
 modification_preview_menu_copy = modification_preview_menu.__copy__()
 dialog_menu = image.load("images/menu/dialog_menu.png").convert_alpha()
 amogus = image.load("images/other/!!!.png").convert_alpha()
-cursor = image.load("images/other/cursor.png").convert_alpha()
+main_cursor = image.load("images/other/cursor.png").convert_alpha()
+cursor_attack = image.load("images/other/cursor2.png").convert_alpha()
 rage = image.load("images/other/rage.png").convert_alpha()
 unvulnerable = image.load("images/other/unvulnerable.png").convert_alpha()
 grustni = image.load("images/other/grustni.png").convert_alpha()
@@ -81,9 +82,11 @@ font50 = font.Font("fonts/ofont.ru_Nunito.ttf", 50)
 font60 = font.Font("fonts/ofont.ru_Nunito.ttf", 60)
 
 
+current_cursor = main_cursor
 game_name = font60.render("GAME_OSTRY_SHISHKAN", True, (255, 255, 255))  # GAME_OSTRY_SHISHKAN
 game_state = "main_menu"
 last_game_state = game_state
+tower_select_mode = "tower"
 buttons_group = []
 scroll_offset = 0
 coin_indent_x = 0
@@ -290,7 +293,7 @@ class PreviewGroup(BasePreviewGroup):
             return en.speed
         return 0
 
-    def entity_create(self, columns, indent=30):
+    def entity_create(self, columns, indent=30, only_level_allowed_enemies=False):
         if Tower in self.supported_objects:
             for i, tower_name in enumerate([*received_towers, *not_received_towers]):
                 line = int(i / columns)
@@ -302,15 +305,25 @@ class PreviewGroup(BasePreviewGroup):
                     b.kill()
                 self.add(entity)
         if Enemy in self.supported_objects:
-            for i, enemy_name in enumerate([*encountered_enemies, *not_encountered_enemies]):
-                line = int((i / columns))
-                column = (i % columns)
-                entity = Enemy(enemy_name, (indent + column * (128 + indent - 4), indent + (line * (128 + indent - 4))))
-                self.add(entity)
+            if not only_level_allowed_enemies:
+                for i, enemy_name in enumerate([*encountered_enemies, *not_encountered_enemies]):
+                    line = int((i / columns))
+                    column = (i % columns)
+                    entity = Enemy(enemy_name, (indent + column * (128 + indent - 4), indent + (line * (128 + indent - 4))))
+                    self.add(entity)
+            if only_level_allowed_enemies:
+                only_level_enemies = list(set(level.allowed_enemies))
+                if None in only_level_enemies:
+                    only_level_enemies.remove(None)
+                for i, enemy_name in enumerate(only_level_enemies):
+                    line = int((i / columns))
+                    column = (i % columns)
+                    entity = Enemy(enemy_name, (indent + column * (128 + indent - 4), indent + (line * (128 + indent - 4))))
+                    self.add(entity)
 
-    def refresh(self, columns, indent=30):
+    def refresh(self, columns, indent=30, only_level_allowed_enemies=False):
         self.clear_()
-        self.entity_create(columns, indent)
+        self.entity_create(columns, indent, only_level_allowed_enemies)
 
     def get_len_remembered(self):
         return len(self.remember_entities)
@@ -374,6 +387,7 @@ class GlobalMap:
         self.chest = None
         self.event = None
         self.smokes_pos = []
+        self.hovered_global_level = None
         self.where_is_smoke()
 
     def add(self, tile):
@@ -448,7 +462,7 @@ class GlobalMap:
         return False
 
     def actions(self):
-        global game_state, last_game_state, event_stage
+        global game_state, last_game_state, event_stage, current_cursor
 
         def go_level():
             global last_game_state, game_state, level
@@ -490,6 +504,12 @@ class GlobalMap:
                     if self.tiles[self.hero_pos].id not in passed_levels:
                         self.level_completed(self.tiles[self.hero_pos].id)
 
+        if self.on_hover():
+            # screen.blit(font30.render(str(f"{mouse_pos[0]}, {mouse_pos[1]}"), True, (255, 0, 0)), (mouse_pos[0] - 60, mouse_pos[1] - 40))
+            current_cursor = cursor_attack
+        else:
+            current_cursor = main_cursor
+
     def focus_on_hero(self):
         scroller.set_scroll_offset(((self.next_hero_pos[0] + 1) * -128 + 640 + 64, (self.next_hero_pos[1] + 1) * -128 + 384 + 64))  # камера улетает на нажатый объект
         scroller.set_target_scroll_offset(((self.hero_pos[0] + 1) * -128 + 640 + 64, (self.hero_pos[1] + 1) * -128 + 384 + 64))     # затем плавно возвращается на чела
@@ -524,6 +544,16 @@ class GlobalMap:
         if mouse.get_pressed()[0] == 0 and self.pushed:
             self.pushed = False
             return True
+        return False
+
+    def on_hover(self) -> bool:
+        hover_pos = (mouse_pos[0] - 66 - scroller.scroll_offset_x) // 128, (mouse_pos[1] - 66 - scroller.scroll_offset_y) // 128
+        if hover_pos in self.tiles:
+            global_level = self.tiles[hover_pos]
+            if global_level.id not in passed_levels and global_level.level_meta and self.is_level_available(hover_pos):
+                self.hovered_global_level = global_level
+                return True
+        self.hovered_global_level = None
         return False
 
     def level_completed(self, level_id, detect_smoke=True):
@@ -7265,7 +7295,7 @@ class Scroller:
             "global_map": (0, 0),
         }
 
-    def set_scroll_offset(self, offset):
+    def set_scroll_offset(self, offset: tuple):
         self.scroll_offset_x = offset[0]
         self.scroll_offset_y = offset[1]
         self.target_scroll_offset_x = offset[0]
@@ -7359,11 +7389,11 @@ class TextField:
                 if level.rect_visible:
                     draw.rect(screen, (0, 200, 0), self.font.render(word, True, self.color).get_rect(topleft=word_pos), 5)  # отображение границы слова
                 word_pos = word_pos[0] + word_width + get_whitespace_width(), word_pos[1]
-        if self.alignment == "center":      # works only with 1 word
-            if len(self.text.split()) == 1:
-                word = str(self.text)
-                word_pos = (self.max_width - get_word_width(word)) // 2 + self.topleft_pos[0], self.topleft_pos[1]
-                surf.blit(self.font.render(word, True, self.color), word_pos)
+        if self.alignment == "center":      # works only with 1 word    # хз, я убрал проверку на 1 слово и оно и так работает
+            # if len(self.text.split()) == 1:
+            word = str(self.text)
+            word_pos = (self.max_width - get_word_width(word)) // 2 + self.topleft_pos[0], self.topleft_pos[1]
+            surf.blit(self.font.render(word, True, self.color), word_pos)
 
         if level.rect_visible:
             draw.rect(screen, (200, 0, 0), Rect(self.topleft_pos[0], self.topleft_pos[1], self.max_width, self.get_font_height() * lines), 5)   # отображение границы текста
@@ -7684,7 +7714,8 @@ def menu_positioning():
             sound_effects_volume, \
             developer_mode, \
             current_scroll_offset_state, \
-            event_stage
+            event_stage, \
+            tower_select_mode
 
     if game_state == "main_menu":
         text_fields_group.clear()   # на всякий
@@ -7874,10 +7905,10 @@ def menu_positioning():
         if change_preview_turn_button.click(screen, (1280, 90)):
             if preview_group.turn == Enemy:
                 preview_group.turn = Tower
-                change_preview_turn_button.image = image.load("images/coins/city_coin.png").convert_alpha()
+                change_preview_turn_button.image = image.load("images/coins/evil_coin.png").convert_alpha()
             else:
                 preview_group.turn = Enemy
-                change_preview_turn_button.image = image.load("images/coins/evil_coin.png").convert_alpha()
+                change_preview_turn_button.image = image.load("images/coins/city_coin.png").convert_alpha()
             scroller.set_scroll_offset((0, 0))
             preview_group.pushed_entity = list(filter(preview_group.filter_by_turn, preview_group.entities))[0]
 
@@ -7895,7 +7926,8 @@ def menu_positioning():
             level.draw_level_time()
 
         text_fields_group.clear()
-        TextField(str(level.money), (88, 53), 100, font_=font40, enable_animation=False)
+        if level.state == "run":
+            TextField(str(level.money), (88, 53), 100, font_=font40, enable_animation=False)
         if level.cheat:
             TextField("CHEAT MODE", (853, 110), 300, (255, 0, 0), font_=font40, enable_animation=False)
 
@@ -8043,47 +8075,98 @@ def menu_positioning():
         screen.blit(botton_select_menu, (250, 750))
         scroller.check_possible_scrolling()
 
-        select_towers_preview_group.move_element_by_scroll()
-        select_towers_preview_group.check_hover(select_menu, offset_pos=(250, 150))
-        if select_towers_preview_group.check_click(select_menu, offset_pos=(250, 150)):
-            if select_towers_preview_group.pushed_entity.name in received_towers:
-                slots_group.add_to_slots(select_towers_preview_group.pushed_entity)
-        select_towers_preview_group.go_animation()
-        select_towers_preview_group.custom_draw(select_menu)
+        if tower_select_mode == "tower":
+            select_towers_preview_group.move_element_by_scroll()
+            select_towers_preview_group.check_hover(select_menu, offset_pos=(250, 150))
+            if select_towers_preview_group.check_click(select_menu, offset_pos=(250, 150)):
+                if select_towers_preview_group.pushed_entity.name in received_towers:
+                    slots_group.add_to_slots(select_towers_preview_group.pushed_entity)
+            select_towers_preview_group.go_animation()
+            select_towers_preview_group.custom_draw(select_menu)
 
-        if select_towers_preview_group.check_hover(select_menu, offset_pos=(250, 150)):
-            if select_towers_preview_group.hovered_entity.name in received_towers:
-                TextField(select_towers_preview_group.hovered_entity.name, (1215, 160), 310, enable_animation=False, font_=font40, alignment="center")
-                TextField(upgrade_descriptions[select_towers_preview_group.hovered_entity.name]["1"], (1230, 220), 280, enable_animation=False)     # [upgrades[select_towers_preview_group.hovered_entity.name][-1]] (1230, 160)
+            if select_towers_preview_group.check_hover(select_menu, offset_pos=(250, 150)):
+                if select_towers_preview_group.hovered_entity.name in received_towers:
+                    if select_towers_preview_group.hovered_entity.name in en_ru_translate:
+                        TextField(en_ru_translate[select_towers_preview_group.hovered_entity.name], (1215, 160), 310, enable_animation=False, font_=font40, alignment="center")
+                    else:
+                        TextField(select_towers_preview_group.hovered_entity.name, (1215, 160), 310, enable_animation=False, font_=font40, alignment="center")
+                    TextField(upgrade_descriptions[select_towers_preview_group.hovered_entity.name]["1"], (1230, 220), 280, enable_animation=False)     # [upgrades[select_towers_preview_group.hovered_entity.name][-1]] (1230, 160)
+                else:
+                    TextField("???", (1215, 160), 310, enable_animation=False, font_=font40, alignment="center")
             else:
                 TextField("???", (1215, 160), 310, enable_animation=False, font_=font40, alignment="center")
-        else:
-            TextField("???", (1215, 160), 310, enable_animation=False, font_=font40, alignment="center")
 
-        if clear_button.click(screen, (321, 770), col=(0, 0, 0)):  # 1250, 470
-            slots_group.clear_units()
+            if clear_button.click(screen, (321, 770), col=(0, 0, 0)):  # 1250, 470
+                slots_group.clear_units()
 
-        if random_choice_button.click(screen, (620, 770), col=(0, 0, 0)):  # 1248, 550
-            slots_group.random_add_to_slots()
+            if random_choice_button.click(screen, (620, 770), col=(0, 0, 0)):  # 1248, 550
+                slots_group.random_add_to_slots()
 
-        if start_level_button.click(screen, (929, 760), col=(0, 0, 0)):    # 1265, 630
-            if len(select_towers_preview_group.remember_entities) == 7 - len(level.blocked_slots):
-                scroller.scroll_offset_y = 0
-                game_state = "run"
-                level.clear(ui_group, slots_group)
-                level.state = "not_run"
-                for obj_ in [*towers_group, *nekusaemie_group]:
-                    if not obj_.name == 'krest':
-                        if hasattr(obj_, "bullet"):
-                            obj_.bullet.kill()
-                        obj_.alive = False
-                        obj_.kill()
+            if start_level_button.click(screen, (929, 760), col=(0, 0, 0)):    # 1265, 630
+                if len(select_towers_preview_group.remember_entities) == 7 - len(level.blocked_slots):
+                    scroller.scroll_offset_y = 0
+                    game_state = "run"
+                    level.clear(ui_group, slots_group)
+                    level.state = "not_run"
+                    for obj_ in [*towers_group, *nekusaemie_group]:
+                        if not obj_.name == 'krest':
+                            if hasattr(obj_, "bullet"):
+                                obj_.bullet.kill()
+                            obj_.alive = False
+                            obj_.kill()
+                else:
+                    Alert("Остались свободные слоты", (400, 60), 75)
+
+        if tower_select_mode == "enemy":
+            select_enemy_preview_group.move_element_by_scroll()
+            select_enemy_preview_group.check_hover(select_menu, offset_pos=(250, 150))
+            # if select_enemy_preview_group.check_click(select_menu, offset_pos=(250, 150)):
+            #     if select_enemy_preview_group.pushed_entity.name in encountered_enemies:
+            #         slots_group.add_to_slots(select_enemy_preview_group.pushed_entity)
+            select_enemy_preview_group.go_animation()
+            select_enemy_preview_group.custom_draw(select_menu)
+
+            if select_enemy_preview_group.check_hover(select_menu, offset_pos=(250, 150)):
+                if select_enemy_preview_group.hovered_entity.name in encountered_enemies:
+                    if select_enemy_preview_group.hovered_entity.name in en_ru_translate:
+                        TextField(en_ru_translate[select_enemy_preview_group.hovered_entity.name], (1215, 160), 310, enable_animation=False, font_=font40, alignment="center")
+                    else:
+                        TextField(select_enemy_preview_group.hovered_entity.name, (1215, 160), 310, enable_animation=False, font_=font40, alignment="center")
+                    if select_enemy_preview_group.hovered_entity.name in enemies_descriptions:
+                        TextField(enemies_descriptions[select_enemy_preview_group.hovered_entity.name], (1230, 220), 280, enable_animation=False)
+                else:
+                    TextField("???", (1215, 160), 310, enable_animation=False, font_=font40, alignment="center")
             else:
-                Alert("Остались свободные слоты", (400, 60), 75)
+                TextField("???", (1215, 160), 310, enable_animation=False, font_=font40, alignment="center")
+
+            if start_level_button.click(screen, (620, 760), col=(0, 0, 0)):    # 1265, 630
+                if len(select_towers_preview_group.remember_entities) == 7 - len(level.blocked_slots):
+                    scroller.scroll_offset_y = 0
+                    game_state = "run"
+                    level.clear(ui_group, slots_group)
+                    level.state = "not_run"
+                    for obj_ in [*towers_group, *nekusaemie_group]:
+                        if not obj_.name == 'krest':
+                            if hasattr(obj_, "bullet"):
+                                obj_.bullet.kill()
+                            obj_.alive = False
+                            obj_.kill()
+                else:
+                    Alert("Остались свободные слоты", (400, 60), 75)
+
         if pause_button.click(screen, (1515, 58)):
             last_game_state = game_state
             Alert("Пауза", (700, 200), 75)
             game_state = "paused"
+        if tower_select_mode_switch_button.click(screen, (1440, 58)):
+            if tower_select_mode == "tower":
+                tower_select_mode = "enemy"
+                tower_select_mode_switch_button.image = image.load("images/coins/city_coin.png").convert_alpha()
+                select_enemy_preview_group.refresh(6, only_level_allowed_enemies=True)
+            elif tower_select_mode == "enemy":
+                tower_select_mode = "tower"
+                tower_select_mode_switch_button.image = image.load("images/coins/evil_coin.png").convert_alpha()
+            scroller.set_scroll_offset((0, 0))
         ui_group.draw(screen)
 
     if game_state == "settings_menu":
@@ -8377,6 +8460,7 @@ level_group = sprite.Group()
 krests_group = sprite.Group()
 preview_group = PreviewGroup(Tower, Enemy)
 select_towers_preview_group = PreviewGroup(Tower)
+select_enemy_preview_group = PreviewGroup(Enemy)
 tower_upgrades_group = TowerUpgradesGroup()
 rewards_preview_group = RewardsPreviewGroup()
 slots_group = SlotsGroup(slots_rarity={"common": 5, "spell": 2})  # "common": 2, "spell": 2, "legendary/common": 2, "spell/common": 1
@@ -8403,7 +8487,7 @@ start_level_button = Button("text", font60, "Начать")
 random_choice_button = Button("text", font50, "Случайно")
 manual_menu_button = Button("text", font60, "Справочник")
 manual_menu_img_button = Button("img", "other", "manual_menu_button")
-change_preview_turn_button = Button("img", "coins", "city_coin")
+change_preview_turn_button = Button("img", "coins", "evil_coin")
 accept_button = Button("text", font60, "Да")
 deny_button = Button("text", font60, "Нет")
 unlock_all_button = Button("text", font60, "Открыть всё")
@@ -8427,6 +8511,7 @@ sound_effects_volume_up_button = Button("img", "other", "up")
 sound_effects_volume_down_button = Button("img", "other", "down")
 sound_effects_volume_mute_button = Button("img", "other", "mute")
 level1_button = Button("text", font60, "Нажать чтобы играть!")
+tower_select_mode_switch_button = Button("img", "coins", "evil_coin")
 
 global_map.build_tiles()
 # global_map_levels_builder()
@@ -8453,6 +8538,7 @@ scroller.remembered_scroll_offsets["global_map"] = temp_scroll_offset
 
 preview_group.entity_create(3)
 select_towers_preview_group.entity_create(6)
+select_enemy_preview_group.entity_create(6)
 
 # {160, 256, 352, 448, 544, 640, 736}
 Slot((32, 160), "common")
@@ -8501,7 +8587,7 @@ while running:
     alert_group.update()
     alert_group.draw(screen)
     if mouse.get_focused():
-        screen.blit(cursor, mouse_pos)
+        screen.blit(current_cursor, mouse_pos)
         # screen.blit(font30.render(str(f"{mouse_pos[0]}, {mouse_pos[1]}"), True, (255, 0, 0)), (mouse_pos[0] - 60, mouse_pos[1] - 40))
         # for ii in range(10):
         #     draw.line(screen, (0, 0, 0), (ii * 160, 0), (ii * 160, 900), 5)
