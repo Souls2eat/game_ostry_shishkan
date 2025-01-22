@@ -1398,6 +1398,15 @@ upgrade_descriptions = {
     }
 }
 
+enemies_descriptions = {
+    "popusk": "Попуск - самый слабый враг в игре"
+}
+
+en_ru_translate = {
+    "fire_mag": "Огненный маг",
+    "popusk": "Попуск"
+}
+
 keys_ru = {
     "a": "ф",
     "b": "и",
