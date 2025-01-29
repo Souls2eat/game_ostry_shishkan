@@ -1381,6 +1381,23 @@ class Tower(sprite.Sprite):
                     else:
                         Parasite('raven', self.rect.centerx - 58, self.rect.bottom - 16*i, self.damage_type, self.atk, self, self)
 
+        if self.name == 'ruchnik':
+            self.hp = self.max_hp = 20
+            self.ruki = 3
+            self.damage_type = ''
+            self.rarity = "common"
+            for i in range(self.ruki):
+                if self.ruki % 2 == 1:
+                    if i % 2 == 0:
+                        Parasite('ruka', self.rect.centerx - 26, self.rect.bottom - 16*(i+1), self.damage_type, 0, self, self)
+                    else:
+                        Parasite('ruka', self.rect.centerx - 58, self.rect.bottom - 16*(i+1), self.damage_type, 0, self, self)
+                else:
+                    if i % 2 == 0:
+                        Parasite('ruka', self.rect.centerx - 26, self.rect.bottom - 16*(i+1), self.damage_type, 0, self, self)
+                    else:
+                        Parasite('ruka', self.rect.centerx - 58, self.rect.bottom - 16*i, self.damage_type, 0, self, self)
+
         if self.name == 'electro_maga':
             self.hp = self.max_hp = 20
             self.atk = 0
@@ -2954,15 +2971,15 @@ class Tower(sprite.Sprite):
 
         if self.name == "holodilnik":
             Bullet("blue_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'razrivnaya', self)
-        targets[id(self)] = None
+            targets[id(self)] = None
 
         if self.name == "gribnik":
             Bullet("grib_bullet", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'spore', self)
-        targets[id(self)] = None
+            targets[id(self)] = None
 
         if self.name == "chorniy":
             Bullet("onyx", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'chorniy_bullet', self)
-        targets[id(self)] = None
+            targets[id(self)] = None
 
         if self.name == "ded_moroz":
             if self.upgrade_level == '2a' or self.upgrade_level == '3a':
@@ -2986,7 +3003,7 @@ class Tower(sprite.Sprite):
             
         if self.name == "sliz":
             Bullet("sliz_bul", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'sliz_bul', self)
-        targets[id(self)] = None
+            targets[id(self)] = None
 
         if self.name == "furry_zayac":
             for i in range(3):
@@ -6274,6 +6291,21 @@ class Parasite(sprite.Sprite):
             if self.parent not in all_sprites_group:
                 self.lifetime = 300
 
+        if self.name == 'ruka':
+            self.home_x = self.rect.centerx
+            self.home_y = self.rect.centery
+            self.speed = 5
+            self.rest_time = 0
+            self.basic_rest_time = 420
+            if self.parent.rect.y == 192:
+                self.side = 1
+            elif self.parent.rect.y == 704:
+                self.side = 0
+            else:
+                self.side = randint(0, 1)
+            if self.parent not in all_sprites_group:
+                self.lifetime = 300
+
         if self.name == 'mol':
             if self.owner != self.parent:
                 self.dealing_damage(self.owner)
@@ -6297,7 +6329,7 @@ class Parasite(sprite.Sprite):
             self.owner.have_barrier = False
         if self.name == 'sliz_luja_parasite':
             self.owner.sliz = None
-        if self.name == 'raven':
+        if self.name == 'raven' or self.name == 'ruka':
             if self.owner != self.parent and self.parent in self.owner.parasite_parents:
                 self.owner.parasite_parents.remove(self.parent)
         if self.name == 'terpila_debuff':
@@ -6311,13 +6343,13 @@ class Parasite(sprite.Sprite):
     def prisasivanie(self):  # если честно то это по сути delat_chtoto но для паразитов, когда-нибудь сделаем по-человечески
         if self.parent and self.name != 'ogonek_parasite' and self.name != 'poison_parasite' and self.name != 'sneg_parasite'  and self.name != 'grib_parasite' and self.name != 'sliz_luja_parasite' and self.name != 'mol' and self.name != 'terpila_debuff' and self.name != 'onyx_barrier' and self.name != 'potok_y':
             if self.parent not in all_sprites_group: 
-                if self.name == 'raven' and (self.owner != self.parent or (hasattr(self, 'lifetime') and self.lifetime > 0)):
+                if (self.name == 'raven' or self.name == 'ruka') and (self.owner != self.parent or (hasattr(self, 'lifetime') and self.lifetime > 0)):
                     pass
                 else:
                     self.dead()
         if self.name != 'mol' and self.name != 'potok_y':
             if self.owner not in all_sprites_group:
-                if self.name == 'raven':
+                if self.name == 'raven' or self.name == 'ruka':
                     if self.parent not in all_sprites_group:
                         if hasattr(self, 'lifetime') and self.lifetime > 0 and self.owner == self.parent:
                             pass
@@ -6486,7 +6518,68 @@ class Parasite(sprite.Sprite):
                             self.dead()
                         else:
                             self.owner = self.parent
-                            self.rest_time = 9999
+                            self.rest_time = 99999
+        
+        if self.name == 'ruka':
+            if self.rest_time > 0:
+                self.rest_time -= 1
+            else:
+                if self.owner == self.parent:
+                    for enemy in enemies_group:
+                        if not enemy.heavy and (enemy.rect.y - self.parent.rect.y <= 10 and self.parent.rect.y - enemy.rect.y <= 10) and self.check_for_ruka(enemy) and self.parent not in enemy.parasite_parents and enemy.alive and (self.parent in all_sprites_group or hasattr(self, 'lifetime')):
+                            enemy.parasite_parents.add(self.parent)
+                            self.owner = enemy
+                            self.randix = randint(0, 48)
+                            self.randiy = randint(0, 48)
+                            break
+            if self.owner == self.parent:
+                if self.rect.centerx != self.home_x or self.rect.centery != self.home_y:
+                    self.angle = atan2(self.home_y - self.rect.centery, self.home_x - self.rect.centerx)
+                    self.x_vel = cos(self.angle) * self.speed
+                    self.y_vel = sin(self.angle) * self.speed
+                    self.rect.x += self.x_vel
+                    self.rect.y += self.y_vel
+                    if self.rect.collidepoint(self.home_x, self.home_y):
+                        self.rect.centerx = self.home_x
+                        self.rect.centery = self.home_y
+                        self.rest_time = self.basic_rest_time
+                        if self.parent.rect.y == 192:
+                            self.side = 1
+                        elif self.parent.rect.y == 704:
+                            self.side = 0
+                        else:
+                            self.side = randint(0, 1)
+            else:
+                if self.rect.centerx != self.owner.rect.x+self.randix or self.rect.centery != self.owner.rect.y+self.randiy:
+                    self.angle = atan2(self.owner.rect.y+self.randiy - self.rect.centery, self.owner.rect.x+self.randix - self.rect.centerx)
+                    self.x_vel = cos(self.angle) * self.speed
+                    self.y_vel = sin(self.angle) * self.speed
+                    self.rect.x += self.x_vel
+                    self.rect.y += self.y_vel
+                    if self.rect.collidepoint(self.owner.rect.x+self.randix, self.owner.rect.y+self.randiy):
+                        self.rect.centerx = self.owner.rect.x+self.randix
+                        self.rect.centery = self.owner.rect.y+self.randiy
+                else:
+                    self.rect.centerx = self.owner.rect.x+self.randix
+                    self.rect.centery = self.owner.rect.y+self.randiy
+                    if (self.owner.rect.y - self.parent.rect.y <= 118 and self.parent.rect.y - self.owner.rect.y <= 118):
+                        if self.side == 0:
+                            self.owner.angle = atan2(self.parent.rect.centery-128 - self.owner.rect.centery, 0)
+                            self.owner.y_vel = sin(self.owner.angle) * self.owner.speed * 6
+                            self.owner.real_y += self.owner.y_vel
+                        else:
+                            self.owner.angle = atan2(self.parent.rect.centery+128 - self.owner.rect.centery, 0)
+                            self.owner.y_vel = sin(self.owner.angle) * self.owner.speed * 6
+                            self.owner.real_y += self.owner.y_vel
+                    else:
+                        self.owner.back_to_line()
+                        if self.parent in self.owner.parasite_parents:
+                            self.owner.parasite_parents.remove(self.parent)
+                        if self.parent not in all_sprites_group:
+                            self.dead()
+                        else:
+                            self.owner = self.parent
+                            self.rest_time = 99999
 
         if self.name == 'metka_inq':
             for i in self.cashback_list:
@@ -6497,6 +6590,12 @@ class Parasite(sprite.Sprite):
                 else:
                     self.dealing_damage(self.owner)
                     self.cashback_list.remove(i)
+
+    def check_for_ruka(self, enemy):
+        for parasite in parasites_group:
+            if parasite.name == 'ruka' and parasite.owner == enemy:
+                return False
+        return True
 
     def dealing_damage(self, enemy):
         self.damage = self.atk
@@ -6534,7 +6633,7 @@ class Parasite(sprite.Sprite):
             if self.lifetime > 0:
                 self.lifetime -= 1
             else:
-                if self.name == 'raven' and self.owner != self.parent:
+                if (self.name == 'raven' or self.name == 'ruka') and self.owner != self.parent:
                     pass
                 else:
                     self.dead()
