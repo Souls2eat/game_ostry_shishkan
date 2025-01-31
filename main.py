@@ -1042,11 +1042,12 @@ class Event:
 
 
 class Tower(sprite.Sprite):
-    def __init__(self, unit, pos):
+    def __init__(self, unit, pos, parent_name=None):
         super().__init__(towers_group, all_sprites_group)
         self.image = image.load(f"images/towers/{unit}/wait/{unit}{str(1)}.png").convert_alpha()
         self.rect = self.image.get_rect(topleft=pos)
         self.pos = pos
+        self.parent_name = parent_name
         self.name = unit
         if self.name in upgrades:
             self.upgrade_level = upgrades[self.name][-1]
@@ -1065,6 +1066,7 @@ class Tower(sprite.Sprite):
         self.free_placement = False
         self.under = False
         self.zadodgil = sprite.Group()
+        self.pod_gribochkom = 0
         self.damaged = False
         self.stunned = False
         self.banished = False
@@ -1271,6 +1273,8 @@ class Tower(sprite.Sprite):
             self.basic_attack_cooldown = self.attack_cooldown = 120     # 150
             self.damage_type = 'light'
             self.rarity = "common"
+            if self.upgrade_level == "3a" or self.upgrade_level == "3b":
+                self.damage_type = 'clean'
 
         if self.name == 'yascerica':
             self.hp = self.max_hp = 20
@@ -1901,6 +1905,18 @@ class Tower(sprite.Sprite):
             self.damage_type = ''
             self.rarity = "common"
 
+        if self.name == 'grib_strazh':
+            self.hp = self.max_hp = 75
+            self.basic_spawn_something_cooldown = self.spawn_something_cooldown = 180
+            self.grib_rect = Rect(self.rect.x-128, self.rect.y-128, 384, 384)
+            self.rarity = "common"
+
+        for i in range(3):
+            if self.name == 'greeb' + str(i + 1):
+                self.upgrade_level = upgrades["grib_strazh"][-1]
+                self.hp = self.max_hp = 25 * (i + 1)
+                self.rarity = "common"
+
         if self.name == 'priest':
             self.hp = self.max_hp = 20
             self.atk = 10
@@ -1953,6 +1969,16 @@ class Tower(sprite.Sprite):
             self.hp = self.max_hp = 20
             self.atk_multiplier = 1.6
             self.buffed_tower = None
+            self.under = True
+            self.render_layer = 5
+            self.rarity = "common"
+
+        if self.name == 'gribochek':
+            self.hp = self.max_hp = 1
+            self.buffed_tower = None
+            self.gribochek_time = 300
+            self.remove(towers_group)
+            self.add(nekusaemie_group)
             self.under = True
             self.render_layer = 5
             self.rarity = "common"
@@ -2196,117 +2222,129 @@ class Tower(sprite.Sprite):
             self.add_anim_task(anim, func)
 
     def dead(self):
-        for i in range(3):
-            if self.name == 'grib' + str(i + 1):
+        if self.pod_gribochkom <= 0:
+            for i in range(3):
+                if self.name == 'grib' + str(i + 1):
+                    if self.upgrade_level == '2a' or self.upgrade_level == '3a':
+                        Buff('grib_gas', self.rect.x, self.rect.y, self)
+                    if self.upgrade_level == '2b' or self.upgrade_level == '3b':
+                        if self.name == 'grib1':
+                            Bullet("mini_explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self)
+                        else:
+                            Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self)
+
+            if self.name == "gnome_cannon3":
+                for tower in nekusaemie_group:
+                    if tower.rect.collidepoint(self.rect.centerx, self.rect.centery):
+                        tower.kill()
+
+            elif self.name == "boomchick":
                 if self.upgrade_level == '2a' or self.upgrade_level == '3a':
-                    Buff('grib_gas', self.rect.x, self.rect.y, self)
-                if self.upgrade_level == '2b' or self.upgrade_level == '3b':
-                    if self.name == 'grib1':
-                        Bullet("mini_explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self)
-                    else:
-                        Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self)
-
-        if self.name == "gnome_cannon3":
-            for tower in nekusaemie_group:
-                if tower.rect.collidepoint(self.rect.centerx, self.rect.centery):
-                    tower.kill()
-
-        elif self.name == "boomchick":
-            if self.upgrade_level == '2a' or self.upgrade_level == '3a':
-                Bullet("mega_explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk * 5, 0, 0, 'explosion', self)
-            else:
-                Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk * 5, 0, 0, 'explosion', self)
-
-        elif self.name == "thunder":
-            self.kamen = Tower('thunder_kamen', self.pos)
-            if self.upgrade_level == '3a':
-                self.kamen.hp = self.kamen_hp
-
-        elif self.name == 'gribnik':
-            Tower('grib3', self.pos)
-            if self.upgrade_level == '3b':
-                for i in range(0, 8, 2):
-                    if i < 4:
-                        grib = Tower('grib3', ((384 + ((self.rect.x - 384) // 128) * 128), (192 + ((self.rect.y+(128*(i-1)) - 192) // 128) * 128)))
-                    else:
-                        grib = Tower('grib3', ((384 + ((self.rect.x+(128*(i-5)) - 384) // 128) * 128), (192 + ((self.rect.y - 192) // 128) * 128)))
-                    if not (1536 > grib.pos[0] >= 384 and 832 > grib.pos[1] >= 192) or not is_free(grib):
-                        grib.kill()
-            else:
-                for i in range(0, 8, 2):
-                    if i < 4:
-                        grib = Tower('grib1', ((384 + ((self.rect.x - 384) // 128) * 128), (192 + ((self.rect.y+(128*(i-1)) - 192) // 128) * 128)))
-                    else:
-                        grib = Tower('grib1', ((384 + ((self.rect.x+(128*(i-5)) - 384) // 128) * 128), (192 + ((self.rect.y - 192) // 128) * 128)))
-                    if not (1536 > grib.pos[0] >= 384 and 832 > grib.pos[1] >= 192) or not is_free(grib):
-                        grib.kill()
-
-        elif self.name == 'dark_druid':
-            self.kill()  # так надо
-            for enemy in enemies_group:
-                if self in enemy.parasite_parents:
-                    enemy.parasite_parents.remove(self)
-            for i in range(self.ravens_dead):
-                if self.ravens_dead % 2 == 1:
-                    if i % 2 == 0:
-                        Parasite('raven', self.rect.right - 16, self.rect.bottom - 16*(i+1), self.damage_type, self.atk, self, self)
-                    else:
-                        Parasite('raven', self.rect.right - 48, self.rect.bottom - 16*(i+1), self.damage_type, self.atk, self, self)
+                    Bullet("mega_explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk * 5, 0, 0, 'explosion', self)
                 else:
-                    if i % 2 == 0:
-                        Parasite('raven', self.rect.right - 16, self.rect.bottom - 16*(i+1), self.damage_type, self.atk, self, self)
+                    Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk * 5, 0, 0, 'explosion', self)
+
+            elif self.name == "thunder":
+                self.kamen = Tower('thunder_kamen', self.pos)
+                if self.upgrade_level == '3a':
+                    self.kamen.hp = self.kamen_hp
+
+            elif self.name == 'gribnik':
+                grib = Tower('grib3', self.pos, 'gribnik')
+                if self.upgrade_level == '3b':
+                    for i in range(0, 8, 2):
+                        if i < 4:
+                            grib = Tower('grib3', ((384 + ((self.rect.x - 384) // 128) * 128), (192 + ((self.rect.y+(128*(i-1)) - 192) // 128) * 128)), 'gribnik')
+                        else:
+                            grib = Tower('grib3', ((384 + ((self.rect.x+(128*(i-5)) - 384) // 128) * 128), (192 + ((self.rect.y - 192) // 128) * 128)), 'gribnik')
+                        if not (1536 > grib.pos[0] >= 384 and 832 > grib.pos[1] >= 192) or not is_free(grib):
+                            grib.kill()
+                else:
+                    for i in range(0, 8, 2):
+                        if i < 4:
+                            grib = Tower('grib1', ((384 + ((self.rect.x - 384) // 128) * 128), (192 + ((self.rect.y+(128*(i-1)) - 192) // 128) * 128)), 'gribnik')
+                        else:
+                            grib = Tower('grib1', ((384 + ((self.rect.x+(128*(i-5)) - 384) // 128) * 128), (192 + ((self.rect.y - 192) // 128) * 128)), 'gribnik')
+                        if not (1536 > grib.pos[0] >= 384 and 832 > grib.pos[1] >= 192) or not is_free(grib):
+                            grib.kill()
+
+            elif self.name == 'grib_strazh':
+                greeb = Tower('greeb3', self.pos, 'grib_strazh')
+                for i in range(3):
+                    for j in range(3):
+                        greeb = Tower('greeb3', (self.rect.x + 128 - (128 * i), self.rect.y + 128 - (128 * j)), 'grib_strazh')
+                        for tower in towers_group:
+                            if (tower.name == 'greeb1' or tower.name == 'greeb2') and greeb.rect.collidepoint(tower.rect.centerx, tower.rect.centery):
+                                tower.kill()
+                        if not (1536 > greeb.pos[0] >= 384 and 832 > greeb.pos[1] >= 192) or not is_free(greeb):
+                            greeb.kill()
+
+            elif self.name == 'dark_druid':
+                self.kill()  # так надо
+                for enemy in enemies_group:
+                    if self in enemy.parasite_parents:
+                        enemy.parasite_parents.remove(self)
+                for i in range(self.ravens_dead):
+                    if self.ravens_dead % 2 == 1:
+                        if i % 2 == 0:
+                            Parasite('raven', self.rect.right - 16, self.rect.bottom - 16*(i+1), self.damage_type, self.atk, self, self)
+                        else:
+                            Parasite('raven', self.rect.right - 48, self.rect.bottom - 16*(i+1), self.damage_type, self.atk, self, self)
                     else:
-                        Parasite('raven', self.rect.right - 48, self.rect.bottom - 16*i, self.damage_type, self.atk, self, self)
+                        if i % 2 == 0:
+                            Parasite('raven', self.rect.right - 16, self.rect.bottom - 16*(i+1), self.damage_type, self.atk, self, self)
+                        else:
+                            Parasite('raven', self.rect.right - 48, self.rect.bottom - 16*i, self.damage_type, self.atk, self, self)
 
-        elif self.name == 'knight_on_horse':
-            if self.horse_hp <= 0:
-                hp = self.knight_hp + 500
-                knight = Tower("knight", self.pos)
-                knight.hp = hp
-                self.kill()
-            elif self.knight_hp <= 0:
-                self.taran_atk = self.atk*20
-                Bullet("horse", self.rect.centerx, self.rect.centery, self.damage_type, self.taran_atk, 7, 0, 'horse', self)
-                self.kill()
+            elif self.name == 'knight_on_horse':
+                if self.horse_hp <= 0:
+                    hp = self.knight_hp + 500
+                    knight = Tower("knight", self.pos)
+                    knight.hp = hp
+                    self.kill()
+                elif self.knight_hp <= 0:
+                    self.taran_atk = self.atk*20
+                    Bullet("horse", self.rect.centerx, self.rect.centery, self.damage_type, self.taran_atk, 7, 0, 'horse', self)
+                    self.kill()
 
-        elif self.name == 'mega_prizivnik':
-            if self.mega_creep.jiv:
-                self.mega_creep.real_x = self.rect.x
-                self.mega_creep.real_y = self.rect.y
-            else:
-                self.mega_creep.real_x = self.rect.x
-                self.mega_creep.real_y = self.rect.y
-                all_sprites_group.add(self.mega_creep)
-                creeps_group.add(self.mega_creep)
-                self.mega_creep.jiv = True
+            elif self.name == 'mega_prizivnik':
+                if self.mega_creep.jiv:
+                    self.mega_creep.real_x = self.rect.x
+                    self.mega_creep.real_y = self.rect.y
+                else:
+                    self.mega_creep.real_x = self.rect.x
+                    self.mega_creep.real_y = self.rect.y
+                    all_sprites_group.add(self.mega_creep)
+                    creeps_group.add(self.mega_creep)
+                    self.mega_creep.jiv = True
 
-        elif self.name == 'nizhniy_slizen':
-            for enemy in enemies_group:
-                if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.centerx >= self.rect.x and enemy.rect.x - self.rect.x < 256 and enemy.alive:
-                    if enemy.sliz:
-                        enemy.sliz.hp += self.sliz_hp
-                    else:
-                        Parasite('sliz_luja_parasite', enemy.rect.centerx, enemy.rect.centery+32, self.damage_type, 0, enemy, self)
+            elif self.name == 'nizhniy_slizen':
+                for enemy in enemies_group:
+                    if (enemy.rect.y - self.rect.y <= 10 and self.rect.y - enemy.rect.y <= 10) and enemy.rect.centerx >= self.rect.x and enemy.rect.x - self.rect.x < 256 and enemy.alive:
+                        if enemy.sliz:
+                            enemy.sliz.hp += self.sliz_hp
+                        else:
+                            Parasite('sliz_luja_parasite', enemy.rect.centerx, enemy.rect.centery+32, self.damage_type, 0, enemy, self)
 
-        elif self.name == "sobaka":
-            if self.buffed_tower:
-                self.buffed_tower.atk /= self.atk_multiplier
+            elif self.name == "sobaka":
+                if self.buffed_tower:
+                    self.buffed_tower.atk /= self.atk_multiplier
 
-        elif self.name == 'furry_druid':
-            if 1536 > self.rect.x >= 1152:
-                Tower("furry_medved", self.pos)
-            elif 1152 > self.rect.x >= 768:
-                Tower("furry_volk", self.pos)
-            elif 768 > self.rect.x >= 384:
-                Tower("furry_zayac", self.pos)
+            elif self.name == 'furry_druid':
+                if 1536 > self.rect.x >= 1152:
+                    Tower("furry_medved", self.pos)
+                elif 1152 > self.rect.x >= 768:
+                    Tower("furry_volk", self.pos)
+                elif 768 > self.rect.x >= 384:
+                    Tower("furry_zayac", self.pos)
 
-        elif self.name == 'oruzhik':
-            if 1536 > self.rect.x >= 1152:
-                Tower("oruzhik_claymore", self.pos)
-            elif 1152 > self.rect.x >= 768:
-                Tower("oruzhik_daggers", self.pos)
-            elif 768 > self.rect.x >= 384:
-                Tower("oruzhik_bow", self.pos)
+            elif self.name == 'oruzhik':
+                if 1536 > self.rect.x >= 1152:
+                    Tower("oruzhik_claymore", self.pos)
+                elif 1152 > self.rect.x >= 768:
+                    Tower("oruzhik_daggers", self.pos)
+                elif 768 > self.rect.x >= 384:
+                    Tower("oruzhik_bow", self.pos)
         # спеллы
 
         elif self.name == "bomb":
@@ -2374,8 +2412,17 @@ class Tower(sprite.Sprite):
             if self.kill_time > 0:
                 self.kill_time -= 1
             else:
-                self.kill()
-                self.alive = False
+                if self.pod_gribochkom > 0:
+                    self.pod_gribochkom -= 1
+                    if self.pod_gribochkom <= 0:
+                        self.hp = 1
+                        for nekusaemiy in nekusaemie_group:
+                            if nekusaemiy.name == 'gribochek' and self.rect.collidepoint(nekusaemiy.rect.centerx, nekusaemiy.rect.centery):
+                                nekusaemiy.kill()
+                                self.pod_gribochkom = 0
+                else:
+                    self.kill()
+                    self.alive = False
         elif self.name == 'kot' and self.lives > 1:
             self.lives -= 1
             self.chill_time = self.unvulnerable = self.basic_chill_time
@@ -2384,8 +2431,17 @@ class Tower(sprite.Sprite):
             self.hp = self.max_hp
         else:
             # self.alive = False
-            self.sound('death')
-            self.kill()     # + потом анимация смерти
+            if self.pod_gribochkom > 0:
+                self.pod_gribochkom -= 1
+                if self.pod_gribochkom <= 0:
+                    self.hp = 1
+                    for nekusaemiy in nekusaemie_group:
+                        if nekusaemiy.name == 'gribochek' and self.rect.collidepoint(nekusaemiy.rect.centerx, nekusaemiy.rect.centery):
+                            nekusaemiy.kill()
+                            self.pod_gribochkom = 0
+            else:
+                self.sound('death')
+                self.kill()     # + потом анимация смерти
 
     def check_hp(self):
         if self.name == 'drachun' and (self.upgrade_level == "2b" or self.upgrade_level == "3b"):
@@ -3735,6 +3791,34 @@ class Tower(sprite.Sprite):
                     self.vulnerables_and_resists['light'] = -90
                     self.vulnerables_and_resists['dark'] = -90
 
+        if self.name == 'grib_strazh':
+            skip = False
+            if pos_is_free((self.rect.centerx+128, self.rect.centery)):
+                Tower('greeb1', (self.rect.x+128, self.rect.y), 'grib_strazh')
+                skip = True
+            else:
+                break_ = False
+                for i in range(3):
+                    if break_ == False:
+                        for j in range(3):
+                            if pos_is_free((self.rect.centerx+128-(i*128), self.rect.centery+128-(j*128))):
+                                Tower('greeb1', (self.rect.x+128-(i*128), self.rect.y+128-(j*128)), 'grib_strazh')
+                                skip = True
+                                break_ = True
+                                break
+                    else:
+                        break
+            if not skip:
+                for tower in towers_group:
+                    if self.grib_rect.collidepoint(tower.rect.centerx, tower.rect.centery) and tower.name == 'greeb1':
+                        tower.kill()
+                        Tower('greeb2', (tower.rect.x, tower.rect.y), 'grib_strazh')
+                        break
+                    elif self.grib_rect.collidepoint(tower.rect.centerx, tower.rect.centery) and tower.name == 'greeb2':
+                        tower.kill()
+                        Tower('greeb3', (tower.rect.x, tower.rect.y), 'grib_strazh')
+                        break
+
         if self.name == 'davalka':
             if self.upgrade_level == '2a' or self.upgrade_level == '3a':
                 casino = randint(1, 1000)
@@ -3874,6 +3958,25 @@ class Tower(sprite.Sprite):
                         self.spawn_something_cooldown = self.basic_spawn_something_cooldown
                         self.ready = False
                         self.add_anim_task("give", self.spawn_something)
+                elif self.name == 'grib_strazh':
+                    for tower in towers_group:
+                        if self.grib_rect.collidepoint(tower.rect.centerx, tower.rect.centery) and (tower.name == 'greeb1' or tower.name == 'greeb2'):
+                            self.spawn_something_cooldown = self.basic_spawn_something_cooldown
+                            self.add_anim_task("give", self.spawn_something)
+                            break
+                    if self.spawn_something_cooldown <= 0:
+                        break_ = False
+                        for i in range(3):
+                            if break_ == False:
+                                for j in range(3):
+                                    if pos_is_free((self.rect.centerx+128-(i*128), self.rect.centery+128-(j*128))):
+                                        self.spawn_something_cooldown = self.basic_spawn_something_cooldown
+                                        self.add_anim_task("give", self.spawn_something)
+                                        break_ = True
+                                        break
+                            else:
+                                break
+
                 else:
                     self.spawn_something_cooldown = self.basic_spawn_something_cooldown
                     self.add_anim_task("give", self.spawn_something)
@@ -4190,6 +4293,16 @@ class Tower(sprite.Sprite):
                 for tower in towers_group:
                     if hasattr(tower, 'atk') and tower.rarity != 'spell' and self.rect.collidepoint(tower.rect.centerx, tower.rect.centery):
                         tower.atk *= self.atk_multiplier
+                        self.buffed_tower = tower
+            else:
+                if self.buffed_tower not in all_sprites_group:
+                    self.buffed_tower = None
+        
+        if self.name == "gribochek":
+            if self.buffed_tower == None:
+                for tower in towers_group:
+                    if tower.rarity != 'spell' and tower.name != 'furry_druid' and tower.name != 'oruzhik' and self.rect.collidepoint(tower.rect.centerx, tower.rect.centery):
+                        tower.pod_gribochkom = self.gribochek_time
                         self.buffed_tower = tower
             else:
                 if self.buffed_tower not in all_sprites_group:
@@ -4641,7 +4754,7 @@ class Enemy(sprite.Sprite):
             self.slabiy2 = Enemy('slabiy', (self.rect.x, self.rect.y-128))
 
         if 0 < self.gribs <= 3:
-            self.grib = Tower('grib'+str(self.gribs), ((384 + ((self.rect.centerx+1 - 384) // 128) * 128), (192 + ((self.rect.y - 192) // 128) * 128)))
+            self.grib = Tower('grib'+str(self.gribs), ((384 + ((self.rect.centerx+1 - 384) // 128) * 128), (192 + ((self.rect.y - 192) // 128) * 128)), 'gribnik')
             self.gribs = 0
             if not (1536 > self.grib.pos[0] >= 384 and 832 > self.grib.pos[1] >= 192) or not is_free(self.grib):
                 self.grib.kill()
@@ -6503,7 +6616,7 @@ class Parasite(sprite.Sprite):
                     if self.rect.collidepoint(self.owner.rect.x+self.randix, self.owner.rect.y+self.randiy):
                         self.rect.centerx = self.owner.rect.x+self.randix
                         self.rect.centery = self.owner.rect.y+self.randiy
-                else:
+                if self.rect.centerx == self.owner.rect.x+self.randix and self.rect.centery == self.owner.rect.y+self.randiy:  # else нельзя
                     self.rect.centerx = self.owner.rect.x+self.randix
                     self.rect.centery = self.owner.rect.y+self.randiy
                     if self.kluving_time > 0:
@@ -6559,7 +6672,7 @@ class Parasite(sprite.Sprite):
                     if self.rect.collidepoint(self.owner.rect.x+self.randix, self.owner.rect.y+self.randiy):
                         self.rect.centerx = self.owner.rect.x+self.randix
                         self.rect.centery = self.owner.rect.y+self.randiy
-                else:
+                if self.rect.centerx == self.owner.rect.x+self.randix and self.rect.centery == self.owner.rect.y+self.randiy:   # else нельзя
                     self.rect.centerx = self.owner.rect.x+self.randix
                     self.rect.centery = self.owner.rect.y+self.randiy
                     if (self.owner.rect.y - self.parent.rect.y <= 118 and self.parent.rect.y - self.owner.rect.y <= 118):
@@ -7622,6 +7735,20 @@ def uniq_is_free(new_tower):
         else:
             return None, None
 
+def pos_is_free(pos, under=False):
+    is_free_list3 = []           # Проверка свободна ли клетка
+    if 1536 > pos[0] >= 384 and 832 > pos[1] >= 192:
+        for tower in towers_group:
+            if tower.under == under:
+                is_free_list3.append(tower.rect.collidepoint(pos[0], pos[1]) is False)
+        for nekusaemiy in nekusaemie_group:
+            if nekusaemiy.under == under:
+                is_free_list3.append(nekusaemiy.rect.collidepoint(pos[0], pos[1]) is False)
+        for neutral_object in neutral_objects_group:
+            is_free_list3.append(neutral_object.rect.collidepoint(pos[0], pos[1]) is False)
+        if all(is_free_list3):
+            is_free_list3.clear()
+            return True
 
 def tower_placement(slot_):
     if is_free(slot_.unit_inside):
