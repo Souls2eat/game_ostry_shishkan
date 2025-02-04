@@ -48,7 +48,7 @@ tower_window_active = image.load("images/tower_select_windows/tower_select_windo
 line_ = image.load("images/other/line.png").convert_alpha()
 unknown_entity = image.load("images/buttons_states/unknown_entity.png").convert_alpha()
 # game_map = image.load("images/maps/global_map/game_map.png").convert_alpha()
-game_map = image.load("images/maps/global_map/game_map_new3.png").convert_alpha()
+game_map = image.load("images/maps/global_map/megamap.png").convert_alpha()
 global_level_image = image.load("images/maps/global_map/global_level.png").convert_alpha()
 ok = image.load("images/buttons_states/ok.png").convert_alpha()
 upgrade_tower_red = image.load("images/buttons_states/upgrade_tower_red.png").convert_alpha()
@@ -97,7 +97,7 @@ upgrades = {}
 your_coins = {}
 event_stage = 0
 developer_mode = True
-temp_hero_pos = (9, 5)
+temp_hero_pos = (3, 22)
 temp_scroll_offset = (0, 0)
 
 
@@ -397,18 +397,19 @@ class GlobalMap:
     @staticmethod
     def build_tiles(default=False):
 
-        GlobalMapTile((8, 4), event=Event(lost_in_forest_event, on_map_image="None"))
-        GlobalMapTile((8, 5), event=Event(lost_in_forest_event, on_map_image="None"))
-        GlobalMapTile((8, 6), event=Event(lost_in_forest_event, on_map_image="None"))
-        GlobalMapTile((8, 7), event=Event(lost_in_forest_event, on_map_image="None"))
-        GlobalMapTile((9, 4), event=Event(lost_in_forest_event, on_map_image="None"))
-        GlobalMapTile((10, 4), event=Event(lost_in_forest_event, on_map_image="None"))
-        GlobalMapTile((10, 5), event=Event(lost_in_forest_event, on_map_image="None"))
-        GlobalMapTile((10, 6), event=Event(lost_in_forest_event, on_map_image="None"))
-        GlobalMapTile((11, 7), event=Event(lost_in_forest_event, on_map_image="None"))
-        GlobalMapTile((12, 12), cant_step=True)
+        GlobalMapTile((3, 23), event=Event(lost_in_forest_event, on_map_image="None"))
+        GlobalMapTile((2, 22), event=Event(lost_in_forest_event, on_map_image="None"))
+        GlobalMapTile((2, 21), event=Event(lost_in_forest_event, on_map_image="None"))
+        GlobalMapTile((3, 21), event=Event(lost_in_forest_event, on_map_image="None"))
+        GlobalMapTile((3, 20), event=Event(lost_in_forest_event, on_map_image="None"))
+        GlobalMapTile((4, 21), event=Event(lost_in_forest_event, on_map_image="None"))
+        GlobalMapTile((4, 23), event=Event(lost_in_forest_event, on_map_image="None"))
+        # GlobalMapTile((10, 6), event=Event(lost_in_forest_event, on_map_image="None"))
+        # GlobalMapTile((11, 7), event=Event(lost_in_forest_event, on_map_image="None"))
+        GlobalMapTile((6, 21), cant_step=True)
+        GlobalMapTile((6, 22), cant_step=True)
 
-        GlobalMapTile((13, 8), event=Event(village_event, bg_image="hello_game_event"))
+        GlobalMapTile((6, 20), event=Event(village_event, bg_image="hello_game_event"))
 
         GlobalMapTile((9, 6), level_meta={
                                 "level_id": (9, 6),
@@ -426,8 +427,8 @@ class GlobalMap:
         if default:
             enemy_levels.clear()
             enemy_levels.append((9, 6))
-            for i in range(41):         # тут создавалось 1025 объектов уровня в 1 тик и игра не отвечала +-5 секунд)))
-                for j in range(25):
+            for i in range(81):         # тут создавалось 1025 объектов уровня в 1 тик и игра не отвечала +-5 секунд)))
+                for j in range(31):
                     enemy_tile_ = choice([0, 0, 0, 1])   # 25%
                     if enemy_tile_ == 1:
                         level_meta = choice(level_meta_pool)
@@ -439,8 +440,8 @@ class GlobalMap:
             save_data()
 
         if not default:
-            for i in range(41):
-                for j in range(25):
+            for i in range(81):
+                for j in range(31):
                     if (i, j) in enemy_levels:
                         level_meta = choice(level_meta_pool)
                         level_meta.update({"level_id": (i, j)})
@@ -516,8 +517,8 @@ class GlobalMap:
 
     def where_is_smoke(self):
         self.smokes_pos = []
-        for i in range(41):
-            for j in range(25):
+        for i in range(81):
+            for j in range(31):
                 if not self.is_level_available((i, j)):
                     self.smokes_pos.append((i, j))
 
@@ -567,8 +568,8 @@ class GlobalMap:
             if level_.chest:
                 level_.chest.refresh()
         self.where_is_smoke()
-        self.hero_pos = (9, 5)
-        scroller.remembered_scroll_offsets["global_map"] = (-578, -318)
+        self.hero_pos = temp_hero_pos
+        scroller.remembered_scroll_offsets["global_map"] = (0, -2495)
 
     def update(self):
         if self.map_size.collidepoint(mouse_pos):
@@ -2347,16 +2348,16 @@ class Tower(sprite.Sprite):
                     Tower("oruzhik_bow", self.pos)
         # спеллы
 
-        elif self.name == "bomb":
+        if self.name == "bomb":
             Bullet("explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'explosion', self)
 
-        elif self.name == "perec":
+        if self.name == "perec":
             Bullet("perec_bullet", 960, self.rect.bottom-8, self.damage_type, self.atk, 0, 0, 'explosion', self)
 
-        elif self.name == "vistrel":
+        if self.name == "vistrel":
             Bullet("vistrel_bullet", 384, self.rect.centery-10, self.damage_type, self.atk, self.bullet_speed_x, self.bullet_speed_y, 'default', self)
 
-        elif self.name == 'molniya':
+        if self.name == 'molniya':
             for i in range(3):
                 for enemy in enemies_group:
                     if enemy.alive and self not in enemy.parasite_parents:
@@ -2376,24 +2377,24 @@ class Tower(sprite.Sprite):
                         Parasite('mol', randint(384, 1536), randint(-258, 382), self.damage_type, self.atk, self, self)
                 self.moiniya_popala = False
 
-        elif self.name == "vodka":
+        if self.name == "vodka":
             for i in range(9):
                 self.buff_x = 1 + (i % 3) * 128 - 128
                 self.buff_y = 1 + (i // 3) * 128 - 128
                 self.buff = Buff("vodkamat", self.rect.x + self.buff_x, self.rect.y + self.buff_y, self)
 
-        elif self.name == "easy_money":
+        if self.name == "easy_money":
             level.money += 30
 
-        elif self.name == "tp_back":
+        if self.name == "tp_back":
             for enemy_ in enemies_group:
                 if enemy_.rect.centerx <= 1024:
                     enemy_.real_x = 1536
 
-        elif self.name == "joltiy_pomidor":
+        if self.name == "joltiy_pomidor":
             Bullet("joltiy_explosion", self.rect.centerx, self.rect.centery, self.damage_type, self.atk, 0, 0, 'joltiy_explosion', self)
 
-        elif self.name == "heal":
+        if self.name == "heal":
             Bullet("heal_field", self.rect.centerx, self.rect.centery, self.damage_type, 0, 0, 0, 'visual_effect', self)
             for tower in towers_group:
                 if tower.rect.colliderect(self.rect_krest1) or tower.rect.colliderect(self.rect_krest2):
@@ -2402,10 +2403,10 @@ class Tower(sprite.Sprite):
                     else:
                         tower.hp = tower.max_hp
 
-        elif self.name == "zaduv":
+        if self.name == "zaduv":
             Parasite("potok_y", self.rect.centerx, self.rect.centery, self.damage_type, 0, self, self)
 
-        elif self.name == "holod":
+        if self.name == "holod":
             Bullet("holod_row", self.rect.centerx, 512, self.damage_type, 0, 0, 0, 'holod_row', self)
 
         if self.name == 'drachun' and self.upgrade_level == '3b':   # работает неправильно наверно!!!
@@ -2423,7 +2424,7 @@ class Tower(sprite.Sprite):
                 else:
                     self.kill()
                     self.alive = False
-        elif self.name == 'kot' and self.lives > 1:
+        if self.name == 'kot' and self.lives > 1:
             self.lives -= 1
             self.chill_time = self.unvulnerable = self.basic_chill_time
             towers_group.remove(self)
@@ -7533,8 +7534,8 @@ class Scroller:
                 "y": {"min": -3050, "max": 0}
             },
             "global_map": {
-                "x": {"min": -3838, "max": 0},  # -2
-                "y": {"min": -2302, "max": 0}   # -2
+                "x": {"min": -8958, "max": 0},  # -2
+                "y": {"min": -3070, "max": 0}   # -2
             },
             "reward_second_stage": {
                 "x": {"min": 0, "max": 0},
@@ -7735,6 +7736,7 @@ def uniq_is_free(new_tower):
         else:
             return None, None
 
+
 def pos_is_free(pos, under=False):
     is_free_list3 = []           # Проверка свободна ли клетка
     if 1536 > pos[0] >= 384 and 832 > pos[1] >= 192:
@@ -7749,6 +7751,7 @@ def pos_is_free(pos, under=False):
         if all(is_free_list3):
             is_free_list3.clear()
             return True
+
 
 def tower_placement(slot_):
     if is_free(slot_.unit_inside):
@@ -8831,6 +8834,7 @@ shovel = Shovel((1500, 800))
 running = True
 while running:
 
+    print(global_map.hero_pos)
     mouse_pos = mouse.get_pos()
     global_map.update()
     menu_positioning()
